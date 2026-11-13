@@ -1,754 +1,2060 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0" />
-  <title>School Document Kiosk</title>
-
-  <style>
-    @font-face { font-family: 'Noto Sans Devanagari'; src: url('/fonts/noto-sans-devanagari-devanagari-400-normal.woff2') format('woff2'); font-display: swap; }
-    @font-face { font-family: 'Noto Sans Devanagari'; src: url('/fonts/noto-sans-devanagari-latin-400-normal.woff2') format('woff2'); unicode-range: U+0000-00FF; font-display: swap; }
-    @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } .step.active { opacity: 1; transform: none; } }
-    button, .list-row, .lang-card { min-height: 52px; }
-    :focus-visible { outline: 3px solid #007AFF; outline-offset: 3px; }
-
-    :root {
-      --bg: #F2F2F7;
-      --card: #FFFFFF;
-      --text: #1C1C1E;
-      --muted: #6E6E73;
-      --blue: #007AFF;
-      --green: #34C759;
-      --red: #FF3B30;
-      --border: rgba(0, 0, 0, 0.06);
-      --radius: 20px;
-      --ease: cubic-bezier(0.22, 1, 0.36, 1);
-    }
-    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-    body {
-      margin: 0;
-      background: var(--bg);
-      color: var(--text);
-      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Noto Sans Devanagari", "Nirmala UI", sans-serif;
-      font-variant-numeric: tabular-nums;
-      -webkit-font-smoothing: antialiased;
-    }
-
-    /* Top iOS Frosted Bar */
-    .topbar {
-      position: sticky; top: 0; z-index: 20;
-      display: flex; justify-content: space-between; align-items: center;
-      padding: 14px 20px;
-      background: rgba(242, 242, 247, 0.85);
-      backdrop-filter: blur(18px);
-      border-bottom: 1px solid var(--border);
-    }
-    .brand { font-weight: 700; font-size: 17px; letter-spacing: -0.2px; }
-    .pill-group { display: flex; gap: 8px; }
-    .pill-btn {
-      background: var(--card); border: 1px solid var(--border);
-      padding: 7px 14px; border-radius: 999px; font-size: 13px; font-weight: 600;
-      color: var(--text); cursor: pointer; transition: transform 0.15s var(--ease), background 0.2s;
-    }
-    .pill-btn:active { transform: scale(0.95); }
-    .pill-btn.active { background: var(--blue); color: #fff; border-color: var(--blue); }
-
-    /* Main Container & Jitter-Free Step Transitions */
-    .container { max-width: 540px; margin: 24px auto; padding: 0 16px 60px; }
-    .step { display: none; opacity: 0; transform: translateY(10px); }
-    .step.active {
-      display: block;
-      animation: iosFadeIn 0.28s var(--ease) forwards;
-    }
-    @keyframes iosFadeIn {
-      to { opacity: 1; transform: translateY(0); }
-    }
-
-    h1 { font-size: 26px; font-weight: 700; letter-spacing: -0.5px; margin: 0 0 6px; }
-    p.sub { color: var(--muted); font-size: 15px; margin: 0 0 22px; line-height: 1.45; }
-
-    /* iOS Grouped Cards */
-    .card {
-      background: var(--card);
-      border-radius: var(--radius);
-      padding: 18px;
-      margin-bottom: 16px;
-      box-shadow: 0 2px 14px rgba(0, 0, 0, 0.035);
-      border: 1px solid var(--border);
-    }
-    .lang-card {
-      display: flex; justify-content: space-between; align-items: center;
-      padding: 20px 22px; cursor: pointer;
-      transition: transform 0.16s var(--ease), box-shadow 0.2s;
-    }
-    .lang-card:active { transform: scale(0.975); }
-    .lang-title { font-size: 20px; font-weight: 700; }
-    .lang-sub { font-size: 13px; color: var(--muted); margin-top: 2px; }
-    .chevron { color: #C7C7CC; font-size: 22px; font-weight: 600; }
-
-    /* Inputs & Buttons */
-    label { display: block; font-size: 13px; font-weight: 600; color: var(--muted); margin-bottom: 6px; }
-    input, select, textarea {
-      width: 100%; padding: 14px 16px; border-radius: 14px;
-      border: 1px solid #D1D1D6; background: #FAFAFC;
-      font-size: 16px; font-family: inherit; color: var(--text);
-      outline: none; transition: border-color 0.2s, background 0.2s;
-      margin-bottom: 14px;
-    }
-    input:focus, select:focus, textarea:focus { border-color: var(--blue); background: #fff; }
-
-    .btn {
-      width: 100%; padding: 15px; border-radius: 14px; border: none;
-      font-size: 16px; font-weight: 600; cursor: pointer;
-      transition: transform 0.15s var(--ease), opacity 0.2s;
-    }
-    .btn:active { transform: scale(0.975); }
-    .btn-primary { background: var(--blue); color: #fff; }
-    .btn-green { background: var(--green); color: #fff; }
-    .btn-secondary { background: #E5E5EA; color: var(--text); margin-top: 10px; }
-
-    /* Segmented Control (iOS Style) */
-    .segmented {
-      display: grid; grid-template-columns: 1fr 1fr;
-      background: #E5E5EA; padding: 3px; border-radius: 12px; margin-bottom: 16px;
-    }
-    .seg-btn {
-      padding: 9px; border: none; border-radius: 9px; background: transparent;
-      font-size: 14px; font-weight: 600; color: var(--muted); cursor: pointer;
-      transition: all 0.2s var(--ease);
-    }
-    .seg-btn.active { background: #fff; color: var(--text); box-shadow: 0 1px 4px rgba(0,0,0,0.1); }
-
-    /* Student & Document List Rows */
-    .list-row {
-      display: flex; justify-content: space-between; align-items: center;
-      padding: 15px 4px; border-bottom: 1px solid var(--border); cursor: pointer;
-    }
-    .list-row:last-child { border-bottom: none; }
-    .list-row:active { opacity: 0.65; }
-    .badge {
-      background: #EBF5FF; color: var(--blue);
-      padding: 4px 10px; border-radius: 8px; font-size: 12px; font-weight: 700;
-    }
-    .error-banner {
-      background: #FFEBEA; color: var(--red); padding: 12px 14px;
-      border-radius: 12px; font-size: 14px; font-weight: 500; margin-bottom: 14px; display: none;
-    }
-
-    /* Live Campus QR Screen */
-    .qr-box { text-align: center; padding: 24px; }
-    .campus-code { font-size: 46px; font-weight: 800; letter-spacing: 6px; color: var(--blue); margin: 10px 0; }
-
-    /* A4 Printable Certificate Layout */
-    #print-sheet { display: none; }
-    @page { size: A4; margin: 18mm; }
-    @media print {
-      body { background: white; }
-      body > :not(#print-sheet) { display: none !important; }
-      #print-sheet { display: block !important; width: 100%; color: black; }
-      #print-sheet .cert-preview { padding: 0; border: 0; overflow-wrap: anywhere; }
-      .cert-header, .cert-footer { break-inside: avoid; }
-      .cert-footer { margin-top: 24mm; }
-    }
-    .cert-preview {
-      border: 2px solid #1C1C1E; padding: 24px; border-radius: 8px; background: #fff;
-      font-family: "Times New Roman", "Noto Sans Devanagari", serif; line-height: 1.7;
-    }
-    .cert-header { text-align: center; border-bottom: 2px solid #1C1C1E; padding-bottom: 12px; margin-bottom: 18px; }
-    .cert-footer { display: flex; justify-content: space-between; align-items: flex-end; margin-top: 48px; }
-    .cert-footer img { max-height: 64px; max-width: 140px; object-fit: contain; }
-  </style>
-</head>
-<body>
-
-  <div class="topbar">
-    <div class="brand">School Docs</div>
-    <div class="pill-group">
-      <button class="pill-btn active" id="nav-parent" onclick="switchMode('parent')">Parent</button>
-      <button class="pill-btn" id="nav-kiosk" onclick="switchMode('kiosk')">Live QR</button>
-      <button class="pill-btn" id="nav-admin" onclick="switchMode('admin')">Admin</button>
-    </div>
-  </div>
-
-  <!-- ================= PARENT SELF-SERVICE FLOW ================= -->
-  <div class="container" id="view-parent">
-
-    <!-- Step 1: Language Selection -->
-    <div class="step active" id="step-1">
-      <h1>Welcome • स्वागत आहे</h1>
-      <p class="sub">Select your preferred language to get school documents.</p>
-
-      <div class="card lang-card" onclick="selectLang('mr')">
-        <div><div class="lang-title">मराठी</div><div class="lang-sub">शाळेची कागदपत्रे मिळवा</div></div>
-        <div class="chevron">›</div>
-      </div>
-      <div class="card lang-card" onclick="selectLang('hi')">
-        <div><div class="lang-title">हिंदी</div><div class="lang-sub">स्कूल के दस्तावेज प्राप्त करें</div></div>
-        <div class="chevron">›</div>
-      </div>
-      <div class="card lang-card" onclick="selectLang('en')">
-        <div><div class="lang-title">English</div><div class="lang-sub">Get Bonafide, Certificates & Receipts</div></div>
-        <div class="chevron">›</div>
-      </div>
-    </div>
-
-    <!-- Step 2: Find Student -->
-    <div class="step" id="step-2">
-      <h1 id="t-find-title">Find Student</h1>
-      <p class="sub" id="t-find-sub">Search using registered mobile number or student name.</p>
-
-      <div class="card">
-        <div class="segmented">
-          <button class="seg-btn active" id="tab-phone" onclick="setSearchTab('phone')">Mobile Number</button>
-          <button class="seg-btn" id="tab-name" onclick="setSearchTab('name')">Class & Name</button>
-        </div>
-
-        <div id="box-phone">
-          <label id="t-lbl-phone">Registered Mobile Number</label>
-          <input type="tel" id="inp-phone" maxlength="10" placeholder="e.g. 9822011111" oninput="searchStudents()" />
-        </div>
-
-        <div id="box-name" style="display:none;">
-          <label>Class</label>
-          <select id="inp-class" onchange="searchStudents()">
-            <option value="ALL">All Classes</option>
-            <option>1st</option><option>2nd</option><option>3rd</option><option>4th</option>
-            <option>5th</option><option>6th</option><option>7th</option><option>8th</option>
-            <option>9th</option><option>10th</option>
-          </select>
-          <label>Student or Father Name (min 2 letters)</label>
-          <input type="text" id="inp-name" placeholder="e.g. Aarav or Patil" oninput="searchStudents()" />
-        </div>
-
-        <div id="student-results"></div>
-      </div>
-      <button class="btn btn-secondary" onclick="goStep(1)">← Back</button>
-    </div>
-
-    <!-- Step 3: Family Verification & Document Choice -->
-    <div class="step" id="step-3">
-      <h1 id="sel-student-name">Student Name</h1>
-      <p class="sub" id="sel-student-meta">Class • GR Number</p>
-
-      <div class="error-banner" id="verify-error"></div>
-
-      <div class="card">
-        <label id="t-lbl-by">Child's Birth Year (4 Digits)</label>
-        <input type="tel" id="inp-birth-year" maxlength="4" placeholder="e.g. 2013" />
-
-        <div id="campus-code-wrap">
-          <label>School Monitor Campus Code</label>
-          <input type="tel" id="inp-campus-code" maxlength="4" placeholder="4-digit code on school screen" />
-        </div>
-
-        <label style="display:flex;align-items:center;gap:8px;cursor:pointer;margin-top:4px;">
-          <input type="checkbox" id="chk-guardian" style="width:auto;margin:0;" onchange="toggleGuardian()" />
-          <span>Guardian visiting without registered phone</span>
-        </label>
-        <div id="guardian-box" style="display:none;margin-top:10px;">
-          <label>Guardian Mobile Number (Logged for Security)</label>
-          <input type="tel" id="inp-guardian-phone" maxlength="10" placeholder="Enter your mobile number" />
-        </div>
-      </div>
-
-      <div class="card">
-        <label id="t-lbl-docs">Tap Document to Generate</label>
-        <div id="doc-list"></div>
-      </div>
-
-      <button class="btn btn-secondary" onclick="goStep(2)">← Change Student</button>
-    </div>
-
-    <!-- Step 4: Instant Certificate Preview, Print & WhatsApp -->
-    <div class="step" id="step-4">
-      <h1>Ready • तयार आहे</h1>
-      <p class="sub">Auto-wipes in <strong id="wipe-timer">45</strong>s for privacy.</p>
-
-      <div class="card" style="padding:12px;">
-        <div class="cert-preview" id="cert-container"></div>
-      </div>
-
-      <button class="btn btn-primary" onclick="window.print()">🖨️ Print Copy Now</button>
-      <button class="btn btn-green" style="margin-top:10px;" onclick="sendWhatsAppShare()">💬 Send on WhatsApp</button>
-      <button class="btn btn-secondary" onclick="resetSession()">Done & Clear Screen</button>
-    </div>
-  </div>
-
-  <!-- ================= LIVE 60s CAMPUS QR MONITOR ================= -->
-  <div class="container" id="view-kiosk" style="display:none;">
-    <div class="card qr-box">
-      <div style="font-size:14px;font-weight:600;color:var(--muted);">SCAN AT SCHOOL COUNTER</div>
-      <img id="live-qr-img" src="" alt="Campus QR" style="width:220px;height:220px;margin:16px auto;display:block;border-radius:16px;" />
-      <div class="campus-code" id="live-code-text">----</div>
-      <div style="font-size:14px;color:var(--muted);">Refreshes automatically in <strong id="live-sec">60</strong>s</div>
-    </div>
-  </div>
-
-  <!-- ================= PASSWORD-LOCKED ADMIN PANEL ================= -->
-  <div class="container" id="view-admin" style="display:none;">
-    <div id="admin-login-box" class="card">
-      <h1>Admin Login</h1>
-      <p class="sub">Authorized school staff only.</p>
-      <input type="text" id="adm-user" value="admin" placeholder="Username" />
-      <input type="password" id="adm-pass" placeholder="Password (initial: school1234)" />
-      <button class="btn btn-primary" onclick="adminLogin()">Unlock Admin Panel</button>
-    </div>
-
-    <div id="admin-panel" style="display:none;">
-      <div class="card"><button class="btn btn-secondary" onclick="adminLogout()">Lock admin panel</button><button class="btn btn-secondary" onclick="createBackup()">Create local database backup</button><p class="sub">Change the initial password before using real records.</p></div>
-      <div class="card">
-        <h2 style="margin-top:0;">1. Add or Edit Student / Bulk CSV</h2>
-        <input type="text" id="st-gr" placeholder="GR Number (e.g. 4503)" />
-        <input type="text" id="st-name" placeholder="Full Name (Student Father Surname)" />
-        <input type="text" id="st-father" placeholder="Father's Full Name" />
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
-          <input type="text" id="st-class" placeholder="Class (e.g. 9th)" />
-          <input type="text" id="st-div" placeholder="Division (e.g. A)" />
-        </div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
-          <input type="text" id="st-dob" placeholder="DOB (DD/MM/YYYY)" />
-          <input type="tel" id="st-phone" placeholder="Parent Mobile" />
-        </div>
-        <button class="btn btn-primary" onclick="saveStudent()">Save Student Record</button>
-        <label style="margin-top:14px;">Or Upload CSV (gr_number,full_name,father_name,class_name,division,dob,parent_phone)</label>
-        <input type="file" accept=".csv" onchange="uploadCSV(event)" />
-      </div>
-
-      <div class="card"><h2>Student Records</h2><div id="admin-students"></div></div>
-      <div class="card">
-        <h2 style="margin-top:0;">2. Add New Certificate Template</h2>
-        <input type="text" id="tpl-mr" placeholder="Marathi Title (e.g. बोनाफाईड प्रमाणपत्र)" />
-        <input type="text" id="tpl-hi" placeholder="Hindi Title (e.g. बोनाफाइड प्रमाणपत्र)" />
-        <input type="text" id="tpl-en" placeholder="English Title (e.g. Bonafide Certificate)" />
-        <textarea id="tpl-body" rows="4" placeholder="Use placeholders: {{student_name}}, {{father_name}}, {{class_name}}, {{division}}, {{gr_number}}, {{dob}}, {{issue_date}}"></textarea>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
-          <div>
-            <label>Principal Signature Position</label>
-            <select id="tpl-sig"><option value="right">Bottom Right</option><option value="left">Bottom Left</option><option value="none">Hidden</option></select>
-          </div>
-          <div>
-            <label>School Stamp Position</label>
-            <select id="tpl-stamp"><option value="center">Bottom Center</option><option value="left">Bottom Left</option><option value="right">Bottom Right</option><option value="none">Hidden</option></select>
-          </div>
-        </div>
-        <button class="btn btn-primary" onclick="saveTemplate()">Add Document to Kiosk & WhatsApp</button>
-        <div id="admin-tpl-list" style="margin-top:12px;"></div>
-      </div>
-
-      <div class="card">
-        <h2 style="margin-top:0;">3. School Header, Signature & Stamp</h2>
-        <input type="text" id="set-name" placeholder="School Name" />
-        <input type="text" id="set-sub" placeholder="Address / Board Recognition" />
-        <input type="text" id="set-udise" placeholder="UDISE Number" />
-        <input type="text" id="set-wa" placeholder="School WhatsApp Number (91...)" />
-        <label>Upload School Logo (PNG)</label><input type="file" accept="image/png" onchange="encodeImage(event, 'logo')" />
-        <label>Upload Principal Signature (PNG)</label>
-        <input type="file" accept="image/png" onchange="encodeImage(event, 'sig')" />
-        <label>Upload School Round Stamp (PNG)</label>
-        <input type="file" accept="image/png" onchange="encodeImage(event, 'stamp')" />
-        <button class="btn btn-primary" onclick="saveSettings()">Save Branding & Stamp</button>
-      </div>
-
-      <div class="card">
-        <h2 style="margin-top:0;">4. Security & Recent Audit Logs</h2>
-        <input type="password" id="new-adm-pass" placeholder="New Admin Password (min 10 chars)" />
-        <button class="btn btn-secondary" onclick="changeAdminPassword()">Update Admin Password</button>
-        <div id="admin-logs" style="margin-top:14px;font-size:13px;"></div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Hidden Clean A4 Sheet for Silent Printer -->
-  <div id="print-sheet"></div>
-
-  <script>
-    const escapeHtml = v => String(v ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-    const nativeFetch = window.fetch.bind(window);
-    window.fetch = async (...args) => {
-      const response = await nativeFetch(...args);
-      if (!response.ok) { const body = await response.clone().json().catch(() => ({})); throw new Error(body.error || 'Request failed'); }
-      return response;
-    };
-    window.addEventListener('unhandledrejection', event => { event.preventDefault(); alert(event.reason?.message || 'Unable to reach the local server.'); });
-
-    let state = {
-      lang: 'en',
-      searchMode: 'phone',
-      selectedStudent: null,
-      templates: [],
-      lastCert: null,
-      adminToken: '',
-      uploadedSig: null,
-      uploadedStamp: null,
-      wipeInterval: null
-    };
-
-    const i18n = {
-      mr: {
-        findTitle: 'विद्यार्थी शोधा', findSub: 'नोंदणीकृत मोबाईल नंबर किंवा विद्यार्थ्याचे नाव टाका.',
-        lblPhone: 'नोंदणीकृत मोबाईल नंबर', lblBy: 'विद्यार्थ्याचे जन्मवर्ष (उदा. 2013)', lblDocs: 'प्रमाणपत्र निवडा'
-      },
-      hi: {
-        findTitle: 'छात्र खोजें', findSub: 'पंजीकृत मोबाइल नंबर या छात्र का नाम दर्ज करें।',
-        lblPhone: 'पंजीकृत मोबाइल नंबर', lblBy: 'छात्र का जन्म वर्ष (जैसे 2013)', lblDocs: 'दस्तावेज़ चुनें'
-      },
-      en: {
-        findTitle: 'Find Student', findSub: 'Search using registered mobile number or student name.',
-        lblPhone: 'Registered Mobile Number', lblBy: "Child's Birth Year (4 Digits)", lblDocs: 'Tap Document to Generate'
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>RGC · School Document Portal</title>
+    <style>
+      @font-face {
+        font-family: Noto;
+        src: url("/fonts/noto-sans-devanagari-devanagari-400-normal.woff2");
       }
-    };
-
-    // Detect if opened directly on School PC (localhost) vs Parent Phone
-    const isLocalKiosk = ['localhost', '127.0.0.1'].includes(window.location.hostname);
-    if (isLocalKiosk) document.getElementById('campus-code-wrap').style.display = 'none';
-
-    async function loadTemplates() {
-      const res = await fetch('/api/public-config');
-      const data = await res.json();
-      state.templates = data.templates || [];
-    }
-    loadTemplates();
-
-    function switchMode(mode) {
-      ['parent', 'kiosk', 'admin'].forEach(m => {
-        document.getElementById('view-' + m).style.display = m === mode ? 'block' : 'none';
-        document.getElementById('nav-' + m).classList.toggle('active', m === mode);
-      });
-      if (mode !== 'parent') resetSession();
-      if (mode !== 'admin' && state.adminToken) adminLogout();
-      if (mode === 'kiosk') refreshCampusQR();
-    }
-
-    function goStep(n) {
-      document.querySelectorAll('.step').forEach(el => el.classList.remove('active'));
-      document.getElementById('step-' + n).classList.add('active');
-    }
-
-    function selectLang(lang) {
-      state.lang = lang;
-      const t = i18n[lang];
-      document.getElementById('t-find-title').textContent = t.findTitle;
-      document.getElementById('t-find-sub').textContent = t.findSub;
-      document.getElementById('t-lbl-phone').textContent = t.lblPhone;
-      document.getElementById('t-lbl-by').textContent = t.lblBy;
-      document.getElementById('t-lbl-docs').textContent = t.lblDocs;
-      document.documentElement.lang = lang;
-      goStep(2);
-    }
-
-    function setSearchTab(tab) {
-      state.searchMode = tab;
-      document.getElementById('tab-phone').classList.toggle('active', tab === 'phone');
-      document.getElementById('tab-name').classList.toggle('active', tab === 'name');
-      document.getElementById('box-phone').style.display = tab === 'phone' ? 'block' : 'none';
-      document.getElementById('box-name').style.display = tab === 'name' ? 'block' : 'none';
-      document.getElementById('student-results').innerHTML = '';
-    }
-
-    let searchTimer; let searchVersion = 0;
-    function searchStudents() {
-      clearTimeout(searchTimer);
-      const version = ++searchVersion;
-      searchTimer = setTimeout(async () => {
-        const payload = {
-          mode: state.searchMode,
-          phone: document.getElementById('inp-phone').value,
-          className: document.getElementById('inp-class').value,
-          query: document.getElementById('inp-name').value
-        };
-        const res = await fetch('/api/search-student', {
-          method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload)
-        });
-        const data = await res.json();
-        const box = document.getElementById('student-results');
-        if (version !== searchVersion) return;
-        box.replaceChildren();
-        for (const s of data.students || []) {
-          const row = document.createElement('button'); row.className = 'list-row'; row.style.width = '100%'; row.style.textAlign = 'left';
-          row.innerHTML = `<div><strong>${escapeHtml(s.full_name)}</strong><div>Class ${escapeHtml(s.class_name)}-${escapeHtml(s.division)} · ${escapeHtml(s.masked_phone)}</div></div><span class="badge">GR ${escapeHtml(s.gr_number)}</span>`;
-          row.onclick = () => chooseStudent(s); box.append(row);
+      @font-face {
+        font-family: Noto;
+        src: url("/fonts/noto-sans-devanagari-latin-400-normal.woff2");
+        unicode-range: U+0000-00FF;
+      }
+      :root {
+        --blue: #0069ed;
+        --ink: #192536;
+        --muted: #697586;
+        --ease: cubic-bezier(0.22, 1, 0.36, 1);
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        background: #f2f2f7;
+        color: var(--ink);
+        font:
+          16px -apple-system,
+          BlinkMacSystemFont,
+          "Segoe UI",
+          Noto,
+          sans-serif;
+        font-variant-numeric: tabular-nums;
+      }
+      button,
+      input,
+      select,
+      textarea {
+        font: inherit;
+      }
+      button {
+        cursor: pointer;
+        border: 0;
+        border-radius: 13px;
+        background: #eaf2ff;
+        color: #005ccd;
+        font-weight: 600;
+        padding: 13px 18px;
+        min-height: 52px;
+        transition: transform 0.15s var(--ease);
+      }
+      button:active {
+        transform: scale(0.97);
+      }
+      button:disabled {
+        opacity: 0.5;
+        cursor: wait;
+      }
+      .primary {
+        background: var(--blue);
+        color: white;
+      }
+      .danger {
+        background: #fff0ef;
+        color: #bb3535;
+      }
+      .quiet {
+        background: transparent;
+        color: var(--muted);
+      }
+      :focus-visible {
+        outline: 3px solid #69a5ff;
+        outline-offset: 3px;
+      }
+      input,
+      select,
+      textarea {
+        width: 100%;
+        border: 1px solid #d8dfe9;
+        border-radius: 12px;
+        background: #fafbfe;
+        padding: 13px;
+        min-height: 52px;
+        color: var(--ink);
+      }
+      textarea {
+        resize: vertical;
+        line-height: 1.6;
+      }
+      input[type="checkbox"] {
+        width: 22px;
+        min-height: 22px;
+        height: 22px;
+        accent-color: var(--blue);
+      }
+      input[type="file"] {
+        font-size: 13px;
+      }
+      label {
+        display: block;
+        font-size: 13px;
+        font-weight: 650;
+        margin: 15px 0 7px;
+      }
+      h1,
+      h2,
+      h3,
+      p {
+        margin-top: 0;
+      }
+      h1 {
+        font-size: 30px;
+        letter-spacing: -1px;
+        line-height: 1.35;
+        margin-bottom: 9px;
+      }
+      h2 {
+        font-size: 22px;
+        letter-spacing: -0.5px;
+      }
+      h3 {
+        font-size: 16px;
+      }
+      p {
+        line-height: 1.7;
+      }
+      .muted {
+        color: var(--muted);
+      }
+      .small {
+        font-size: 13px;
+      }
+      .eyebrow {
+        color: var(--blue);
+        text-transform: uppercase;
+        font-size: 11px;
+        font-weight: 750;
+        letter-spacing: 1.6px;
+        margin-bottom: 10px;
+      }
+      .top {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 16px max(22px, calc((100vw - 1240px) / 2));
+        gap: 20px;
+        background: #ffffffde;
+        border-bottom: 1px solid #e6e9ef;
+        backdrop-filter: blur(20px);
+      }
+      .brand {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
+      .mark {
+        width: 44px;
+        height: 44px;
+        display: grid;
+        place-items: center;
+        background: var(--blue);
+        border-radius: 14px;
+        color: white;
+        font-size: 13px;
+        font-weight: 800;
+        letter-spacing: 1px;
+      }
+      .brand strong {
+        font-size: 17px;
+        display: block;
+      }
+      .brand small {
+        font-size: 12px;
+        color: var(--muted);
+      }
+      .nav {
+        display: flex;
+        background: #edf0f5;
+        padding: 4px;
+        border-radius: 15px;
+        gap: 3px;
+      }
+      .nav button {
+        background: transparent;
+        min-height: 40px;
+        padding: 9px 15px;
+        font-size: 13px;
+        color: var(--muted);
+      }
+      .nav .active {
+        background: white;
+        color: var(--ink);
+        box-shadow: 0 2px 5px #1a2b4310;
+      }
+      main {
+        max-width: 680px;
+        padding: 30px 20px 70px;
+        margin: auto;
+      }
+      .wide {
+        max-width: 1240px;
+      }
+      .card {
+        background: white;
+        border: 1px solid #e6e9ef;
+        border-radius: 24px;
+        padding: 28px;
+        box-shadow: 0 8px 30px #18334b04;
+      }
+      .stepbar {
+        display: flex;
+        gap: 8px;
+        margin-bottom: 20px;
+      }
+      .stepbar span {
+        height: 4px;
+        background: #dce3ee;
+        flex: 1;
+        border-radius: 4px;
+      }
+      .stepbar .on {
+        background: var(--blue);
+      }
+      .step {
+        animation: enter 0.26s var(--ease);
+      }
+      @keyframes enter {
+        from {
+          opacity: 0;
+          transform: translateY(8px);
         }
-      }, 180);
-    }
-
-    function chooseStudent(student) {
-      state.selectedStudent = student;
-      document.getElementById('sel-student-name').textContent = student.full_name;
-      document.getElementById('sel-student-meta').textContent = `Class ${student.class_name}-${student.division} • GR No. ${student.gr_number}`;
-      document.getElementById('verify-error').style.display = 'none';
-
-      const docBox = document.getElementById('doc-list');
-      docBox.innerHTML = state.templates.map(t => {
-        const label = state.lang === 'mr' ? t.title_mr : state.lang === 'hi' ? t.title_hi : t.title_en;
-        return `<div class="list-row" onclick="generateDoc(${t.id})">
-          <div style="font-weight:600;font-size:16px;">📄 ${escapeHtml(label)}</div>
-          <div class="chevron">›</div>
-        </div>`;
-      }).join('');
-      goStep(3);
-    }
-
-    function toggleGuardian() {
-      document.getElementById('guardian-box').style.display = document.getElementById('chk-guardian').checked ? 'block' : 'none';
-    }
-
-    async function generateDoc(templateId) {
-      const errBox = document.getElementById('verify-error');
-      errBox.style.display = 'none';
-      const payload = {
-        grNumber: state.selectedStudent.gr_number,
-        birthYear: document.getElementById('inp-birth-year').value,
-        campusCode: document.getElementById('inp-campus-code').value,
-        templateId,
-        isGuardian: document.getElementById('chk-guardian').checked,
-        guardianPhone: document.getElementById('inp-guardian-phone').value,
-        isLocalKiosk
-      };
-      const res = await fetch('/api/generate-document', {
-        method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload)
-      });
-      const data = await res.json();
-      if (!res.ok) {
-        errBox.textContent = data.error;
-        errBox.style.display = 'block';
-        return;
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
       }
-
-      state.lastCert = data;
-      const qrVerifyUrl = '/api/qr?text=' + encodeURIComponent(location.origin + '/verify/' + data.serialNo);
-
-      const sigImg = (data.sigPos !== 'none' && data.settings.signature_data) ? `<img src="${data.settings.signature_data}" alt="Principal Signature"/><br/>` : '';
-      const stampImg = (data.stampPos !== 'none' && data.settings.stamp_data) ? `<img src="${data.settings.stamp_data}" alt="School Stamp"/>` : '';
-
-      const certHtml = `
-        <div class="cert-header">
-          <div>${data.settings.logo_data ? `<img src="${data.settings.logo_data}" alt="School logo" style="height:60px;max-width:100px;object-fit:contain;"/>` : ''}</div><div style="font-size:18px;font-weight:700;">${escapeHtml(data.settings.school_name)}</div>
-          <div style="font-size:12px;">${escapeHtml(data.settings.school_subtitle)}</div>
-          <div style="font-size:11px;">${escapeHtml(data.settings.udise_no)}</div>
+      [hidden] {
+        display: none !important;
+      }
+      .row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+      }
+      .grid2,
+      .layout,
+      .qr-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 20px;
+        align-items: start;
+      }
+      .full {
+        width: 100%;
+      }
+      .lang {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        width: 100%;
+        text-align: left;
+        background: white;
+        color: var(--ink);
+        border: 1px solid #e6e9ef;
+        padding: 20px;
+        margin-top: 13px;
+        border-radius: 18px;
+        min-height: 86px;
+      }
+      .lang strong {
+        font-family: Noto, system-ui;
+        font-size: 22px;
+      }
+      .lang small {
+        display: block;
+        color: var(--muted);
+        margin-top: 4px;
+        font-size: 12px;
+      }
+      .lang .symbol {
+        width: 42px;
+        height: 42px;
+        background: #eff5ff;
+        border-radius: 14px;
+        display: grid;
+        place-items: center;
+        color: var(--blue);
+      }
+      .listen {
+        font-size: 13px;
+        min-height: 42px;
+        background: #eff5ff;
+        white-space: nowrap;
+      }
+      .status {
+        min-height: 24px;
+        font-size: 14px;
+        color: #b12e36;
+        margin: 14px 0;
+        overflow-wrap: anywhere;
+      }
+      .notice {
+        padding: 13px 16px;
+        border-radius: 12px;
+        background: #fff7e9;
+        color: #865a13;
+        font-size: 13px;
+        line-height: 1.7;
+      }
+      .student {
+        width: 100%;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        text-align: left;
+        border: 1px solid #e6e9ef;
+        background: white;
+        color: var(--ink);
+        margin-top: 10px;
+        padding: 17px;
+        border-radius: 13px;
+      }
+      .student {
+        gap: 10px;
+        flex-wrap: wrap;
+      }
+      .student small {
+        display: block;
+        color: var(--muted);
+        font-weight: 400;
+        margin-top: 5px;
+      }
+      .badge {
+        background: #edf5ff;
+        color: #0063d8;
+        border-radius: 8px;
+        padding: 5px 8px;
+        font-size: 12px;
+        white-space: nowrap;
+      }
+      .pad {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 7px;
+        margin: 14px auto;
+        max-width: 310px;
+      }
+      .pad button {
+        min-height: 48px;
+        background: #f1f4f9;
+        color: var(--ink);
+        font-size: 20px;
+        padding: 7px;
+      }
+      .pad button:last-child {
+        font-size: 13px;
+      }
+      .selected {
+        padding: 15px;
+        background: #f0f6ff;
+        border-radius: 14px;
+        margin-bottom: 16px;
+      }
+      .check {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        line-height: 1.6;
+      }
+      .document {
+        width: 100%;
+        text-align: left;
+        margin: 5px 0;
+        border: 1px solid #e6e9ef;
+        background: white;
+        color: var(--ink);
+      }
+      .chosen {
+        border-color: var(--blue);
+        background: #edf5ff;
+        color: var(--blue);
+      }
+      .actions {
+        display: flex;
+        gap: 9px;
+        flex-wrap: wrap;
+      }
+      .frame {
+        width: 100%;
+        height: 780px;
+        border: 1px solid #e6e9ef;
+        border-radius: 10px;
+        background: white;
+      }
+      .preview-wrap {
+        background: #e8edf4;
+        border-radius: 16px;
+        padding: 12px;
+        margin: 20px 0;
+      }
+      .monitor {
+        text-align: center;
+      }
+      .code {
+        font-size: clamp(64px, 10vw, 108px);
+        font-weight: 750;
+        letter-spacing: 12px;
+        line-height: 1.2;
+        color: var(--blue);
+        margin: 18px 0;
+      }
+      .qr-grid {
+        margin-top: 25px;
+      }
+      .qr-grid img {
+        width: 240px;
+        height: 240px;
+        max-width: 100%;
+        object-fit: contain;
+      }
+      .bar {
+        height: 7px;
+        overflow: hidden;
+        border-radius: 5px;
+        background: #e7edf6;
+        margin-top: 16px;
+      }
+      .bar div {
+        height: 100%;
+        background: var(--blue);
+        transform-origin: left;
+        transition: transform 0.25s linear;
+      }
+      .tabs,
+      .subnav {
+        display: flex;
+        gap: 7px;
+        overflow: auto;
+        margin: 18px 0;
+        white-space: nowrap;
+      }
+      .tabs button,
+      .subnav button {
+        font-size: 13px;
+        background: white;
+        color: var(--muted);
+      }
+      .tabs .active,
+      .subnav .active {
+        background: var(--blue);
+        color: white;
+      }
+      .table-wrap {
+        overflow: auto;
+        max-height: 640px;
+        border: 1px solid #e6e9ef;
+        border-radius: 14px;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 13px;
+      }
+      th {
+        text-align: left;
+        font-size: 11px;
+        text-transform: uppercase;
+        color: var(--muted);
+        background: #f8fafd;
+        position: sticky;
+        top: 0;
+      }
+      td,
+      th {
+        padding: 13px;
+        border-bottom: 1px solid #e6e9ef;
+        white-space: nowrap;
+      }
+      td button,
+      .student button {
+        font-size: 12px;
+        min-height: 34px;
+        padding: 7px 10px;
+        margin: 2px;
+      }
+      .placeholders {
+        display: flex;
+        gap: 5px;
+        flex-wrap: wrap;
+        margin: 10px 0;
+      }
+      .placeholders button {
+        font-size: 11px;
+        min-height: 32px;
+        padding: 6px 8px;
+      }
+      .image-preview {
+        height: 90px;
+        max-width: 180px;
+        object-fit: contain;
+        border: 1px dashed #ccd6e4;
+        border-radius: 9px;
+        padding: 5px;
+      }
+      .footer {
+        text-align: center;
+        color: #8c96a5;
+        font-size: 11px;
+        margin-top: 25px;
+      }
+      .icon {
+        background: #eef5ff;
+        border-radius: 18px;
+        width: 60px;
+        height: 60px;
+        display: grid;
+        place-items: center;
+        color: var(--blue);
+        font-size: 26px;
+        margin: 10px 0 22px;
+      }
+      .break {
+        overflow-wrap: anywhere;
+      }
+      #print-sheet {
+        display: none;
+      }
+      @media (max-width: 760px) {
+        .top {
+          align-items: flex-start;
+          flex-direction: column;
+          padding: 16px 20px;
+          gap: 14px;
+        }
+        .nav {
+          width: 100%;
+        }
+        .nav button {
+          flex: 1;
+        }
+        .card {
+          padding: 22px;
+        }
+        .layout,
+        .qr-grid {
+          grid-template-columns: 1fr;
+        }
+        .grid2 {
+          gap: 10px;
+        }
+        main {
+          padding-top: 22px;
+        }
+        .frame {
+          height: 600px;
+        }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        *,
+        *::before,
+        *::after {
+          animation: none !important;
+          transition: none !important;
+        }
+      }
+      @page {
+        size: A4;
+        margin: 16mm;
+      }
+      @media print {
+        body > *:not(#print-sheet) {
+          display: none !important;
+        }
+        #print-sheet {
+          display: block !important;
+        }
+        .certificate {
+          max-width: none !important;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <header class="top">
+      <div class="brand">
+        <div class="mark">RGC</div>
+        <div>
+          <strong>School Document Portal</strong
+          ><small>Simple. Local. Ready when you are.</small>
         </div>
-        <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:14px;">
-          <span><strong>Ref No:</strong> ${data.serialNo}</span>
-          <span><strong>Date:</strong> ${data.issuedAt}</span>
+      </div>
+      <nav class="nav" aria-label="Portal views">
+        <button data-view="parent" class="active">Parent Portal</button
+        ><button data-view="monitor">Live QR</button
+        ><button data-view="admin">Admin</button>
+      </nav>
+    </header>
+    <main id="parent-view">
+      <div class="stepbar" aria-label="Progress">
+        <span></span><span></span><span></span><span></span>
+      </div>
+      <section class="card step" id="step-1">
+        <div class="row">
+          <div class="eyebrow">RGC · WELCOME</div>
+          <button class="listen" data-speak>🔊 ऐका / सुनें</button>
         </div>
-        <h3 style="text-align:center;text-decoration:underline;margin:12px 0 18px;">${escapeHtml(data.docTitle.toUpperCase())}</h3>
-        <div style="font-size:15px;">${data.bodyHtml}</div>
-        <div class="cert-footer">
-          <div><img src="${qrVerifyUrl}" alt="Certificate verification QR" width="90" height="90"/><div style="font-size:10px;">Verify on school PC</div></div>
-          <div>${data.sigPos === 'left' ? sigImg + '<strong>Principal</strong>' : ''}${data.stampPos === 'left' ? stampImg : ''}</div><div>${data.stampPos === 'center' ? stampImg : ''}</div><div>${data.sigPos === 'right' ? sigImg + '<strong>Principal</strong>' : ''}${data.stampPos === 'right' ? stampImg : ''}</div>
+        <div class="icon">▤</div>
+        <h1 data-t="welcome">School documents, made simple.</h1>
+        <p class="muted" data-t="languageHelp">
+          Choose your language to get started.
+        </p>
+        <button class="lang" data-lang="mr">
+          <span class="row"
+            ><span class="symbol">म</span
+            ><span
+              ><strong>मराठी</strong><small>मराठीत पुढे चला</small></span
+            ></span
+          ><span>›</span></button
+        ><button class="lang" data-lang="hi">
+          <span class="row"
+            ><span class="symbol">हि</span
+            ><span><strong>हिंदी</strong><small>हिंदी में आगे बढ़ें</small></span></span
+          ><span>›</span></button
+        ><button class="lang" data-lang="en">
+          <span class="row"
+            ><span class="symbol">En</span
+            ><span
+              ><strong>English</strong><small>Continue in English</small></span
+            ></span
+          ><span>›</span>
+        </button>
+        <p class="footer" data-t="privacy">
+          Your session clears automatically after use.
+        </p>
+      </section>
+      <section class="card step" id="step-2" hidden>
+        <div class="row">
+          <button class="quiet" data-back="1" data-t="back">← Back</button
+          ><button class="listen" data-speak>🔊 ऐका / सुनें</button>
         </div>
-      `;
-
-      document.getElementById('cert-container').innerHTML = certHtml;
-      document.getElementById('print-sheet').innerHTML = `<div class="cert-preview" style="border:none;">${certHtml}</div>`;
-      goStep(4);
-      startWipeCountdown();
-    }
-
-    function sendWhatsAppShare() {
-      if (!state.lastCert) return;
-      const text = `School Verified Certificate\nStudent: ${state.lastCert.student.full_name}\nDocument: ${state.lastCert.docTitle}\nSerial No: ${state.lastCert.serialNo}\nIssued Date: ${state.lastCert.issuedAt}`;
-      window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
-    }
-
-    function startWipeCountdown() {
-      clearInterval(state.wipeInterval);
-      let left = 45;
-      document.getElementById('wipe-timer').textContent = left;
-      state.wipeInterval = setInterval(() => {
-        left--;
-        document.getElementById('wipe-timer').textContent = left;
-        if (left <= 0) resetSession();
-      }, 1000);
-    }
-
-    function resetSession() {
-      ++searchVersion; clearTimeout(searchTimer);
-      clearInterval(state.wipeInterval);
-      state.selectedStudent = null;
-      state.lastCert = null;
-      document.getElementById('inp-phone').value = '';
-      document.getElementById('inp-name').value = '';
-      document.getElementById('inp-birth-year').value = '';
-      document.getElementById('inp-campus-code').value = '';
-      document.getElementById('sel-student-name').textContent = '';
-      document.getElementById('sel-student-meta').textContent = '';
-      document.getElementById('student-results').innerHTML = '';
-      document.getElementById('cert-container').innerHTML = '';
-      document.getElementById('print-sheet').innerHTML = '';
-      document.getElementById('inp-guardian-phone').value = '';
-      document.getElementById('chk-guardian').checked = false;
-      toggleGuardian();
-      loadTemplates();
-      goStep(1);
-    }
-
-    // Live 60s Campus QR Loop
-    async function refreshCampusQR() {
-      const res = await fetch('/api/campus-code');
-      const data = await res.json();
-      document.getElementById('live-code-text').textContent = data.code;
-      document.getElementById('live-sec').textContent = data.secondsLeft;
-      const url = `${window.location.origin}/?code=${data.code}`;
-      const src = '/api/qr?text=' + encodeURIComponent(url);
-      const img = document.getElementById('live-qr-img'); if (img.getAttribute('src') !== src) img.src = src;
-    }
-    setInterval(() => {
-      if (document.getElementById('view-kiosk').style.display === 'block') refreshCampusQR();
-    }, 1000);
-
-    // Auto-fill Campus Code if parent scanned the QR link (?code=XXXX)
-    const urlCode = new URLSearchParams(window.location.search).get('code');
-    if (urlCode) document.getElementById('inp-campus-code').value = urlCode;
-
-    // ================= ADMIN FUNCTIONS =================
-    async function adminLogin() {
-      const res = await fetch('/api/admin/login', {
-        method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username: document.getElementById('adm-user').value, password: document.getElementById('adm-pass').value })
-      });
-      const data = await res.json();
-      if (!res.ok) return alert(data.error);
-      state.adminToken = data.token;
-      document.getElementById('adm-pass').value = '';
-      document.getElementById('admin-login-box').style.display = 'none';
-      document.getElementById('admin-panel').style.display = 'block';
-      loadAdminData();
-    }
-
-    async function loadAdminData() {
-      const requestToken = state.adminToken;
-      const res = await fetch('/api/admin/dashboard', { headers: { 'x-admin-token': state.adminToken } });
-      const data = await res.json();
-      if (!state.adminToken || state.adminToken !== requestToken) return;
-      document.getElementById('set-name').value = data.settings.school_name || '';
-      document.getElementById('set-sub').value = data.settings.school_subtitle || '';
-      document.getElementById('set-udise').value = data.settings.udise_no || '';
-      document.getElementById('set-wa').value = data.settings.whatsapp_number || '';
-
-      state.adminStudents = data.students;
-      document.getElementById('admin-students').innerHTML = data.students.map((s, i) => `<div class="list-row"><span>${escapeHtml(s.gr_number)} · ${escapeHtml(s.full_name)}</span><button onclick="editStudent(${i})">Edit</button><button onclick="deleteStudent(${i})">Archive</button></div>`).join('');
-      document.getElementById('admin-tpl-list').innerHTML = data.templates.map(t => `
-        <div class="list-row">
-          <span>${escapeHtml(t.title_en)} / ${escapeHtml(t.title_mr)}</span>
-          <button class="pill-btn" style="color:var(--red);" onclick="deleteTemplate(${t.id})">Delete</button>
+        <p class="eyebrow" data-t="stepTwo">STEP 2 OF 4</p>
+        <h1 data-t="find">Find your student</h1>
+        <p class="muted" data-t="findHelp">
+          Use a mobile number or class and name.
+        </p>
+        <div class="subnav">
+          <button data-search-mode="phone" class="active" data-t="mobile">
+            Mobile number</button
+          ><button data-search-mode="name" data-t="nameSearch">
+            Class & name
+          </button>
         </div>
-      `).join('');
-
-      document.getElementById('admin-logs').innerHTML = data.logs.map(l => `
-        <div style="padding:8px 0;border-bottom:1px solid var(--border);">
-          <strong>${escapeHtml(l.serial_no)}</strong> • ${escapeHtml(l.student_name)} (${escapeHtml(l.doc_title)}) • Phone: ${escapeHtml(l.verified_phone)}
+        <div id="phone-search">
+          <label for="parent-phone" data-t="registered"
+            >Registered mobile number</label
+          ><input
+            id="parent-phone"
+            inputmode="numeric"
+            maxlength="10"
+            autocomplete="off"
+            data-numeric
+            placeholder="10 digits"
+          />
+          <div class="pad" data-pad="2"></div>
         </div>
-      `).join('');
-    }
-
-    async function saveStudent() {
-      await fetch('/api/admin/students', {
-        method: 'POST', headers: { 'Content-Type': 'application/json', 'x-admin-token': state.adminToken },
-        body: JSON.stringify({
-          gr_number: document.getElementById('st-gr').value,
-          full_name: document.getElementById('st-name').value,
-          father_name: document.getElementById('st-father').value,
-          class_name: document.getElementById('st-class').value,
-          division: document.getElementById('st-div').value,
-          dob: document.getElementById('st-dob').value,
-          parent_phone: document.getElementById('st-phone').value
-        })
-      });
-      alert('Student saved!'); loadAdminData();
-    }
-
-    function uploadCSV(e) {
-      const file = e.target.files[0];
-      if (!file) return;
-      const reader = new FileReader();
-      reader.onload = async (ev) => {
-        const res = await fetch('/api/admin/students/bulk', {
-          method: 'POST', headers: { 'Content-Type': 'application/json', 'x-admin-token': state.adminToken },
-          body: JSON.stringify({ csv: ev.target.result })
+        <div id="name-search" hidden>
+          <div class="grid2">
+            <div>
+              <label for="search-class" data-t="class">Class</label
+              ><select id="search-class"></select>
+            </div>
+            <div>
+              <label for="search-division" data-t="division">Division</label
+              ><select id="search-division"></select>
+            </div>
+          </div>
+          <label for="search-name" data-t="studentFather"
+            >Student or father’s name</label
+          ><input id="search-name" maxlength="100" autocomplete="off" />
+          <p class="small muted" data-t="twoLetters">
+            Type at least two letters.
+          </p>
+        </div>
+        <p class="status" id="search-status" role="status"></p>
+        <div id="search-results"></div>
+      </section>
+      <section class="card step" id="step-3" hidden>
+        <div class="row">
+          <button class="quiet" data-back="2" data-t="back">← Back</button
+          ><button class="listen" data-speak>🔊 ऐका / सुनें</button>
+        </div>
+        <p class="eyebrow" data-t="stepThree">STEP 3 OF 4</p>
+        <h1 data-t="verify">Verify & choose a document</h1>
+        <div class="selected" id="selected-student"></div>
+        <button class="quiet full" id="backup-toggle" data-t="trouble">
+          Having trouble with birth year?
+        </button>
+        <div id="birth-field">
+          <label for="birth-year" data-t="birthYear">Child’s birth year</label
+          ><input
+            id="birth-year"
+            inputmode="numeric"
+            maxlength="4"
+            data-numeric
+            placeholder="YYYY"
+          />
+        </div>
+        <div id="gr-field" hidden>
+          <label for="confirm-gr" data-t="gr">Student GR number</label
+          ><input
+            id="confirm-gr"
+            inputmode="numeric"
+            maxlength="40"
+            data-numeric
+            autocomplete="off"
+          />
+        </div>
+        <div id="aadhaar-field" hidden>
+          <label for="aadhaar-last4" data-t="aadhaar"
+            >Last four digits of student Aadhaar</label
+          ><input
+            id="aadhaar-last4"
+            inputmode="numeric"
+            maxlength="4"
+            data-numeric
+            autocomplete="off"
+          />
+        </div>
+        <div id="campus-field">
+          <label for="campus-code" data-t="campus">Live campus code</label
+          ><input
+            id="campus-code"
+            inputmode="numeric"
+            maxlength="4"
+            data-numeric
+            autocomplete="off"
+          />
+          <p class="small muted" data-t="campusHelp">
+            Read the code on the school screen.
+          </p>
+        </div>
+        <label class="check"
+          ><input type="checkbox" id="guardian-toggle" /><span data-t="guardian"
+            >I am a visiting guardian</span
+          ></label
+        >
+        <div id="guardian-field" hidden>
+          <p class="notice" data-t="guardianNotice">
+            Guardian collection is recorded with this mobile number.
+          </p>
+          <label for="guardian-phone" data-t="guardianMobile"
+            >Guardian’s mobile number</label
+          ><input
+            id="guardian-phone"
+            inputmode="numeric"
+            maxlength="10"
+            data-numeric
+            autocomplete="off"
+          />
+        </div>
+        <div class="pad" data-pad="3"></div>
+        <h3 data-t="chooseDocument">Choose a document</h3>
+        <div id="document-list"></div>
+        <p class="status" id="verify-status" role="alert"></p>
+        <button class="primary full" id="generate-button" data-t="generate">
+          Generate certificate
+        </button>
+      </section>
+      <section class="card step" id="step-4" hidden>
+        <div class="row">
+          <span class="eyebrow" data-t="ready">YOUR DOCUMENT IS READY</span
+          ><button class="listen" data-speak>🔊 ऐका / सुनें</button>
+        </div>
+        <h1 data-t="certificateReady">All set.</h1>
+        <p class="muted" data-t="readyHelp">
+          Print, download, or share the certificate details.
+        </p>
+        <div class="actions">
+          <button class="primary" id="print-button" data-t="print">
+            Print Copy Now</button
+          ><button id="pdf-button" data-t="pdf">Download / Save PDF</button
+          ><button id="whatsapp-button" data-t="whatsapp">
+            Send via WhatsApp
+          </button>
+        </div>
+        <div class="preview-wrap">
+          <iframe
+            class="frame"
+            id="certificate-frame"
+            title="A4 certificate preview"
+            sandbox="allow-same-origin"
+          ></iframe>
+        </div>
+        <p class="status" id="document-status" role="status"></p>
+        <div class="row">
+          <span class="small muted"
+            ><span data-t="clearsIn">Clears in</span>
+            <strong id="wipe-seconds">45</strong>s</span
+          ><button class="primary" id="done-button" data-t="done">Done</button>
+        </div>
+      </section>
+      <p class="footer" id="school-footer">RGC · School Document Portal</p>
+    </main>
+    <main id="monitor-view" class="wide monitor" hidden>
+      <div class="row">
+        <p class="eyebrow">SCHOOL COUNTER · LIVE</p>
+        <button class="listen" data-speak>🔊 ऐका / सुनें</button>
+      </div>
+      <h1>Welcome to your school’s document counter.</h1>
+      <p class="muted">
+        Connect to school Wi-Fi, then scan the portal QR to continue on your
+        phone.
+      </p>
+      <div class="code" id="live-code">— — — —</div>
+      <div class="row">
+        <span>Current campus code</span
+        ><span><strong id="live-seconds">60</strong> seconds remaining</span>
+      </div>
+      <div class="bar"><div id="countdown-bar"></div></div>
+      <div class="qr-grid">
+        <section class="card">
+          <p class="eyebrow">01 · CONNECT</p>
+          <h2>School Wi-Fi</h2>
+          <div id="wifi-qr-area">
+            <img id="wifi-qr" alt="Connect to school Wi-Fi QR" />
+          </div>
+          <p class="muted" id="wifi-name">
+            Configure school Wi-Fi in Admin → Branding.
+          </p>
+        </section>
+        <section class="card">
+          <p class="eyebrow">02 · OPEN THE PORTAL</p>
+          <h2>Scan to get started</h2>
+          <img id="portal-qr" alt="Live school portal QR" />
+          <p id="portal-address" class="small muted break"></p>
+        </section>
+      </div>
+      <p class="status" id="monitor-status" role="status"></p>
+    </main>
+    <main id="admin-view" class="wide" hidden>
+      <section
+        class="card"
+        id="admin-login"
+        style="max-width: 450px; margin: 20px auto"
+      >
+        <div class="row">
+          <p class="eyebrow">SCHOOL OFFICE</p>
+          <button class="listen" data-speak>🔊 ऐका / सुनें</button>
+        </div>
+        <h1>Admin sign in</h1>
+        <p class="muted">Manage students, certificates, and school settings.</p>
+        <form id="login-form">
+          <label for="admin-user">Username</label
+          ><input
+            id="admin-user"
+            value="admin"
+            autocomplete="username"
+            required
+          /><label for="admin-password">Password</label
+          ><input
+            id="admin-password"
+            type="password"
+            autocomplete="current-password"
+            required
+          />
+          <p class="status" id="login-status" role="alert"></p>
+          <button class="primary full">Sign in</button>
+        </form>
+        <p class="footer">
+          Initial login details are in admin-credentials.txt.
+        </p>
+      </section>
+      <div id="admin-content" hidden>
+        <div class="row">
+          <div>
+            <p class="eyebrow">RGC · SCHOOL OFFICE</p>
+            <h1>Administration</h1>
+          </div>
+          <div class="row">
+            <button class="listen" data-speak>🔊 ऐका / सुनें</button
+            ><button id="logout-button">Lock admin</button>
+          </div>
+        </div>
+        <nav class="tabs" aria-label="Admin sections">
+          <button data-admin-tab="students" class="active">
+            Students Manager</button
+          ><button data-admin-tab="templates">Templates Builder</button
+          ><button data-admin-tab="branding">Branding & Wi-Fi</button
+          ><button data-admin-tab="logs">Issued Logs</button
+          ><button data-admin-tab="security">Security & Backup</button>
+        </nav>
+        <p id="admin-status" class="status" role="status"></p>
+        <div id="admin-panels"></div>
+      </div>
+    </main>
+    <div id="print-sheet"></div>
+    <script>
+      const $ = (id) => document.getElementById(id),
+        esc = (v) =>
+          String(v ?? "").replace(
+            /[&<>"']/g,
+            (c) =>
+              ({
+                "&": "&amp;",
+                "<": "&lt;",
+                ">": "&gt;",
+                '"': "&quot;",
+                "'": "&#39;",
+              })[c],
+          );
+      const state = {
+        lang: "en",
+        step: 1,
+        view: "parent",
+        searchMode: "phone",
+        verificationMode: "primary",
+        student: null,
+        templateId: null,
+        cert: null,
+        token: "",
+        config: null,
+        admin: null,
+        bodyLang: "en",
+        bodies: { en: "", mr: "", hi: "" },
+        images: {},
+        epoch: 0,
+        generating: false,
+      };
+      let lastActivity = Date.now(),
+        expiresAt = 0,
+        monitorUntil = 0,
+        searchTimer,
+        previewTimer,
+        currentNumeric = null,
+        searchEpoch = 0,
+        previewEpoch = 0,
+        monitorLoading = false;
+      const field = (name, label, type = "text", required = false) =>
+        `<label>${label}<input name="${name}" type="${type}" ${required ? "required" : ""} autocomplete="off"></label>`;
+      const positions = (name) =>
+        `<label>${name === "sig_pos" ? "Principal signature" : "School stamp"}<select name="${name}"><option value="left">Left</option><option value="center">Center</option><option value="right" ${name === "sig_pos" ? "selected" : ""}>Right</option><option value="none">Hidden</option></select></label>`;
+      $("admin-panels").innerHTML =
+        `<section id="admin-students" class="admin-section"><div class="layout"><div class="card"><div class="row"><h2>Student records</h2><button id="new-student">+ New</button></div><label for="student-filter">Search GR, name, class, or mobile</label><input id="student-filter" type="search"><label for="csv-file">1-click CSV import</label><input id="csv-file" type="file" accept=".csv"><button id="sample-csv" style="margin:12px 0">Download Sample CSV</button><p class="small muted">Matching GR numbers are updated. Imports validate every row before saving.</p><div class="table-wrap"><table><thead><tr><th>Student</th><th>Class</th><th>Status</th><th>Actions</th></tr></thead><tbody id="students-table"></tbody></table></div></div><form class="card" id="student-form"><h2 id="student-form-title">Add student</h2>${field("gr_number", "GR number", "text", true)}${field("full_name", "Full student name", "text", true)}${field("father_name", "Father / parent name")}<div class="grid2">${field("class_name", "Class", "text", true)}${field("division", "Division", "text", true)}${field("dob", "Birth date (DD/MM/YYYY)", "text", true)}${field("aadhaar_last4", "Aadhaar last four only")}</div>${field("parent_phone", "Registered mobile (10 digits)", "tel", true)}<label>Status<select name="status"><option>ACTIVE</option><option>INACTIVE</option></select></label><button class="primary full" style="margin-top:20px">Save student</button><button type="button" class="quiet full" id="cancel-student">Clear form</button></form></div></section>
+<section id="admin-templates" class="admin-section" hidden><div class="layout"><div class="card"><div class="row"><h2>Document templates</h2><button id="new-template">+ New</button></div><div id="templates-list"></div><form id="template-form"><input type="hidden" id="template-id">${field("title_en", "English title", "text", true)}${field("title_mr", "Marathi title", "text", true)}${field("title_hi", "Hindi title", "text", true)}<div class="subnav"><button type="button" data-body-lang="en" class="active">English body</button><button type="button" data-body-lang="mr">मराठी</button><button type="button" data-body-lang="hi">हिंदी</button></div><label for="template-body">Certificate body · basic HTML supported</label><textarea id="template-body" rows="8"></textarea><div class="placeholders" id="placeholder-buttons"></div><div class="grid2">${positions("sig_pos")}${positions("stamp_pos")}</div><label class="check"><input id="template-active" type="checkbox" checked> Available to parents</label><button class="primary full">Save template</button></form></div><div class="card"><p class="eyebrow">A4 · LIVE PREVIEW</p><h2>See it before issuing.</h2><p class="small muted">Sample student details and the selected body language.</p><iframe id="template-preview" class="frame" title="Live template A4 preview" sandbox="allow-same-origin"></iframe><p class="small muted" id="preview-status">Enter titles and body to preview.</p></div></div></section>
+<section id="admin-branding" class="admin-section" hidden><form class="card" id="branding-form"><h2>School branding & Wi-Fi</h2><div class="layout"><div>${field("school_name", "School name", "text", true)}${field("school_subtitle", "Subtitle / address")}${field("udise_no", "UDISE number")}${field("whatsapp_number", "School WhatsApp number")}${field("wifi_ssid", "School Wi-Fi SSID")}${field("wifi_password", "School Wi-Fi password", "password")}<p class="small muted">Wi-Fi credentials are encoded in the monitor QR. Parents must join the same network.</p></div><div id="image-uploaders"></div></div><button class="primary" style="margin-top:20px">Save branding & Wi-Fi</button></form></section>
+<section id="admin-logs" class="admin-section" hidden><div class="card"><div class="row"><div><h2>Issued document register</h2><p class="small muted">Every issued document remains in the audit register.</p></div><button id="refresh-logs">Refresh</button></div><label for="logs-filter">Search serial, student, document, phone, or date</label><input id="logs-filter" type="search"><p class="small muted" id="logs-count"></p><div class="table-wrap"><table><thead><tr><th>Reference</th><th>Student</th><th>Document</th><th>Contact</th><th>Guardian</th><th>Issued</th><th>Verify</th></tr></thead><tbody id="logs-table"></tbody></table></div></div></section>
+<section id="admin-security" class="admin-section" hidden><div class="layout"><form class="card" id="password-form"><h2>Change admin password</h2><p class="small muted">Changing the password signs out all administrator sessions.</p>${field("currentPassword", "Current password", "password", true)}${field("newPassword", "New password (10–256 characters)", "password", true)}${field("repeatPassword", "Confirm new password", "password", true)}<button class="primary full" style="margin-top:20px">Update password</button></form><section class="card"><div class="icon">↧</div><h2>A safe copy of your records.</h2><p class="muted">Create a consistent SQLite snapshot while the portal stays open. Backups remain in RJC/backups.</p><button class="primary" id="backup-button">Create database backup</button><p class="small break" id="backup-status" role="status"></p><p class="small muted">Keep secure copies on separate storage to protect against disk failure.</p></section></div></section>`;
+      const tr = {
+        en: {
+          welcome: "School documents, made simple.",
+          languageHelp: "Choose your language to get started.",
+          privacy: "Your session clears automatically after use.",
+          back: "← Back",
+          stepTwo: "STEP 2 OF 4",
+          find: "Find your student",
+          findHelp:
+            "Use the registered mobile number, or search by class and name.",
+          mobile: "Mobile number",
+          nameSearch: "Class & name",
+          registered: "Registered mobile number",
+          class: "Class",
+          division: "Division",
+          studentFather: "Student or father’s name",
+          twoLetters: "Type at least two letters.",
+          stepThree: "STEP 3 OF 4",
+          verify: "Verify & choose a document",
+          trouble: "Having trouble with birth year?",
+          useBirth: "Use birth year instead",
+          birthYear: "Child’s birth year",
+          gr: "Student GR number",
+          aadhaar: "Last four digits of student Aadhaar",
+          campus: "Live campus code",
+          campusHelp:
+            "Read the code on the school screen. It changes every 60 seconds.",
+          guardian: "I am a visiting guardian",
+          guardianNotice:
+            "Guardian collection will be recorded with this mobile number. Enter the child’s birth year and GR number.",
+          guardianMobile: "Guardian’s mobile number",
+          chooseDocument: "Choose a document",
+          generate: "Generate certificate",
+          ready: "YOUR DOCUMENT IS READY",
+          certificateReady: "All set.",
+          readyHelp: "Print, download, or share the certificate details.",
+          print: "Print Copy Now",
+          pdf: "Download / Save PDF",
+          whatsapp: "Send via WhatsApp",
+          clearsIn: "Clears in",
+          done: "Done",
+          noResults:
+            "No student found. Check the details or contact the school office.",
+          chooseFirst: "Choose a document first.",
+          working: "Preparing your document…",
+          all: "All",
+          voiceUnavailable:
+            "An offline voice for this language is not installed. Ask school staff to help.",
+          speech: [
+            "Choose Marathi, Hindi, or English to begin.",
+            "Enter your registered mobile number using the number pad, or find the student by class, division, and name.",
+            "Enter the child’s birth year. On your phone, enter the live campus code. Choose a document and select Generate certificate.",
+            "Your certificate is ready. Print it, download the PDF, or select Done to clear your information.",
+          ],
+        },
+        mr: {
+          welcome: "शाळेची प्रमाणपत्रे, अगदी सोप्या पद्धतीने.",
+          languageHelp: "सुरू करण्यासाठी आपली भाषा निवडा.",
+          privacy: "वापरानंतर तुमची माहिती आपोआप हटवली जाते.",
+          back: "← मागे",
+          stepTwo: "टप्पा २ / ४",
+          find: "विद्यार्थी शोधा",
+          findHelp: "नोंदणीकृत मोबाईल क्रमांक किंवा इयत्ता व नाव वापरा.",
+          mobile: "मोबाईल क्रमांक",
+          nameSearch: "इयत्ता व नाव",
+          registered: "नोंदणीकृत मोबाईल क्रमांक",
+          class: "इयत्ता",
+          division: "तुकडी",
+          studentFather: "विद्यार्थ्याचे किंवा वडिलांचे नाव",
+          twoLetters: "किमान दोन अक्षरे टाका.",
+          stepThree: "टप्पा ३ / ४",
+          verify: "पडताळणी व प्रमाणपत्र निवड",
+          trouble: "जन्मवर्ष आठवत नाही?",
+          useBirth: "जन्मवर्ष वापरा",
+          birthYear: "विद्यार्थ्याचे जन्मवर्ष",
+          gr: "विद्यार्थ्याचा रजिस्टर क्रमांक",
+          aadhaar: "विद्यार्थ्याच्या आधारचे शेवटचे चार अंक",
+          campus: "सध्याचा कॅम्पस कोड",
+          campusHelp: "शाळेच्या स्क्रीनवरील कोड टाका. तो दर ६० सेकंदांनी बदलतो.",
+          guardian: "मी विद्यार्थ्याचा प्रतिनिधी आहे",
+          guardianNotice:
+            "या मोबाईल क्रमांकासह प्रतिनिधीची नोंद केली जाईल. जन्मवर्ष व रजिस्टर क्रमांक टाका.",
+          guardianMobile: "प्रतिनिधीचा मोबाईल क्रमांक",
+          chooseDocument: "प्रमाणपत्र निवडा",
+          generate: "प्रमाणपत्र तयार करा",
+          ready: "तुमचे प्रमाणपत्र तयार आहे",
+          certificateReady: "झाले!",
+          readyHelp: "प्रमाणपत्र छापा, डाउनलोड करा किंवा माहिती शेअर करा.",
+          print: "प्रत छापा",
+          pdf: "PDF डाउनलोड करा",
+          whatsapp: "व्हॉट्सॲपवर पाठवा",
+          clearsIn: "माहिती हटवण्यास",
+          done: "पूर्ण झाले",
+          noResults: "विद्यार्थी सापडला नाही. माहिती तपासा किंवा शाळेशी संपर्क साधा.",
+          chooseFirst: "प्रथम प्रमाणपत्र निवडा.",
+          working: "प्रमाणपत्र तयार होत आहे…",
+          all: "सर्व",
+          voiceUnavailable:
+            "या भाषेचा ऑफलाइन आवाज उपलब्ध नाही. शाळेतील कर्मचाऱ्यांची मदत घ्या.",
+          speech: [
+            "सुरू करण्यासाठी मराठी, हिंदी किंवा इंग्रजी भाषा निवडा.",
+            "अंकांच्या बटणांनी नोंदणीकृत मोबाईल क्रमांक टाका किंवा इयत्ता, तुकडी आणि नावाने विद्यार्थी शोधा.",
+            "विद्यार्थ्याचे जन्मवर्ष टाका. फोन वापरत असल्यास शाळेच्या स्क्रीनवरील कॅम्पस कोड टाका. प्रमाणपत्र निवडून तयार करा बटण दाबा.",
+            "प्रमाणपत्र तयार आहे. प्रत छापा, पी डी एफ डाउनलोड करा किंवा माहिती हटवण्यासाठी पूर्ण झाले बटण दाबा.",
+          ],
+        },
+        hi: {
+          welcome: "विद्यालय के प्रमाणपत्र, आसानी से।",
+          languageHelp: "शुरू करने के लिए अपनी भाषा चुनें।",
+          privacy: "उपयोग के बाद आपकी जानकारी अपने आप हट जाती है।",
+          back: "← पीछे",
+          stepTwo: "चरण २ / ४",
+          find: "छात्र खोजें",
+          findHelp: "पंजीकृत मोबाइल नंबर या कक्षा और नाम से खोजें।",
+          mobile: "मोबाइल नंबर",
+          nameSearch: "कक्षा और नाम",
+          registered: "पंजीकृत मोबाइल नंबर",
+          class: "कक्षा",
+          division: "विभाग",
+          studentFather: "छात्र या पिता का नाम",
+          twoLetters: "कम से कम दो अक्षर लिखें।",
+          stepThree: "चरण ३ / ४",
+          verify: "सत्यापन और प्रमाणपत्र चुनें",
+          trouble: "जन्म वर्ष याद नहीं है?",
+          useBirth: "जन्म वर्ष का उपयोग करें",
+          birthYear: "बच्चे का जन्म वर्ष",
+          gr: "छात्र का रजिस्टर नंबर",
+          aadhaar: "छात्र के आधार के आखिरी चार अंक",
+          campus: "वर्तमान कैंपस कोड",
+          campusHelp:
+            "विद्यालय स्क्रीन पर दिख रहा कोड डालें। यह हर 60 सेकंड में बदलता है।",
+          guardian: "मैं छात्र का प्रतिनिधि हूँ",
+          guardianNotice:
+            "इस मोबाइल नंबर के साथ प्रतिनिधि की जानकारी दर्ज होगी। जन्म वर्ष और रजिस्टर नंबर डालें।",
+          guardianMobile: "प्रतिनिधि का मोबाइल नंबर",
+          chooseDocument: "प्रमाणपत्र चुनें",
+          generate: "प्रमाणपत्र बनाएँ",
+          ready: "आपका प्रमाणपत्र तैयार है",
+          certificateReady: "हो गया!",
+          readyHelp: "प्रमाणपत्र प्रिंट करें, डाउनलोड करें या जानकारी साझा करें।",
+          print: "प्रति प्रिंट करें",
+          pdf: "PDF डाउनलोड करें",
+          whatsapp: "व्हाट्सऐप पर भेजें",
+          clearsIn: "जानकारी मिटेगी",
+          done: "पूर्ण",
+          noResults: "छात्र नहीं मिला। जानकारी जाँचें या विद्यालय से संपर्क करें।",
+          chooseFirst: "पहले प्रमाणपत्र चुनें।",
+          working: "प्रमाणपत्र तैयार हो रहा है…",
+          all: "सभी",
+          voiceUnavailable:
+            "इस भाषा की ऑफलाइन आवाज़ उपलब्ध नहीं है। विद्यालय के कर्मचारी से मदद लें।",
+          speech: [
+            "शुरू करने के लिए मराठी, हिंदी या अंग्रेज़ी भाषा चुनें।",
+            "अंकों के बटन से पंजीकृत मोबाइल नंबर डालें या कक्षा, विभाग और नाम से छात्र खोजें।",
+            "बच्चे का जन्म वर्ष डालें। फोन पर विद्यालय की स्क्रीन वाला कैंपस कोड डालें। प्रमाणपत्र चुनकर बनाएँ बटन दबाएँ।",
+            "प्रमाणपत्र तैयार है। प्रिंट करें, पी डी एफ डाउनलोड करें या जानकारी हटाने के लिए पूर्ण बटन दबाएँ।",
+          ],
+        },
+      };
+      const t = (k) => tr[state.lang][k] || tr.en[k] || k;
+      function translate() {
+        document.documentElement.lang = state.lang;
+        document
+          .querySelectorAll("[data-t]")
+          .forEach((el) => (el.textContent = t(el.dataset.t)));
+        $("backup-toggle").textContent = t(
+          state.verificationMode === "backup" ? "useBirth" : "trouble",
+        );
+      }
+      async function api(
+        url,
+        { method = "GET", body, admin = false, ...options } = {},
+      ) {
+        const headers = {
+          ...(body === undefined ? {} : { "Content-Type": "application/json" }),
+          ...(admin ? { "x-admin-token": state.token } : {}),
+          ...options.headers,
+        };
+        let r;
+        try {
+          r = await fetch(url, {
+            ...options,
+            method,
+            headers,
+            ...(body === undefined ? {} : { body: JSON.stringify(body) }),
+          });
+        } catch {
+          throw Error(
+            "Unable to reach the school server. Check the connection.",
+          );
+        }
+        if (!r.ok) {
+          const data = await r.json().catch(() => ({}));
+          if (admin && r.status === 401) {
+            logout(false);
+            $("login-status").textContent =
+              data.error || "Please sign in again.";
+          }
+          throw Error(data.error || "Request failed.");
+        }
+        return r;
+      }
+      const json = async (url, opts) => (await api(url, opts)).json();
+      function report(e, id = "admin-status") {
+        $(id).textContent = e.message || String(e);
+      }
+      function goStep(n) {
+        state.step = n;
+        document
+          .querySelectorAll(".step")
+          .forEach((el) => (el.hidden = el.id !== "step-" + n));
+        document
+          .querySelectorAll(".stepbar span")
+          .forEach((el, i) => el.classList.toggle("on", i < n));
+        currentNumeric =
+          n === 2
+            ? $("parent-phone")
+            : n === 3
+              ? $(
+                  state.verificationMode === "backup"
+                    ? "confirm-gr"
+                    : "birth-year",
+                )
+              : null;
+        window.scrollTo(0, 0);
+      }
+      function switchView(view) {
+        if (view !== state.view) {
+          resetParent();
+          if (state.view === "admin") logout();
+        }
+        state.view = view;
+        for (const name of ["parent", "monitor", "admin"])
+          $(name + "-view").hidden = name !== view;
+        document
+          .querySelectorAll("[data-view]")
+          .forEach((b) =>
+            b.classList.toggle("active", b.dataset.view === view),
+          );
+        if (view === "monitor") refreshMonitor();
+      }
+      function resetParent() {
+        state.epoch++;
+        searchEpoch++;
+        clearTimeout(searchTimer);
+        expiresAt = 0;
+        state.student = null;
+        state.cert = null;
+        state.templateId = null;
+        state.generating = false;
+        state.verificationMode = "primary";
+        state.lang = "en";
+        window.speechSynthesis?.cancel();
+        document.querySelectorAll("#parent-view input").forEach((el) => {
+          el.value = "";
+          if (el.type === "checkbox") el.checked = false;
         });
-        const out = await res.json();
-        alert(`Imported ${out.count} students successfully!`); loadAdminData();
+        for (const id of [
+          "search-results",
+          "selected-student",
+          "document-list",
+          "search-status",
+          "verify-status",
+          "document-status",
+        ])
+          $(id).replaceChildren();
+        $("certificate-frame").removeAttribute("srcdoc");
+        $("print-sheet").replaceChildren();
+        $("generate-button").disabled = false;
+        $("pdf-button").disabled = false;
+        translate();
+        updateVerification();
+        goStep(1);
+      }
+      async function loadConfig() {
+        state.config = await json("/api/public-config");
+        $("school-footer").textContent = state.config.schoolName + " · RGC";
+        const classes = [
+          ...new Set(state.config.classes.map((c) => c.class_name)),
+        ];
+        $("search-class").innerHTML =
+          '<option value="">' +
+          esc(t("all")) +
+          "</option>" +
+          classes.map((c) => `<option>${esc(c)}</option>`).join("");
+        updateDivisions();
+        $("campus-field").hidden = state.config.isLocalKiosk;
+      }
+      function updateDivisions() {
+        const rows = state.config?.classes || [];
+        const cls = $("search-class").value;
+        const divisions = [
+          ...new Set(
+            rows
+              .filter((c) => !cls || c.class_name === cls)
+              .map((c) => c.division),
+          ),
+        ];
+        $("search-division").innerHTML =
+          '<option value="">' +
+          esc(t("all")) +
+          "</option>" +
+          divisions.map((d) => `<option>${esc(d)}</option>`).join("");
+      }
+      function scheduleSearch() {
+        clearTimeout(searchTimer);
+        const version = ++searchEpoch;
+        searchTimer = setTimeout(async () => {
+          const epoch = state.epoch;
+          try {
+            const phone = $("parent-phone").value,
+              query = $("search-name").value;
+            if (
+              (state.searchMode === "phone" && phone.length !== 10) ||
+              (state.searchMode === "name" && query.trim().length < 2)
+            ) {
+              $("search-results").replaceChildren();
+              $("search-status").textContent = "";
+              return;
+            }
+            const r = await json("/api/search-student", {
+              method: "POST",
+              body: {
+                mode: state.searchMode,
+                phone,
+                query,
+                className: $("search-class").value,
+                division: $("search-division").value,
+              },
+            });
+            if (
+              epoch !== state.epoch ||
+              version !== searchEpoch ||
+              state.step !== 2
+            )
+              return;
+            $("search-status").textContent = r.students.length
+              ? ""
+              : t("noResults");
+            $("search-results").replaceChildren();
+            for (const s of r.students) {
+              const b = document.createElement("button");
+              b.className = "student";
+              b.innerHTML = `<span><strong>${esc(s.full_name)}</strong><small>${esc(s.class_name)} · ${esc(s.division)} · ${esc(s.masked_phone)}</small></span><span class="badge">GR ${esc(s.gr_number)}</span>`;
+              b.onclick = () => chooseStudent(s);
+              $("search-results").append(b);
+            }
+          } catch (e) {
+            if (epoch === state.epoch) report(e, "search-status");
+          }
+        }, 200);
+      }
+      function chooseStudent(s) {
+        state.student = s;
+        state.templateId = null;
+        $("selected-student").innerHTML =
+          `<strong>${esc(s.full_name)}</strong><div class="small muted">${esc(s.class_name)} · ${esc(s.division)} · GR ${esc(s.gr_number)} · ${esc(s.masked_phone)}</div>`;
+        $("document-list").replaceChildren();
+        for (const tpl of state.config.templates) {
+          const b = document.createElement("button");
+          b.className = "document";
+          b.textContent = "▤  " + tpl["title_" + state.lang];
+          b.onclick = () => {
+            state.templateId = tpl.id;
+            document
+              .querySelectorAll(".document")
+              .forEach((el) => el.classList.remove("chosen"));
+            b.classList.add("chosen");
+          };
+          $("document-list").append(b);
+        }
+        if (!state.config.templates.length)
+          $("document-list").textContent =
+            "No documents are available. Contact school staff.";
+        goStep(3);
+      }
+      function updateVerification() {
+        const guardian = $("guardian-toggle").checked;
+        if (guardian) state.verificationMode = "primary";
+        const backup = state.verificationMode === "backup";
+        $("birth-field").hidden = backup;
+        $("gr-field").hidden = !backup && !guardian;
+        $("aadhaar-field").hidden = !backup;
+        $("guardian-field").hidden = !guardian;
+        $("backup-toggle").disabled = guardian;
+        $("backup-toggle").textContent = t(backup ? "useBirth" : "trouble");
+        currentNumeric = $(backup ? "confirm-gr" : "birth-year");
+      }
+      async function generate() {
+        if (state.generating) return;
+        if (!state.templateId)
+          return report(Error(t("chooseFirst")), "verify-status");
+        const epoch = state.epoch;
+        const body = {
+          grNumber: state.student.gr_number,
+          templateId: state.templateId,
+          birthYear: $("birth-year").value,
+          campusCode: $("campus-code").value,
+          verificationMode: state.verificationMode,
+          confirmGr: $("confirm-gr").value,
+          aadhaarLast4: $("aadhaar-last4").value,
+          isGuardian: $("guardian-toggle").checked,
+          guardianPhone: $("guardian-phone").value,
+          isLocalKiosk: state.config.isLocalKiosk,
+          lang: state.lang,
+        };
+        state.generating = true;
+        $("generate-button").disabled = true;
+        $("verify-status").textContent = t("working");
+        try {
+          const cert = await json("/api/generate-document", {
+            method: "POST",
+            body,
+          });
+          if (epoch !== state.epoch || state.view !== "parent") return;
+          state.cert = cert;
+          $("certificate-frame").srcdoc = cert.certificateHtml;
+          const style = document.createElement("style");
+          style.textContent = "@media print{" + cert.certificateCss + "}";
+          $("print-sheet").replaceChildren(style);
+          $("print-sheet").insertAdjacentHTML(
+            "beforeend",
+            cert.certificateBody,
+          );
+          expiresAt = Date.now() + 45000;
+          lastActivity = Date.now();
+          $("wipe-seconds").textContent = "45";
+          goStep(4);
+        } catch (e) {
+          if (epoch === state.epoch) report(e, "verify-status");
+        } finally {
+          if (epoch === state.epoch) {
+            state.generating = false;
+            $("generate-button").disabled = false;
+          }
+        }
+      }
+      async function downloadPdf() {
+        if (!state.cert) return;
+        const epoch = state.epoch,
+          cert = state.cert;
+        $("pdf-button").disabled = true;
+        try {
+          const r = await api(
+            "/api/documents/" + encodeURIComponent(cert.serialNo) + "/pdf",
+            { headers: { "x-document-token": cert.downloadToken } },
+          );
+          const blob = await r.blob();
+          if (epoch !== state.epoch) return;
+          downloadBlob(blob, cert.serialNo + ".pdf");
+        } catch (e) {
+          if (epoch === state.epoch) report(e, "document-status");
+        } finally {
+          if (epoch === state.epoch) $("pdf-button").disabled = false;
+        }
+      }
+      function downloadBlob(blob, name) {
+        const url = URL.createObjectURL(blob),
+          a = document.createElement("a");
+        a.href = url;
+        a.download = name;
+        a.click();
+        setTimeout(() => URL.revokeObjectURL(url), 1000);
+      }
+      function speak() {
+        if (!window.speechSynthesis) return alert(t("voiceUnavailable"));
+        const voices = speechSynthesis
+          .getVoices()
+          .filter(
+            (v) =>
+              v.localService && v.lang.toLowerCase().startsWith(state.lang),
+          );
+        if (!voices.length) return alert(t("voiceUnavailable"));
+        const u = new SpeechSynthesisUtterance(
+          state.view === "parent"
+            ? t("speech")[state.step - 1]
+            : state.view === "monitor"
+              ? "Connect to school Wi-Fi. Scan the portal QR code and enter the campus code."
+              : "Authorized school staff can sign in to manage students and documents.",
+        );
+        u.lang = { mr: "mr-IN", hi: "hi-IN", en: "en-IN" }[state.lang];
+        u.voice = voices[0];
+        u.rate = 0.88;
+        speechSynthesis.cancel();
+        speechSynthesis.speak(u);
+      }
+      async function refreshMonitor() {
+        if (monitorLoading || state.view !== "monitor") return;
+        monitorLoading = true;
+        try {
+          const d = await json("/api/campus-code");
+          if (state.view !== "monitor") return;
+          monitorUntil = Date.now() + (d.expiresAt - d.serverTime);
+          $("live-code").textContent = d.code;
+          if ($("portal-qr").getAttribute("src") !== d.portalQr)
+            $("portal-qr").src = d.portalQr;
+          $("portal-address").textContent = d.portalLink;
+          if (d.wifiQr) {
+            $("wifi-qr-area").hidden = false;
+            if ($("wifi-qr").getAttribute("src") !== d.wifiQr)
+              $("wifi-qr").src = d.wifiQr;
+            $("wifi-name").textContent = d.wifiSsid;
+          } else {
+            $("wifi-qr-area").hidden = true;
+            $("wifi-name").textContent =
+              "Configure school Wi-Fi in Admin → Branding.";
+          }
+          $("monitor-status").textContent = "";
+        } catch (e) {
+          report(e, "monitor-status");
+        } finally {
+          monitorLoading = false;
+        }
+      }
+      const formData = (id) =>
+        Object.fromEntries(new FormData($(id)).entries());
+      function fillForm(id, values) {
+        for (const el of $(id).elements)
+          if (el.name && values[el.name] !== undefined)
+            el.value = values[el.name] ?? "";
+      }
+      async function login(event) {
+        event.preventDefault();
+        const btn = $("login-form").querySelector("button");
+        btn.disabled = true;
+        try {
+          const r = await json("/api/admin/login", {
+            method: "POST",
+            body: {
+              username: $("admin-user").value,
+              password: $("admin-password").value,
+            },
+          });
+          state.token = r.token;
+          $("admin-password").value = "";
+          $("login-status").textContent = "";
+          $("admin-login").hidden = true;
+          $("admin-content").hidden = false;
+          clearStudent();
+          adminTab("students");
+          await loadAdmin();
+        } catch (e) {
+          report(e, "login-status");
+        } finally {
+          btn.disabled = false;
+        }
+      }
+      function logout(remote = true) {
+        const token = state.token;
+        state.token = "";
+        state.admin = null;
+        state.images = {};
+        state.bodies = { en: "", mr: "", hi: "" };
+        previewEpoch++;
+        clearTimeout(previewTimer);
+        if (remote && token)
+          fetch("/api/admin/logout", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "x-admin-token": token,
+            },
+            body: "{}",
+          }).catch(() => {});
+        $("admin-login").hidden = false;
+        $("admin-content").hidden = true;
+        document
+          .querySelectorAll("#admin-view input,#admin-view textarea")
+          .forEach((el) => {
+            if (el.id !== "admin-user") el.value = "";
+          });
+        for (const id of [
+          "students-table",
+          "templates-list",
+          "logs-table",
+          "admin-status",
+          "backup-status",
+          "image-uploaders",
+        ])
+          $(id).replaceChildren();
+        $("template-preview").removeAttribute("srcdoc");
+      }
+      async function loadAdmin() {
+        const token = state.token,
+          r = await json("/api/admin/dashboard", { admin: true });
+        if (!token || state.token !== token) return;
+        state.admin = r;
+        renderStudents();
+        renderTemplates();
+        renderLogs();
+        fillForm("branding-form", r.settings);
+        renderImages();
+        if (!$("template-id").value && r.templates.length)
+          editTemplate(r.templates[0].id);
+      }
+      function renderStudents() {
+        const q = $("student-filter").value.toLocaleLowerCase(),
+          rows = state.admin.students.filter((s) =>
+            [s.gr_number, s.full_name, s.class_name, s.parent_phone].some((v) =>
+              String(v).toLocaleLowerCase().includes(q),
+            ),
+          );
+        $("students-table").innerHTML = rows.length
+          ? rows
+              .map(
+                (s) =>
+                  `<tr><td><strong>${esc(s.full_name)}</strong><br><span class="muted">GR ${esc(s.gr_number)}</span></td><td>${esc(s.class_name)} / ${esc(s.division)}</td><td>${esc(s.status)}</td><td><button data-edit-student="${esc(s.gr_number)}">Edit</button><button class="danger" data-delete-student="${esc(s.gr_number)}" ${s.status === "INACTIVE" ? "disabled" : ""}>Deactivate</button></td></tr>`,
+              )
+              .join("")
+          : '<tr><td colspan="4">No matching students.</td></tr>';
+      }
+      function clearStudent() {
+        $("student-form").reset();
+        $("student-form").elements.gr_number.readOnly = false;
+        $("student-form-title").textContent = "Add student";
+      }
+      function editStudent(gr) {
+        const s = state.admin.students.find((s) => s.gr_number === gr);
+        if (!s) return;
+        fillForm("student-form", s);
+        $("student-form").elements.gr_number.readOnly = true;
+        $("student-form-title").textContent = "Edit student · GR " + gr;
+        $("student-form").elements.full_name.focus();
+      }
+      async function saveStudent(e) {
+        e.preventDefault();
+        try {
+          await json("/api/admin/students", {
+            admin: true,
+            method: "POST",
+            body: formData("student-form"),
+          });
+          await loadAdmin();
+          clearStudent();
+          $("admin-status").textContent = "Student saved.";
+          await loadConfig();
+        } catch (e) {
+          report(e);
+        }
+      }
+      async function uploadCsv(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+        try {
+          if (file.size > 5000000)
+            throw Error("CSV must be smaller than 5 MB.");
+          const r = await json("/api/admin/students/bulk", {
+            admin: true,
+            method: "POST",
+            body: { csv: await file.text() },
+          });
+          await loadAdmin();
+          await loadConfig();
+          $("admin-status").textContent = `Imported ${r.count} students.`;
+        } catch (e) {
+          report(e);
+        } finally {
+          event.target.value = "";
+        }
+      }
+      function renderTemplates() {
+        $("templates-list").innerHTML =
+          state.admin.templates
+            .map(
+              (tpl) =>
+                `<div class="student"><span><strong>${esc(tpl.title_en)}</strong><small>${tpl.is_active ? "Active" : "Inactive"}</small></span><span><button data-edit-template="${tpl.id}">Edit</button><button data-toggle-template="${tpl.id}">${tpl.is_active ? "Disable" : "Enable"}</button><button class="danger" data-delete-template="${tpl.id}">Delete</button></span></div>`,
+            )
+            .join("") ||
+          '<p class="muted">No templates yet. Create your first certificate below.</p>';
+      }
+      function editTemplate(id) {
+        const tpl = state.admin.templates.find((t) => t.id === Number(id));
+        if (!tpl) return;
+        fillForm("template-form", tpl);
+        $("template-id").value = tpl.id;
+        $("template-active").checked = Boolean(tpl.is_active);
+        state.bodies = {
+          en: tpl.body_html,
+          mr: tpl.body_mr || "",
+          hi: tpl.body_hi || "",
+        };
+        state.bodyLang = "en";
+        selectBodyLanguage("en", false);
+      }
+      function newTemplate() {
+        $("template-form").reset();
+        $("template-id").value = "";
+        state.bodies = { en: "", mr: "", hi: "" };
+        state.bodyLang = "en";
+        selectBodyLanguage("en", false);
+        $("template-preview").removeAttribute("srcdoc");
+      }
+      function selectBodyLanguage(lang, save = true) {
+        if (save) state.bodies[state.bodyLang] = $("template-body").value;
+        state.bodyLang = lang;
+        $("template-body").value = state.bodies[lang];
+        document
+          .querySelectorAll("[data-body-lang]")
+          .forEach((b) =>
+            b.classList.toggle("active", b.dataset.bodyLang === lang),
+          );
+        schedulePreview();
+      }
+      function templatePayload() {
+        state.bodies[state.bodyLang] = $("template-body").value;
+        return {
+          ...formData("template-form"),
+          body_html: state.bodies.en,
+          body_mr: state.bodies.mr,
+          body_hi: state.bodies.hi,
+          is_active: $("template-active").checked ? 1 : 0,
+        };
+      }
+      function schedulePreview() {
+        clearTimeout(previewTimer);
+        const version = ++previewEpoch;
+        previewTimer = setTimeout(async () => {
+          if (!state.token) return;
+          const body = { ...templatePayload(), lang: state.bodyLang };
+          if (
+            !body.title_en ||
+            !body.title_mr ||
+            !body.title_hi ||
+            !body.body_html
+          ) {
+            $("preview-status").textContent =
+              "Enter all three titles and an English body to preview.";
+            return;
+          }
+          const token = state.token;
+          try {
+            const r = await json("/api/admin/template-preview", {
+              admin: true,
+              method: "POST",
+              body,
+            });
+            if (token !== state.token || version !== previewEpoch) return;
+            $("template-preview").srcdoc = r.certificateHtml;
+            $("preview-status").textContent =
+              "Preview updated · " + state.bodyLang.toUpperCase();
+          } catch (e) {
+            if (token === state.token && version === previewEpoch)
+              report(e, "preview-status");
+          }
+        }, 450);
+      }
+      async function saveTemplate(event) {
+        event.preventDefault();
+        try {
+          const id = $("template-id").value,
+            r = await json("/api/admin/templates" + (id ? "/" + id : ""), {
+              admin: true,
+              method: id ? "PUT" : "POST",
+              body: templatePayload(),
+            });
+          await loadAdmin();
+          editTemplate(id || r.id);
+          await loadConfig();
+          $("admin-status").textContent = "Template saved.";
+        } catch (e) {
+          report(e);
+        }
+      }
+      function renderImages() {
+        $("image-uploaders").innerHTML = ["logo", "signature", "stamp"]
+          .map(
+            (k) =>
+              `<div><label for="image-${k}">School ${k === "signature" ? "principal signature" : k} · PNG</label><div class="row"><img id="preview-${k}" class="image-preview" alt="${k} preview" ${state.admin.settings[k + "_data"] ? 'src="' + state.admin.settings[k + "_data"] + '"' : ""}><button type="button" data-clear-image="${k}">Remove</button></div><input id="image-${k}" type="file" accept="image/png" data-image="${k}"></div>`,
+          )
+          .join("");
+        state.images = {};
+      }
+      function uploadImage(input) {
+        const file = input.files[0];
+        if (!file) return;
+        if (file.type !== "image/png" || file.size > 1500000)
+          return report(Error("Choose a PNG smaller than 1.5 MB."));
+        const token = state.token,
+          reader = new FileReader();
+        reader.onload = () => {
+          if (!token || token !== state.token) return;
+          const key = input.dataset.image;
+          state.images[key + "_data"] = reader.result;
+          $("preview-" + key).src = reader.result;
+        };
+        reader.readAsDataURL(file);
+      }
+      async function saveBranding(event) {
+        event.preventDefault();
+        try {
+          await json("/api/admin/settings", {
+            admin: true,
+            method: "POST",
+            body: { ...formData("branding-form"), ...state.images },
+          });
+          await loadAdmin();
+          await loadConfig();
+          $("admin-status").textContent = "Branding and Wi-Fi settings saved.";
+        } catch (e) {
+          report(e);
+        }
+      }
+      function renderLogs() {
+        const q = $("logs-filter").value.toLocaleLowerCase(),
+          rows = state.admin.logs.filter((r) =>
+            Object.values(r).some((v) =>
+              String(v).toLocaleLowerCase().includes(q),
+            ),
+          );
+        $("logs-count").textContent =
+          `${rows.length} of ${state.admin.logs.length} issued documents`;
+        $("logs-table").innerHTML = rows.length
+          ? rows
+              .map(
+                (r) =>
+                  `<tr><td>${esc(r.serial_no)}</td><td>${esc(r.student_name)}</td><td>${esc(r.doc_title)}</td><td>${esc(r.verified_phone)}</td><td>${r.is_guardian ? "Yes" : "No"}</td><td>${esc(new Date(r.issued_at).toLocaleString())}</td><td><a href="/verify/${encodeURIComponent(r.serial_no)}" target="_blank" rel="noopener">Verify ↗</a></td></tr>`,
+              )
+              .join("")
+          : '<tr><td colspan="7">No matching documents.</td></tr>';
+      }
+      function adminTab(name) {
+        document
+          .querySelectorAll(".admin-section")
+          .forEach((el) => (el.hidden = el.id !== "admin-" + name));
+        document
+          .querySelectorAll("[data-admin-tab]")
+          .forEach((b) =>
+            b.classList.toggle("active", b.dataset.adminTab === name),
+          );
+        $("admin-status").textContent = "";
+      }
+      async function backup() {
+        const b = $("backup-button");
+        b.disabled = true;
+        try {
+          const r = await json("/api/admin/backup", {
+            admin: true,
+            method: "POST",
+            body: {},
+          });
+          $("backup-status").textContent = "Saved: backups/" + r.filename;
+        } catch (e) {
+          report(e, "backup-status");
+        } finally {
+          b.disabled = false;
+        }
+      }
+      async function password(event) {
+        event.preventDefault();
+        const data = formData("password-form");
+        if (data.newPassword !== data.repeatPassword)
+          return report(Error("New passwords do not match."));
+        try {
+          await json("/api/admin/change-password", {
+            admin: true,
+            method: "POST",
+            body: data,
+          });
+          logout(false);
+          $("login-status").textContent =
+            "Password updated. Please sign in again.";
+        } catch (e) {
+          report(e);
+        }
+      }
+      document.addEventListener("click", async (event) => {
+        const b = event.target.closest("button");
+        if (!b) return;
+        try {
+          if (b.dataset.view) switchView(b.dataset.view);
+          if (b.dataset.lang) {
+            state.lang = b.dataset.lang;
+            translate();
+            goStep(2);
+          }
+          if (b.dataset.back) goStep(Number(b.dataset.back));
+          if (b.hasAttribute("data-speak")) speak();
+          if (b.dataset.searchMode) {
+            state.searchMode = b.dataset.searchMode;
+            searchEpoch++;
+            $("phone-search").hidden = state.searchMode !== "phone";
+            $("name-search").hidden = state.searchMode !== "name";
+            document
+              .querySelectorAll("[data-search-mode]")
+              .forEach((el) => el.classList.toggle("active", el === b));
+            $("search-results").replaceChildren();
+            $("search-status").textContent = "";
+            scheduleSearch();
+          }
+          if (b.dataset.adminTab) adminTab(b.dataset.adminTab);
+          if (b.dataset.editStudent) editStudent(b.dataset.editStudent);
+          if (
+            b.dataset.deleteStudent &&
+            confirm("Deactivate this student? Existing audit logs remain.")
+          ) {
+            await json(
+              "/api/admin/students/" +
+                encodeURIComponent(b.dataset.deleteStudent),
+              { admin: true, method: "DELETE" },
+            );
+            await loadAdmin();
+            await loadConfig();
+          }
+          if (b.dataset.editTemplate) editTemplate(b.dataset.editTemplate);
+          if (b.dataset.toggleTemplate) {
+            const tpl = state.admin.templates.find(
+              (t) => String(t.id) === b.dataset.toggleTemplate,
+            );
+            await json("/api/admin/templates/" + tpl.id, {
+              admin: true,
+              method: "PATCH",
+              body: { is_active: tpl.is_active ? 0 : 1 },
+            });
+            await loadAdmin();
+            await loadConfig();
+          }
+          if (
+            b.dataset.deleteTemplate &&
+            confirm(
+              "Delete this template? Issued certificates remain in the register.",
+            )
+          ) {
+            await json("/api/admin/templates/" + b.dataset.deleteTemplate, {
+              admin: true,
+              method: "DELETE",
+            });
+            newTemplate();
+            await loadAdmin();
+            await loadConfig();
+          }
+          if (b.dataset.bodyLang) selectBodyLanguage(b.dataset.bodyLang);
+          if (b.dataset.placeholder) {
+            const input = $("template-body");
+            input.setRangeText(
+              b.dataset.placeholder,
+              input.selectionStart,
+              input.selectionEnd,
+              "end",
+            );
+            input.focus();
+            schedulePreview();
+          }
+          if (b.dataset.clearImage) {
+            state.images[b.dataset.clearImage + "_data"] = null;
+            $("preview-" + b.dataset.clearImage).removeAttribute("src");
+          }
+        } catch (e) {
+          report(e);
+        }
+      });
+      for (const pad of document.querySelectorAll("[data-pad]"))
+        for (const key of [
+          "1",
+          "2",
+          "3",
+          "4",
+          "5",
+          "6",
+          "7",
+          "8",
+          "9",
+          "⌫",
+          "0",
+          "Clear",
+        ]) {
+          const b = document.createElement("button");
+          b.type = "button";
+          b.textContent = key;
+          b.setAttribute("aria-label", key === "⌫" ? "Backspace" : key);
+          b.addEventListener("pointerdown", (e) => e.preventDefault());
+          b.onclick = () => {
+            const input = currentNumeric;
+            if (!input || !pad.closest(".step").contains(input)) return;
+            input.value =
+              key === "Clear"
+                ? ""
+                : key === "⌫"
+                  ? input.value.slice(0, -1)
+                  : (input.value + key).slice(
+                      0,
+                      input.maxLength > 0 ? input.maxLength : 40,
+                    );
+            input.dispatchEvent(new Event("input", { bubbles: true }));
+            input.focus();
+          };
+          pad.append(b);
+        }
+      document.querySelectorAll("[data-numeric]").forEach((el) => {
+        el.addEventListener("focus", () => (currentNumeric = el));
+        el.addEventListener(
+          "input",
+          () => (el.value = el.value.replace(/\D/g, "")),
+        );
+      });
+      for (const id of ["parent-phone", "search-name"])
+        $(id).addEventListener("input", scheduleSearch);
+      $("search-class").onchange = () => {
+        updateDivisions();
+        scheduleSearch();
       };
-      reader.readAsText(file);
-    }
-
-    async function saveTemplate() {
-      await fetch('/api/admin/templates', {
-        method: 'POST', headers: { 'Content-Type': 'application/json', 'x-admin-token': state.adminToken },
-        body: JSON.stringify({
-          title_mr: document.getElementById('tpl-mr').value,
-          title_hi: document.getElementById('tpl-hi').value,
-          title_en: document.getElementById('tpl-en').value,
-          body_html: document.getElementById('tpl-body').value,
-          sig_pos: document.getElementById('tpl-sig').value,
-          stamp_pos: document.getElementById('tpl-stamp').value
-        })
-      });
-      alert('New document template added!');
-      loadAdminData();
-      loadTemplates();
-    }
-
-    async function deleteTemplate(id) {
-      await fetch('/api/admin/templates/' + id, { method: 'DELETE', headers: { 'x-admin-token': state.adminToken } });
-      loadAdminData();
-      loadTemplates();
-    }
-
-    function encodeImage(e, type) {
-      const file = e.target.files[0];
-      if (!file) return;
-      if (file.type !== 'image/png' || file.size > 1500000) return alert('Choose a PNG smaller than 1.5 MB');
-      const reader = new FileReader();
-      reader.onload = () => {
-        if (type === 'logo') state.uploadedLogo = reader.result;
-        if (type === 'sig') state.uploadedSig = reader.result;
-        if (type === 'stamp') state.uploadedStamp = reader.result;
+      $("search-division").onchange = scheduleSearch;
+      $("backup-toggle").onclick = () => {
+        state.verificationMode =
+          state.verificationMode === "primary" ? "backup" : "primary";
+        $("aadhaar-last4").value = "";
+        $("birth-year").value = "";
+        updateVerification();
       };
-      reader.readAsDataURL(file);
-    }
-
-    async function saveSettings() {
-      await fetch('/api/admin/settings', {
-        method: 'POST', headers: { 'Content-Type': 'application/json', 'x-admin-token': state.adminToken },
-        body: JSON.stringify({
-          school_name: document.getElementById('set-name').value,
-          school_subtitle: document.getElementById('set-sub').value,
-          udise_no: document.getElementById('set-udise').value,
-          whatsapp_number: document.getElementById('set-wa').value,
-          logo_data: state.uploadedLogo,
-          signature_data: state.uploadedSig,
-          stamp_data: state.uploadedStamp
+      $("guardian-toggle").onchange = updateVerification;
+      $("generate-button").onclick = generate;
+      $("done-button").onclick = resetParent;
+      $("print-button").onclick = () => {
+        if (state.cert) window.print();
+      };
+      $("pdf-button").onclick = downloadPdf;
+      $("whatsapp-button").onclick = () => {
+        if (!state.cert) return;
+        const c = state.cert,
+          message = `${c.docTitle}\n${c.student.full_name}\n${c.serialNo}\n${c.issuedAt}\n${c.verificationUrl}`;
+        window.open(
+          "https://wa.me/?text=" + encodeURIComponent(message),
+          "_blank",
+          "noopener,noreferrer",
+        );
+      };
+      $("login-form").onsubmit = login;
+      $("logout-button").onclick = () => logout();
+      $("student-form").onsubmit = saveStudent;
+      $("new-student").onclick = clearStudent;
+      $("cancel-student").onclick = clearStudent;
+      $("student-filter").oninput = () => state.admin && renderStudents();
+      $("csv-file").onchange = uploadCsv;
+      $("sample-csv").onclick = async () => {
+        try {
+          downloadBlob(
+            await (await api("/api/admin/sample.csv", { admin: true })).blob(),
+            "sample-students.csv",
+          );
+        } catch (e) {
+          report(e);
+        }
+      };
+      $("template-form").onsubmit = saveTemplate;
+      $("template-form").addEventListener("input", schedulePreview);
+      $("template-form").addEventListener("change", schedulePreview);
+      $("new-template").onclick = newTemplate;
+      for (const key of [
+        "student_name",
+        "father_name",
+        "class_name",
+        "division",
+        "gr_number",
+        "dob",
+        "issue_date",
+      ]) {
+        const b = document.createElement("button");
+        b.type = "button";
+        b.textContent = "{{" + key + "}}";
+        b.dataset.placeholder = b.textContent;
+        $("placeholder-buttons").append(b);
+      }
+      $("branding-form").onsubmit = saveBranding;
+      $("image-uploaders").addEventListener("change", (e) => {
+        if (e.target.dataset.image) uploadImage(e.target);
+      });
+      $("logs-filter").oninput = () => state.admin && renderLogs();
+      $("refresh-logs").onclick = () => loadAdmin().catch((e) => report(e));
+      $("password-form").onsubmit = password;
+      $("backup-button").onclick = backup;
+      for (const event of ["pointerdown", "keydown", "input"])
+        document.addEventListener(event, () => (lastActivity = Date.now()), {
+          passive: true,
+        });
+      setInterval(() => {
+        const now = Date.now();
+        if (state.view === "parent") {
+          if (expiresAt) {
+            const left = Math.max(0, Math.ceil((expiresAt - now) / 1000));
+            $("wipe-seconds").textContent = left;
+            if (!left) resetParent();
+          } else if (state.step > 1 && now - lastActivity >= 45000)
+            resetParent();
+        }
+        if (state.token && now - lastActivity > 900000) logout();
+        if (state.view === "monitor") {
+          const seconds = Math.max(0, (monitorUntil - now) / 1000);
+          $("live-seconds").textContent = Math.ceil(seconds);
+          $("countdown-bar").style.transform =
+            `scaleX(${Math.min(1, seconds / 60)})`;
+        }
+      }, 200);
+      setInterval(refreshMonitor, 1000);
+      window.addEventListener("afterprint", resetParent);
+      window.addEventListener("pagehide", () => {
+        resetParent();
+        logout();
+      });
+      loadConfig()
+        .then(() => {
+          const code = new URLSearchParams(location.search).get("code");
+          if (/^\d{4}$/.test(code || "")) $("campus-code").value = code;
+          history.replaceState(null, "", location.pathname);
+          if (location.pathname === "/admin") switchView("admin");
         })
-      });
-      alert('School branding & signatures updated!');
-    }
-
-    async function changeAdminPassword() {
-      const res = await fetch('/api/admin/change-password', {
-        method: 'POST', headers: { 'Content-Type': 'application/json', 'x-admin-token': state.adminToken },
-        body: JSON.stringify({ newPassword: document.getElementById('new-adm-pass').value })
-      });
-      if (res.ok) { alert('Password updated. Please sign in again.'); adminLogout(); }
-    }
-    function editStudent(i) {
-      const s = state.adminStudents[i];
-      for (const [id, key] of Object.entries({'st-gr':'gr_number','st-name':'full_name','st-father':'father_name','st-class':'class_name','st-div':'division','st-dob':'dob','st-phone':'parent_phone'})) document.getElementById(id).value = s[key] || '';
-      document.getElementById('st-gr').focus();
-    }
-    async function deleteStudent(i) { await fetch('/api/admin/students/' + encodeURIComponent(state.adminStudents[i].gr_number), { method: 'DELETE', headers: {'x-admin-token':state.adminToken} }); loadAdminData(); }
-    async function createBackup() { const r = await (await fetch('/api/admin/backup', { method:'POST', headers:{'content-type':'application/json','x-admin-token':state.adminToken}, body:'{}' })).json(); alert('Saved in backups/' + r.filename); }
-    function adminLogout() {
-      if (state.adminToken) nativeFetch('/api/admin/logout', { method:'POST', headers:{'content-type':'application/json','x-admin-token':state.adminToken}, body:'{}' }).catch(() => {});
-      state.adminToken = ''; state.adminStudents = []; state.uploadedSig = null; state.uploadedStamp = null; state.uploadedLogo = null;
-      document.getElementById('admin-panel').style.display = 'none'; document.getElementById('admin-login-box').style.display = 'block';
-      for (const id of ['admin-students','admin-logs','admin-tpl-list']) document.getElementById(id).replaceChildren();
-      document.querySelectorAll('#admin-panel input, #admin-panel textarea').forEach(el => el.value = '');
-    }
-    let lastActivity = Date.now();
-    for (const event of ['pointerdown','keydown','input']) document.addEventListener(event, () => lastActivity = Date.now(), { passive:true });
-    setInterval(() => { if (Date.now() - lastActivity > 45000) { resetSession(); if (state.adminToken) adminLogout(); lastActivity = Date.now(); } }, 1000);
-    window.addEventListener('afterprint', resetSession);
-  </script>
-</body>
+        .catch((e) => report(e, "search-status"));
+      goStep(1);
+    </script>
+  </body>
 </html>
