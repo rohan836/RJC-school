@@ -1,0 +1,28 @@
+{
+  "name": "school-document-kiosk",
+  "version": "1.0.0",
+  "description": "Offline school document kiosk and administration",
+  "main": "server.js",
+  "scripts": {
+    "test": "node --test",
+    "start": "node server.js",
+    "check": "node --check server.js && node --test"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {
+    "@fontsource/noto-sans-devanagari": "^5.3.0",
+    "better-sqlite3": "^12.11.1",
+    "csv-parse": "^7.0.3",
+    "express": "^5.3.0",
+    "express-rate-limit": "^8.7.4",
+    "qrcode": "^1.5.4",
+    "sanitize-html": "^2.18.2"
+  },
+  "private": true,
+  "engines": {
+    "node": ">=22"
+  }
+}

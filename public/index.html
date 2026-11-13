@@ -1,0 +1,754 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0" />
+  <title>School Document Kiosk</title>
+
+  <style>
+    @font-face { font-family: 'Noto Sans Devanagari'; src: url('/fonts/noto-sans-devanagari-devanagari-400-normal.woff2') format('woff2'); font-display: swap; }
+    @font-face { font-family: 'Noto Sans Devanagari'; src: url('/fonts/noto-sans-devanagari-latin-400-normal.woff2') format('woff2'); unicode-range: U+0000-00FF; font-display: swap; }
+    @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } .step.active { opacity: 1; transform: none; } }
+    button, .list-row, .lang-card { min-height: 52px; }
+    :focus-visible { outline: 3px solid #007AFF; outline-offset: 3px; }
+
+    :root {
+      --bg: #F2F2F7;
+      --card: #FFFFFF;
+      --text: #1C1C1E;
+      --muted: #6E6E73;
+      --blue: #007AFF;
+      --green: #34C759;
+      --red: #FF3B30;
+      --border: rgba(0, 0, 0, 0.06);
+      --radius: 20px;
+      --ease: cubic-bezier(0.22, 1, 0.36, 1);
+    }
+    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Noto Sans Devanagari", "Nirmala UI", sans-serif;
+      font-variant-numeric: tabular-nums;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* Top iOS Frosted Bar */
+    .topbar {
+      position: sticky; top: 0; z-index: 20;
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 14px 20px;
+      background: rgba(242, 242, 247, 0.85);
+      backdrop-filter: blur(18px);
+      border-bottom: 1px solid var(--border);
+    }
+    .brand { font-weight: 700; font-size: 17px; letter-spacing: -0.2px; }
+    .pill-group { display: flex; gap: 8px; }
+    .pill-btn {
+      background: var(--card); border: 1px solid var(--border);
+      padding: 7px 14px; border-radius: 999px; font-size: 13px; font-weight: 600;
+      color: var(--text); cursor: pointer; transition: transform 0.15s var(--ease), background 0.2s;
+    }
+    .pill-btn:active { transform: scale(0.95); }
+    .pill-btn.active { background: var(--blue); color: #fff; border-color: var(--blue); }
+
+    /* Main Container & Jitter-Free Step Transitions */
+    .container { max-width: 540px; margin: 24px auto; padding: 0 16px 60px; }
+    .step { display: none; opacity: 0; transform: translateY(10px); }
+    .step.active {
+      display: block;
+      animation: iosFadeIn 0.28s var(--ease) forwards;
+    }
+    @keyframes iosFadeIn {
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    h1 { font-size: 26px; font-weight: 700; letter-spacing: -0.5px; margin: 0 0 6px; }
+    p.sub { color: var(--muted); font-size: 15px; margin: 0 0 22px; line-height: 1.45; }
+
+    /* iOS Grouped Cards */
+    .card {
+      background: var(--card);
+      border-radius: var(--radius);
+      padding: 18px;
+      margin-bottom: 16px;
+      box-shadow: 0 2px 14px rgba(0, 0, 0, 0.035);
+      border: 1px solid var(--border);
+    }
+    .lang-card {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 20px 22px; cursor: pointer;
+      transition: transform 0.16s var(--ease), box-shadow 0.2s;
+    }
+    .lang-card:active { transform: scale(0.975); }
+    .lang-title { font-size: 20px; font-weight: 700; }
+    .lang-sub { font-size: 13px; color: var(--muted); margin-top: 2px; }
+    .chevron { color: #C7C7CC; font-size: 22px; font-weight: 600; }
+
+    /* Inputs & Buttons */
+    label { display: block; font-size: 13px; font-weight: 600; color: var(--muted); margin-bottom: 6px; }
+    input, select, textarea {
+      width: 100%; padding: 14px 16px; border-radius: 14px;
+      border: 1px solid #D1D1D6; background: #FAFAFC;
+      font-size: 16px; font-family: inherit; color: var(--text);
+      outline: none; transition: border-color 0.2s, background 0.2s;
+      margin-bottom: 14px;
+    }
+    input:focus, select:focus, textarea:focus { border-color: var(--blue); background: #fff; }
+
+    .btn {
+      width: 100%; padding: 15px; border-radius: 14px; border: none;
+      font-size: 16px; font-weight: 600; cursor: pointer;
+      transition: transform 0.15s var(--ease), opacity 0.2s;
+    }
+    .btn:active { transform: scale(0.975); }
+    .btn-primary { background: var(--blue); color: #fff; }
+    .btn-green { background: var(--green); color: #fff; }
+    .btn-secondary { background: #E5E5EA; color: var(--text); margin-top: 10px; }
+
+    /* Segmented Control (iOS Style) */
+    .segmented {
+      display: grid; grid-template-columns: 1fr 1fr;
+      background: #E5E5EA; padding: 3px; border-radius: 12px; margin-bottom: 16px;
+    }
+    .seg-btn {
+      padding: 9px; border: none; border-radius: 9px; background: transparent;
+      font-size: 14px; font-weight: 600; color: var(--muted); cursor: pointer;
+      transition: all 0.2s var(--ease);
+    }
+    .seg-btn.active { background: #fff; color: var(--text); box-shadow: 0 1px 4px rgba(0,0,0,0.1); }
+
+    /* Student & Document List Rows */
+    .list-row {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 15px 4px; border-bottom: 1px solid var(--border); cursor: pointer;
+    }
+    .list-row:last-child { border-bottom: none; }
+    .list-row:active { opacity: 0.65; }
+    .badge {
+      background: #EBF5FF; color: var(--blue);
+      padding: 4px 10px; border-radius: 8px; font-size: 12px; font-weight: 700;
+    }
+    .error-banner {
+      background: #FFEBEA; color: var(--red); padding: 12px 14px;
+      border-radius: 12px; font-size: 14px; font-weight: 500; margin-bottom: 14px; display: none;
+    }
+
+    /* Live Campus QR Screen */
+    .qr-box { text-align: center; padding: 24px; }
+    .campus-code { font-size: 46px; font-weight: 800; letter-spacing: 6px; color: var(--blue); margin: 10px 0; }
+
+    /* A4 Printable Certificate Layout */
+    #print-sheet { display: none; }
+    @page { size: A4; margin: 18mm; }
+    @media print {
+      body { background: white; }
+      body > :not(#print-sheet) { display: none !important; }
+      #print-sheet { display: block !important; width: 100%; color: black; }
+      #print-sheet .cert-preview { padding: 0; border: 0; overflow-wrap: anywhere; }
+      .cert-header, .cert-footer { break-inside: avoid; }
+      .cert-footer { margin-top: 24mm; }
+    }
+    .cert-preview {
+      border: 2px solid #1C1C1E; padding: 24px; border-radius: 8px; background: #fff;
+      font-family: "Times New Roman", "Noto Sans Devanagari", serif; line-height: 1.7;
+    }
+    .cert-header { text-align: center; border-bottom: 2px solid #1C1C1E; padding-bottom: 12px; margin-bottom: 18px; }
+    .cert-footer { display: flex; justify-content: space-between; align-items: flex-end; margin-top: 48px; }
+    .cert-footer img { max-height: 64px; max-width: 140px; object-fit: contain; }
+  </style>
+</head>
+<body>
+
+  <div class="topbar">
+    <div class="brand">School Docs</div>
+    <div class="pill-group">
+      <button class="pill-btn active" id="nav-parent" onclick="switchMode('parent')">Parent</button>
+      <button class="pill-btn" id="nav-kiosk" onclick="switchMode('kiosk')">Live QR</button>
+      <button class="pill-btn" id="nav-admin" onclick="switchMode('admin')">Admin</button>
+    </div>
+  </div>
+
+  <!-- ================= PARENT SELF-SERVICE FLOW ================= -->
+  <div class="container" id="view-parent">
+
+    <!-- Step 1: Language Selection -->
+    <div class="step active" id="step-1">
+      <h1>Welcome • स्वागत आहे</h1>
+      <p class="sub">Select your preferred language to get school documents.</p>
+
+      <div class="card lang-card" onclick="selectLang('mr')">
+        <div><div class="lang-title">मराठी</div><div class="lang-sub">शाळेची कागदपत्रे मिळवा</div></div>
+        <div class="chevron">›</div>
+      </div>
+      <div class="card lang-card" onclick="selectLang('hi')">
+        <div><div class="lang-title">हिंदी</div><div class="lang-sub">स्कूल के दस्तावेज प्राप्त करें</div></div>
+        <div class="chevron">›</div>
+      </div>
+      <div class="card lang-card" onclick="selectLang('en')">
+        <div><div class="lang-title">English</div><div class="lang-sub">Get Bonafide, Certificates & Receipts</div></div>
+        <div class="chevron">›</div>
+      </div>
+    </div>
+
+    <!-- Step 2: Find Student -->
+    <div class="step" id="step-2">
+      <h1 id="t-find-title">Find Student</h1>
+      <p class="sub" id="t-find-sub">Search using registered mobile number or student name.</p>
+
+      <div class="card">
+        <div class="segmented">
+          <button class="seg-btn active" id="tab-phone" onclick="setSearchTab('phone')">Mobile Number</button>
+          <button class="seg-btn" id="tab-name" onclick="setSearchTab('name')">Class & Name</button>
+        </div>
+
+        <div id="box-phone">
+          <label id="t-lbl-phone">Registered Mobile Number</label>
+          <input type="tel" id="inp-phone" maxlength="10" placeholder="e.g. 9822011111" oninput="searchStudents()" />
+        </div>
+
+        <div id="box-name" style="display:none;">
+          <label>Class</label>
+          <select id="inp-class" onchange="searchStudents()">
+            <option value="ALL">All Classes</option>
+            <option>1st</option><option>2nd</option><option>3rd</option><option>4th</option>
+            <option>5th</option><option>6th</option><option>7th</option><option>8th</option>
+            <option>9th</option><option>10th</option>
+          </select>
+          <label>Student or Father Name (min 2 letters)</label>
+          <input type="text" id="inp-name" placeholder="e.g. Aarav or Patil" oninput="searchStudents()" />
+        </div>
+
+        <div id="student-results"></div>
+      </div>
+      <button class="btn btn-secondary" onclick="goStep(1)">← Back</button>
+    </div>
+
+    <!-- Step 3: Family Verification & Document Choice -->
+    <div class="step" id="step-3">
+      <h1 id="sel-student-name">Student Name</h1>
+      <p class="sub" id="sel-student-meta">Class • GR Number</p>
+
+      <div class="error-banner" id="verify-error"></div>
+
+      <div class="card">
+        <label id="t-lbl-by">Child's Birth Year (4 Digits)</label>
+        <input type="tel" id="inp-birth-year" maxlength="4" placeholder="e.g. 2013" />
+
+        <div id="campus-code-wrap">
+          <label>School Monitor Campus Code</label>
+          <input type="tel" id="inp-campus-code" maxlength="4" placeholder="4-digit code on school screen" />
+        </div>
+
+        <label style="display:flex;align-items:center;gap:8px;cursor:pointer;margin-top:4px;">
+          <input type="checkbox" id="chk-guardian" style="width:auto;margin:0;" onchange="toggleGuardian()" />
+          <span>Guardian visiting without registered phone</span>
+        </label>
+        <div id="guardian-box" style="display:none;margin-top:10px;">
+          <label>Guardian Mobile Number (Logged for Security)</label>
+          <input type="tel" id="inp-guardian-phone" maxlength="10" placeholder="Enter your mobile number" />
+        </div>
+      </div>
+
+      <div class="card">
+        <label id="t-lbl-docs">Tap Document to Generate</label>
+        <div id="doc-list"></div>
+      </div>
+
+      <button class="btn btn-secondary" onclick="goStep(2)">← Change Student</button>
+    </div>
+
+    <!-- Step 4: Instant Certificate Preview, Print & WhatsApp -->
+    <div class="step" id="step-4">
+      <h1>Ready • तयार आहे</h1>
+      <p class="sub">Auto-wipes in <strong id="wipe-timer">45</strong>s for privacy.</p>
+
+      <div class="card" style="padding:12px;">
+        <div class="cert-preview" id="cert-container"></div>
+      </div>
+
+      <button class="btn btn-primary" onclick="window.print()">🖨️ Print Copy Now</button>
+      <button class="btn btn-green" style="margin-top:10px;" onclick="sendWhatsAppShare()">💬 Send on WhatsApp</button>
+      <button class="btn btn-secondary" onclick="resetSession()">Done & Clear Screen</button>
+    </div>
+  </div>
+
+  <!-- ================= LIVE 60s CAMPUS QR MONITOR ================= -->
+  <div class="container" id="view-kiosk" style="display:none;">
+    <div class="card qr-box">
+      <div style="font-size:14px;font-weight:600;color:var(--muted);">SCAN AT SCHOOL COUNTER</div>
+      <img id="live-qr-img" src="" alt="Campus QR" style="width:220px;height:220px;margin:16px auto;display:block;border-radius:16px;" />
+      <div class="campus-code" id="live-code-text">----</div>
+      <div style="font-size:14px;color:var(--muted);">Refreshes automatically in <strong id="live-sec">60</strong>s</div>
+    </div>
+  </div>
+
+  <!-- ================= PASSWORD-LOCKED ADMIN PANEL ================= -->
+  <div class="container" id="view-admin" style="display:none;">
+    <div id="admin-login-box" class="card">
+      <h1>Admin Login</h1>
+      <p class="sub">Authorized school staff only.</p>
+      <input type="text" id="adm-user" value="admin" placeholder="Username" />
+      <input type="password" id="adm-pass" placeholder="Password (initial: school1234)" />
+      <button class="btn btn-primary" onclick="adminLogin()">Unlock Admin Panel</button>
+    </div>
+
+    <div id="admin-panel" style="display:none;">
+      <div class="card"><button class="btn btn-secondary" onclick="adminLogout()">Lock admin panel</button><button class="btn btn-secondary" onclick="createBackup()">Create local database backup</button><p class="sub">Change the initial password before using real records.</p></div>
+      <div class="card">
+        <h2 style="margin-top:0;">1. Add or Edit Student / Bulk CSV</h2>
+        <input type="text" id="st-gr" placeholder="GR Number (e.g. 4503)" />
+        <input type="text" id="st-name" placeholder="Full Name (Student Father Surname)" />
+        <input type="text" id="st-father" placeholder="Father's Full Name" />
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+          <input type="text" id="st-class" placeholder="Class (e.g. 9th)" />
+          <input type="text" id="st-div" placeholder="Division (e.g. A)" />
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+          <input type="text" id="st-dob" placeholder="DOB (DD/MM/YYYY)" />
+          <input type="tel" id="st-phone" placeholder="Parent Mobile" />
+        </div>
+        <button class="btn btn-primary" onclick="saveStudent()">Save Student Record</button>
+        <label style="margin-top:14px;">Or Upload CSV (gr_number,full_name,father_name,class_name,division,dob,parent_phone)</label>
+        <input type="file" accept=".csv" onchange="uploadCSV(event)" />
+      </div>
+
+      <div class="card"><h2>Student Records</h2><div id="admin-students"></div></div>
+      <div class="card">
+        <h2 style="margin-top:0;">2. Add New Certificate Template</h2>
+        <input type="text" id="tpl-mr" placeholder="Marathi Title (e.g. बोनाफाईड प्रमाणपत्र)" />
+        <input type="text" id="tpl-hi" placeholder="Hindi Title (e.g. बोनाफाइड प्रमाणपत्र)" />
+        <input type="text" id="tpl-en" placeholder="English Title (e.g. Bonafide Certificate)" />
+        <textarea id="tpl-body" rows="4" placeholder="Use placeholders: {{student_name}}, {{father_name}}, {{class_name}}, {{division}}, {{gr_number}}, {{dob}}, {{issue_date}}"></textarea>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+          <div>
+            <label>Principal Signature Position</label>
+            <select id="tpl-sig"><option value="right">Bottom Right</option><option value="left">Bottom Left</option><option value="none">Hidden</option></select>
+          </div>
+          <div>
+            <label>School Stamp Position</label>
+            <select id="tpl-stamp"><option value="center">Bottom Center</option><option value="left">Bottom Left</option><option value="right">Bottom Right</option><option value="none">Hidden</option></select>
+          </div>
+        </div>
+        <button class="btn btn-primary" onclick="saveTemplate()">Add Document to Kiosk & WhatsApp</button>
+        <div id="admin-tpl-list" style="margin-top:12px;"></div>
+      </div>
+
+      <div class="card">
+        <h2 style="margin-top:0;">3. School Header, Signature & Stamp</h2>
+        <input type="text" id="set-name" placeholder="School Name" />
+        <input type="text" id="set-sub" placeholder="Address / Board Recognition" />
+        <input type="text" id="set-udise" placeholder="UDISE Number" />
+        <input type="text" id="set-wa" placeholder="School WhatsApp Number (91...)" />
+        <label>Upload School Logo (PNG)</label><input type="file" accept="image/png" onchange="encodeImage(event, 'logo')" />
+        <label>Upload Principal Signature (PNG)</label>
+        <input type="file" accept="image/png" onchange="encodeImage(event, 'sig')" />
+        <label>Upload School Round Stamp (PNG)</label>
+        <input type="file" accept="image/png" onchange="encodeImage(event, 'stamp')" />
+        <button class="btn btn-primary" onclick="saveSettings()">Save Branding & Stamp</button>
+      </div>
+
+      <div class="card">
+        <h2 style="margin-top:0;">4. Security & Recent Audit Logs</h2>
+        <input type="password" id="new-adm-pass" placeholder="New Admin Password (min 10 chars)" />
+        <button class="btn btn-secondary" onclick="changeAdminPassword()">Update Admin Password</button>
+        <div id="admin-logs" style="margin-top:14px;font-size:13px;"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Hidden Clean A4 Sheet for Silent Printer -->
+  <div id="print-sheet"></div>
+
+  <script>
+    const escapeHtml = v => String(v ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+    const nativeFetch = window.fetch.bind(window);
+    window.fetch = async (...args) => {
+      const response = await nativeFetch(...args);
+      if (!response.ok) { const body = await response.clone().json().catch(() => ({})); throw new Error(body.error || 'Request failed'); }
+      return response;
+    };
+    window.addEventListener('unhandledrejection', event => { event.preventDefault(); alert(event.reason?.message || 'Unable to reach the local server.'); });
+
+    let state = {
+      lang: 'en',
+      searchMode: 'phone',
+      selectedStudent: null,
+      templates: [],
+      lastCert: null,
+      adminToken: '',
+      uploadedSig: null,
+      uploadedStamp: null,
+      wipeInterval: null
+    };
+
+    const i18n = {
+      mr: {
+        findTitle: 'विद्यार्थी शोधा', findSub: 'नोंदणीकृत मोबाईल नंबर किंवा विद्यार्थ्याचे नाव टाका.',
+        lblPhone: 'नोंदणीकृत मोबाईल नंबर', lblBy: 'विद्यार्थ्याचे जन्मवर्ष (उदा. 2013)', lblDocs: 'प्रमाणपत्र निवडा'
+      },
+      hi: {
+        findTitle: 'छात्र खोजें', findSub: 'पंजीकृत मोबाइल नंबर या छात्र का नाम दर्ज करें।',
+        lblPhone: 'पंजीकृत मोबाइल नंबर', lblBy: 'छात्र का जन्म वर्ष (जैसे 2013)', lblDocs: 'दस्तावेज़ चुनें'
+      },
+      en: {
+        findTitle: 'Find Student', findSub: 'Search using registered mobile number or student name.',
+        lblPhone: 'Registered Mobile Number', lblBy: "Child's Birth Year (4 Digits)", lblDocs: 'Tap Document to Generate'
+      }
+    };
+
+    // Detect if opened directly on School PC (localhost) vs Parent Phone
+    const isLocalKiosk = ['localhost', '127.0.0.1'].includes(window.location.hostname);
+    if (isLocalKiosk) document.getElementById('campus-code-wrap').style.display = 'none';
+
+    async function loadTemplates() {
+      const res = await fetch('/api/public-config');
+      const data = await res.json();
+      state.templates = data.templates || [];
+    }
+    loadTemplates();
+
+    function switchMode(mode) {
+      ['parent', 'kiosk', 'admin'].forEach(m => {
+        document.getElementById('view-' + m).style.display = m === mode ? 'block' : 'none';
+        document.getElementById('nav-' + m).classList.toggle('active', m === mode);
+      });
+      if (mode !== 'parent') resetSession();
+      if (mode !== 'admin' && state.adminToken) adminLogout();
+      if (mode === 'kiosk') refreshCampusQR();
+    }
+
+    function goStep(n) {
+      document.querySelectorAll('.step').forEach(el => el.classList.remove('active'));
+      document.getElementById('step-' + n).classList.add('active');
+    }
+
+    function selectLang(lang) {
+      state.lang = lang;
+      const t = i18n[lang];
+      document.getElementById('t-find-title').textContent = t.findTitle;
+      document.getElementById('t-find-sub').textContent = t.findSub;
+      document.getElementById('t-lbl-phone').textContent = t.lblPhone;
+      document.getElementById('t-lbl-by').textContent = t.lblBy;
+      document.getElementById('t-lbl-docs').textContent = t.lblDocs;
+      document.documentElement.lang = lang;
+      goStep(2);
+    }
+
+    function setSearchTab(tab) {
+      state.searchMode = tab;
+      document.getElementById('tab-phone').classList.toggle('active', tab === 'phone');
+      document.getElementById('tab-name').classList.toggle('active', tab === 'name');
+      document.getElementById('box-phone').style.display = tab === 'phone' ? 'block' : 'none';
+      document.getElementById('box-name').style.display = tab === 'name' ? 'block' : 'none';
+      document.getElementById('student-results').innerHTML = '';
+    }
+
+    let searchTimer; let searchVersion = 0;
+    function searchStudents() {
+      clearTimeout(searchTimer);
+      const version = ++searchVersion;
+      searchTimer = setTimeout(async () => {
+        const payload = {
+          mode: state.searchMode,
+          phone: document.getElementById('inp-phone').value,
+          className: document.getElementById('inp-class').value,
+          query: document.getElementById('inp-name').value
+        };
+        const res = await fetch('/api/search-student', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload)
+        });
+        const data = await res.json();
+        const box = document.getElementById('student-results');
+        if (version !== searchVersion) return;
+        box.replaceChildren();
+        for (const s of data.students || []) {
+          const row = document.createElement('button'); row.className = 'list-row'; row.style.width = '100%'; row.style.textAlign = 'left';
+          row.innerHTML = `<div><strong>${escapeHtml(s.full_name)}</strong><div>Class ${escapeHtml(s.class_name)}-${escapeHtml(s.division)} · ${escapeHtml(s.masked_phone)}</div></div><span class="badge">GR ${escapeHtml(s.gr_number)}</span>`;
+          row.onclick = () => chooseStudent(s); box.append(row);
+        }
+      }, 180);
+    }
+
+    function chooseStudent(student) {
+      state.selectedStudent = student;
+      document.getElementById('sel-student-name').textContent = student.full_name;
+      document.getElementById('sel-student-meta').textContent = `Class ${student.class_name}-${student.division} • GR No. ${student.gr_number}`;
+      document.getElementById('verify-error').style.display = 'none';
+
+      const docBox = document.getElementById('doc-list');
+      docBox.innerHTML = state.templates.map(t => {
+        const label = state.lang === 'mr' ? t.title_mr : state.lang === 'hi' ? t.title_hi : t.title_en;
+        return `<div class="list-row" onclick="generateDoc(${t.id})">
+          <div style="font-weight:600;font-size:16px;">📄 ${escapeHtml(label)}</div>
+          <div class="chevron">›</div>
+        </div>`;
+      }).join('');
+      goStep(3);
+    }
+
+    function toggleGuardian() {
+      document.getElementById('guardian-box').style.display = document.getElementById('chk-guardian').checked ? 'block' : 'none';
+    }
+
+    async function generateDoc(templateId) {
+      const errBox = document.getElementById('verify-error');
+      errBox.style.display = 'none';
+      const payload = {
+        grNumber: state.selectedStudent.gr_number,
+        birthYear: document.getElementById('inp-birth-year').value,
+        campusCode: document.getElementById('inp-campus-code').value,
+        templateId,
+        isGuardian: document.getElementById('chk-guardian').checked,
+        guardianPhone: document.getElementById('inp-guardian-phone').value,
+        isLocalKiosk
+      };
+      const res = await fetch('/api/generate-document', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload)
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        errBox.textContent = data.error;
+        errBox.style.display = 'block';
+        return;
+      }
+
+      state.lastCert = data;
+      const qrVerifyUrl = '/api/qr?text=' + encodeURIComponent(location.origin + '/verify/' + data.serialNo);
+
+      const sigImg = (data.sigPos !== 'none' && data.settings.signature_data) ? `<img src="${data.settings.signature_data}" alt="Principal Signature"/><br/>` : '';
+      const stampImg = (data.stampPos !== 'none' && data.settings.stamp_data) ? `<img src="${data.settings.stamp_data}" alt="School Stamp"/>` : '';
+
+      const certHtml = `
+        <div class="cert-header">
+          <div>${data.settings.logo_data ? `<img src="${data.settings.logo_data}" alt="School logo" style="height:60px;max-width:100px;object-fit:contain;"/>` : ''}</div><div style="font-size:18px;font-weight:700;">${escapeHtml(data.settings.school_name)}</div>
+          <div style="font-size:12px;">${escapeHtml(data.settings.school_subtitle)}</div>
+          <div style="font-size:11px;">${escapeHtml(data.settings.udise_no)}</div>
+        </div>
+        <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:14px;">
+          <span><strong>Ref No:</strong> ${data.serialNo}</span>
+          <span><strong>Date:</strong> ${data.issuedAt}</span>
+        </div>
+        <h3 style="text-align:center;text-decoration:underline;margin:12px 0 18px;">${escapeHtml(data.docTitle.toUpperCase())}</h3>
+        <div style="font-size:15px;">${data.bodyHtml}</div>
+        <div class="cert-footer">
+          <div><img src="${qrVerifyUrl}" alt="Certificate verification QR" width="90" height="90"/><div style="font-size:10px;">Verify on school PC</div></div>
+          <div>${data.sigPos === 'left' ? sigImg + '<strong>Principal</strong>' : ''}${data.stampPos === 'left' ? stampImg : ''}</div><div>${data.stampPos === 'center' ? stampImg : ''}</div><div>${data.sigPos === 'right' ? sigImg + '<strong>Principal</strong>' : ''}${data.stampPos === 'right' ? stampImg : ''}</div>
+        </div>
+      `;
+
+      document.getElementById('cert-container').innerHTML = certHtml;
+      document.getElementById('print-sheet').innerHTML = `<div class="cert-preview" style="border:none;">${certHtml}</div>`;
+      goStep(4);
+      startWipeCountdown();
+    }
+
+    function sendWhatsAppShare() {
+      if (!state.lastCert) return;
+      const text = `School Verified Certificate\nStudent: ${state.lastCert.student.full_name}\nDocument: ${state.lastCert.docTitle}\nSerial No: ${state.lastCert.serialNo}\nIssued Date: ${state.lastCert.issuedAt}`;
+      window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
+    }
+
+    function startWipeCountdown() {
+      clearInterval(state.wipeInterval);
+      let left = 45;
+      document.getElementById('wipe-timer').textContent = left;
+      state.wipeInterval = setInterval(() => {
+        left--;
+        document.getElementById('wipe-timer').textContent = left;
+        if (left <= 0) resetSession();
+      }, 1000);
+    }
+
+    function resetSession() {
+      ++searchVersion; clearTimeout(searchTimer);
+      clearInterval(state.wipeInterval);
+      state.selectedStudent = null;
+      state.lastCert = null;
+      document.getElementById('inp-phone').value = '';
+      document.getElementById('inp-name').value = '';
+      document.getElementById('inp-birth-year').value = '';
+      document.getElementById('inp-campus-code').value = '';
+      document.getElementById('sel-student-name').textContent = '';
+      document.getElementById('sel-student-meta').textContent = '';
+      document.getElementById('student-results').innerHTML = '';
+      document.getElementById('cert-container').innerHTML = '';
+      document.getElementById('print-sheet').innerHTML = '';
+      document.getElementById('inp-guardian-phone').value = '';
+      document.getElementById('chk-guardian').checked = false;
+      toggleGuardian();
+      loadTemplates();
+      goStep(1);
+    }
+
+    // Live 60s Campus QR Loop
+    async function refreshCampusQR() {
+      const res = await fetch('/api/campus-code');
+      const data = await res.json();
+      document.getElementById('live-code-text').textContent = data.code;
+      document.getElementById('live-sec').textContent = data.secondsLeft;
+      const url = `${window.location.origin}/?code=${data.code}`;
+      const src = '/api/qr?text=' + encodeURIComponent(url);
+      const img = document.getElementById('live-qr-img'); if (img.getAttribute('src') !== src) img.src = src;
+    }
+    setInterval(() => {
+      if (document.getElementById('view-kiosk').style.display === 'block') refreshCampusQR();
+    }, 1000);
+
+    // Auto-fill Campus Code if parent scanned the QR link (?code=XXXX)
+    const urlCode = new URLSearchParams(window.location.search).get('code');
+    if (urlCode) document.getElementById('inp-campus-code').value = urlCode;
+
+    // ================= ADMIN FUNCTIONS =================
+    async function adminLogin() {
+      const res = await fetch('/api/admin/login', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username: document.getElementById('adm-user').value, password: document.getElementById('adm-pass').value })
+      });
+      const data = await res.json();
+      if (!res.ok) return alert(data.error);
+      state.adminToken = data.token;
+      document.getElementById('adm-pass').value = '';
+      document.getElementById('admin-login-box').style.display = 'none';
+      document.getElementById('admin-panel').style.display = 'block';
+      loadAdminData();
+    }
+
+    async function loadAdminData() {
+      const requestToken = state.adminToken;
+      const res = await fetch('/api/admin/dashboard', { headers: { 'x-admin-token': state.adminToken } });
+      const data = await res.json();
+      if (!state.adminToken || state.adminToken !== requestToken) return;
+      document.getElementById('set-name').value = data.settings.school_name || '';
+      document.getElementById('set-sub').value = data.settings.school_subtitle || '';
+      document.getElementById('set-udise').value = data.settings.udise_no || '';
+      document.getElementById('set-wa').value = data.settings.whatsapp_number || '';
+
+      state.adminStudents = data.students;
+      document.getElementById('admin-students').innerHTML = data.students.map((s, i) => `<div class="list-row"><span>${escapeHtml(s.gr_number)} · ${escapeHtml(s.full_name)}</span><button onclick="editStudent(${i})">Edit</button><button onclick="deleteStudent(${i})">Archive</button></div>`).join('');
+      document.getElementById('admin-tpl-list').innerHTML = data.templates.map(t => `
+        <div class="list-row">
+          <span>${escapeHtml(t.title_en)} / ${escapeHtml(t.title_mr)}</span>
+          <button class="pill-btn" style="color:var(--red);" onclick="deleteTemplate(${t.id})">Delete</button>
+        </div>
+      `).join('');
+
+      document.getElementById('admin-logs').innerHTML = data.logs.map(l => `
+        <div style="padding:8px 0;border-bottom:1px solid var(--border);">
+          <strong>${escapeHtml(l.serial_no)}</strong> • ${escapeHtml(l.student_name)} (${escapeHtml(l.doc_title)}) • Phone: ${escapeHtml(l.verified_phone)}
+        </div>
+      `).join('');
+    }
+
+    async function saveStudent() {
+      await fetch('/api/admin/students', {
+        method: 'POST', headers: { 'Content-Type': 'application/json', 'x-admin-token': state.adminToken },
+        body: JSON.stringify({
+          gr_number: document.getElementById('st-gr').value,
+          full_name: document.getElementById('st-name').value,
+          father_name: document.getElementById('st-father').value,
+          class_name: document.getElementById('st-class').value,
+          division: document.getElementById('st-div').value,
+          dob: document.getElementById('st-dob').value,
+          parent_phone: document.getElementById('st-phone').value
+        })
+      });
+      alert('Student saved!'); loadAdminData();
+    }
+
+    function uploadCSV(e) {
+      const file = e.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = async (ev) => {
+        const res = await fetch('/api/admin/students/bulk', {
+          method: 'POST', headers: { 'Content-Type': 'application/json', 'x-admin-token': state.adminToken },
+          body: JSON.stringify({ csv: ev.target.result })
+        });
+        const out = await res.json();
+        alert(`Imported ${out.count} students successfully!`); loadAdminData();
+      };
+      reader.readAsText(file);
+    }
+
+    async function saveTemplate() {
+      await fetch('/api/admin/templates', {
+        method: 'POST', headers: { 'Content-Type': 'application/json', 'x-admin-token': state.adminToken },
+        body: JSON.stringify({
+          title_mr: document.getElementById('tpl-mr').value,
+          title_hi: document.getElementById('tpl-hi').value,
+          title_en: document.getElementById('tpl-en').value,
+          body_html: document.getElementById('tpl-body').value,
+          sig_pos: document.getElementById('tpl-sig').value,
+          stamp_pos: document.getElementById('tpl-stamp').value
+        })
+      });
+      alert('New document template added!');
+      loadAdminData();
+      loadTemplates();
+    }
+
+    async function deleteTemplate(id) {
+      await fetch('/api/admin/templates/' + id, { method: 'DELETE', headers: { 'x-admin-token': state.adminToken } });
+      loadAdminData();
+      loadTemplates();
+    }
+
+    function encodeImage(e, type) {
+      const file = e.target.files[0];
+      if (!file) return;
+      if (file.type !== 'image/png' || file.size > 1500000) return alert('Choose a PNG smaller than 1.5 MB');
+      const reader = new FileReader();
+      reader.onload = () => {
+        if (type === 'logo') state.uploadedLogo = reader.result;
+        if (type === 'sig') state.uploadedSig = reader.result;
+        if (type === 'stamp') state.uploadedStamp = reader.result;
+      };
+      reader.readAsDataURL(file);
+    }
+
+    async function saveSettings() {
+      await fetch('/api/admin/settings', {
+        method: 'POST', headers: { 'Content-Type': 'application/json', 'x-admin-token': state.adminToken },
+        body: JSON.stringify({
+          school_name: document.getElementById('set-name').value,
+          school_subtitle: document.getElementById('set-sub').value,
+          udise_no: document.getElementById('set-udise').value,
+          whatsapp_number: document.getElementById('set-wa').value,
+          logo_data: state.uploadedLogo,
+          signature_data: state.uploadedSig,
+          stamp_data: state.uploadedStamp
+        })
+      });
+      alert('School branding & signatures updated!');
+    }
+
+    async function changeAdminPassword() {
+      const res = await fetch('/api/admin/change-password', {
+        method: 'POST', headers: { 'Content-Type': 'application/json', 'x-admin-token': state.adminToken },
+        body: JSON.stringify({ newPassword: document.getElementById('new-adm-pass').value })
+      });
+      if (res.ok) { alert('Password updated. Please sign in again.'); adminLogout(); }
+    }
+    function editStudent(i) {
+      const s = state.adminStudents[i];
+      for (const [id, key] of Object.entries({'st-gr':'gr_number','st-name':'full_name','st-father':'father_name','st-class':'class_name','st-div':'division','st-dob':'dob','st-phone':'parent_phone'})) document.getElementById(id).value = s[key] || '';
+      document.getElementById('st-gr').focus();
+    }
+    async function deleteStudent(i) { await fetch('/api/admin/students/' + encodeURIComponent(state.adminStudents[i].gr_number), { method: 'DELETE', headers: {'x-admin-token':state.adminToken} }); loadAdminData(); }
+    async function createBackup() { const r = await (await fetch('/api/admin/backup', { method:'POST', headers:{'content-type':'application/json','x-admin-token':state.adminToken}, body:'{}' })).json(); alert('Saved in backups/' + r.filename); }
+    function adminLogout() {
+      if (state.adminToken) nativeFetch('/api/admin/logout', { method:'POST', headers:{'content-type':'application/json','x-admin-token':state.adminToken}, body:'{}' }).catch(() => {});
+      state.adminToken = ''; state.adminStudents = []; state.uploadedSig = null; state.uploadedStamp = null; state.uploadedLogo = null;
+      document.getElementById('admin-panel').style.display = 'none'; document.getElementById('admin-login-box').style.display = 'block';
+      for (const id of ['admin-students','admin-logs','admin-tpl-list']) document.getElementById(id).replaceChildren();
+      document.querySelectorAll('#admin-panel input, #admin-panel textarea').forEach(el => el.value = '');
+    }
+    let lastActivity = Date.now();
+    for (const event of ['pointerdown','keydown','input']) document.addEventListener(event, () => lastActivity = Date.now(), { passive:true });
+    setInterval(() => { if (Date.now() - lastActivity > 45000) { resetSession(); if (state.adminToken) adminLogout(); lastActivity = Date.now(); } }, 1000);
+    window.addEventListener('afterprint', resetSession);
+  </script>
+</body>
+</html>
