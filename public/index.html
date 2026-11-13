@@ -1192,6 +1192,40 @@
         background: transparent; color: var(--umber); line-height: 1.6;
       }
       #parent-view #step-3 #auth-status { margin: 0 0 12px; }
+      /* Certificate-ready step: preview and actions share one aligned paper surface. */
+      #parent-view #step-6:not([hidden]) { display: flex; flex: 1 0 auto; flex-direction: column; }
+      #parent-view #step-6 > .row { flex: 0 0 auto; align-items: center; gap: 16px; }
+      #parent-view #step-6 .preview-split {
+        flex: 1 0 auto; min-width: 0;
+        grid-template-columns: minmax(0, 1.8fr) minmax(280px, .85fr);
+        gap: clamp(20px, 2.5vw, 40px); align-items: stretch;
+      }
+      #parent-view #step-6 .split-main { display: flex; flex-direction: column; min-width: 0; }
+      #parent-view #step-6 .preview-wrap {
+        display: flex; min-width: 0; padding: 0; margin: 12px 0 0;
+        border: 0; border-radius: 0; background: transparent;
+      }
+      #parent-view #step-6 .frame {
+        display: block; width: 100%; height: min(62dvh, 650px); min-height: 420px;
+        border: 1px solid var(--hairline); border-radius: 4px; background: #fff;
+      }
+      #parent-view #step-6 .split-side {
+        display: flex; flex-direction: column; min-width: 0;
+        padding: 12px 0 0 24px; border: 0; border-left: 1px solid var(--hairline);
+        border-radius: 0; background: transparent;
+      }
+      #parent-view #step-6 .split-side > h1 { margin: 0 0 8px; }
+      #parent-view #step-6 .split-side > p { margin: 0; line-height: 1.55; }
+      #parent-view #step-6 .action-stack { gap: 12px; margin-top: 24px !important; }
+      #parent-view #step-6 .action-stack button {
+        min-height: 56px; height: auto; padding: 12px 16px; font-size: 16px;
+      }
+      #parent-view #step-6 .split-side > .row {
+        flex: 0 0 auto; margin: auto 0 0 !important; padding-top: 18px;
+        border-top: 1px solid var(--hairline); align-items: center;
+      }
+      #parent-view #step-6 #done-button { min-height: 48px; padding: 10px 24px; }
+      #parent-view #step-6 #document-status:empty { display: none; }
       #parent-view .front-copy > .icon { display: none; }
       #parent-view h1 { font-size: clamp(28px, 2.3vw, 36px); margin: 12px 0; }
       #parent-view .lang {
@@ -1224,6 +1258,10 @@
         #parent-view .stepbar { gap: 8px; margin-bottom: 20px; }
         #parent-view h1 { font-size: 28px; }
         #parent-view .lang strong { font-size: 22px; }
+        #parent-view #step-6 .preview-split { grid-template-columns: minmax(0, 1fr); gap: 20px; }
+        #parent-view #step-6 .frame { height: min(68dvh, 620px); min-height: 360px; }
+        #parent-view #step-6 .split-side { padding: 20px 0 0; border-left: 0; border-top: 1px solid var(--hairline); }
+        #parent-view #step-6 .split-side > .row { margin-top: 20px !important; }
       }
 
 
