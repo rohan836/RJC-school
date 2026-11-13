@@ -1149,17 +1149,23 @@
         display: flex; flex-direction: column; justify-content: center;
         min-width: 0; min-height: 100%;
       }
-      #parent-view .parent-wizard > .footer {
-        width: min(100%, 76ch); margin: auto auto 0; padding-top: 28px;
-        line-height: 1.55; text-wrap: pretty;
-      }
       #parent-view .parent-wizard > .step {
         border: 0; border-radius: 0; padding: 0; background: transparent; box-shadow: none;
       }
+      #parent-view .parent-wizard > :is(#step-2, #step-3, #step-4, #step-5):not([hidden]) {
+        display: flex; flex-direction: column; flex: 1 0 auto; min-width: 0;
+      }
+      #parent-view :is(#step-2, #step-3, #step-5) > .quiet { align-self: flex-start; }
+      #parent-view :is(#search-button, #family-button, #generate-button) {
+        flex: 0 0 auto; width: 100%; min-height: 54px; margin: auto 0 0;
+      }
+      #parent-view :is(#phone-status, #auth-status):empty { display: none; }
+      #parent-view #candidate-results { padding-bottom: 20px; }
+      #parent-view #candidate-results .student { min-height: 48px; padding: 10px 16px; margin-top: 8px; }
       #parent-view .stepbar { gap: 14px; margin: 0 0 26px; }
       #parent-view .stepbar span { min-width: 0; }
       #parent-view #step-2 #search-query { display: block; width: 100%; margin: 12px 0 14px; }
-      #parent-view #step-2 #search-button { display: block; width: 100%; margin: 0; }
+      #parent-view #step-2 #search-button { display: block; margin: auto 0 0; }
       #parent-view #step-2 #search-privacy { margin: 10px 0 0; line-height: 1.5; }
       #parent-view #step-3 > p[data-parent-text="neutral"] {
         max-width: 72ch; margin: 8px 0 22px; line-height: 1.6; color: var(--umber);
@@ -1168,11 +1174,16 @@
         padding-bottom: 20px; margin-bottom: 22px; border-bottom: 1px solid var(--hairline);
       }
       #parent-view #step-3 #otp-area label { margin-top: 0; }
+      #parent-view #step-3 .verify-fields {
+        display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px;
+        margin: 0 0 18px;
+      }
+      #parent-view #step-3 .verify-fields label { margin: 0 0 8px; }
       #parent-view #step-3 #otp-area input,
       #parent-view #step-3 #birth-year,
       #parent-view #step-3 #identifier-type,
       #parent-view #step-3 #family-identifier {
-        display: block; width: 100%; margin: 0 0 14px;
+        display: block; width: 100%; margin: 0;
       }
       #parent-view #step-3 h2 { margin: 20px 0 10px; font-size: 25px; }
       #parent-view #step-3 .notice {
@@ -1180,8 +1191,7 @@
         border-left: 2px solid var(--dune-deep); border-radius: 0;
         background: transparent; color: var(--umber); line-height: 1.6;
       }
-      #parent-view #step-3 #family-button { margin-top: 4px; }
-      #parent-view #step-3 #auth-status { margin: 12px 0 0; }
+      #parent-view #step-3 #auth-status { margin: 0 0 12px; }
       #parent-view .front-copy > .icon { display: none; }
       #parent-view h1 { font-size: clamp(28px, 2.3vw, 36px); margin: 12px 0; }
       #parent-view .lang {
@@ -1199,11 +1209,18 @@
       #parent-view .front-qr .hero-meta, #parent-view .front-qr .bar { width: 100%; }
       #parent-view .qr-help { max-width: 36ch; margin-bottom: 0; }
       #parent-view:has(> .front-qr[hidden]), body.phone #parent-view { grid-template-columns: minmax(0, 1fr); }
+      @media screen and (min-width: 861px) and (max-height: 800px) {
+        #parent-view #qr-live { width: 170px; height: 170px; }
+        #parent-view .front-qr .code { font-size: 52px; }
+        #parent-view .qr-frame { margin: 12px 0; }
+      }
       @media screen and (max-width: 860px) {
         #parent-view.parent-workspace { min-height: 0; padding: 18px; margin: 14px auto; }
         #parent-view > .front-qr { padding: 12px 0 22px; border-right: 0; border-bottom: 1px solid var(--hairline); margin-bottom: 20px; }
         #parent-view .parent-wizard { padding: 0; }
-        #parent-view .parent-wizard > .footer { margin-top: 24px; padding-top: 16px; }
+        #parent-view :is(#search-button, #family-button, #generate-button) { margin-top: 20px; }
+        #parent-view #step-2 #search-button { margin-top: 20px; }
+        #parent-view #step-3 .verify-fields { grid-template-columns: minmax(0, 1fr); gap: 14px; }
         #parent-view .stepbar { gap: 8px; margin-bottom: 20px; }
         #parent-view h1 { font-size: 28px; }
         #parent-view .lang strong { font-size: 22px; }
@@ -1407,9 +1424,9 @@
         <h1 data-t="find">Find your student</h1>
         <label for="search-query" data-t="searchAll">Name, mobile number, GR number or class</label>
         <input id="search-query" type="search" maxlength="100" autocomplete="off" enterkeyhint="search" placeholder="Name, mobile number, GR number or class">
-        <button class="primary full" id="search-button" data-t="findStudent">Find student</button>
         <p class="small muted" id="search-privacy">Select the matching student to continue. Contact details and records remain protected until verification.</p>
         <p id="phone-status" class="status" role="status"></p><div id="candidate-results"></div>
+        <button class="primary full" id="search-button" data-t="findStudent">Find student</button>
       </section>
       <section class="card step" id="step-3" hidden>
         <button class="quiet" data-back="2" data-t="back">← Back</button>
@@ -1418,10 +1435,12 @@
         <div id="otp-area"><label for="otp-code" data-parent-text="otp">WhatsApp verification code</label><input id="otp-code" inputmode="numeric" maxlength="6" data-numeric autocomplete="one-time-code"><button id="otp-button" class="primary full" data-parent-text="verifyButton">Verify</button></div>
         <h2 data-parent-text="family">Family Secret Check</h2>
         <p class="notice" data-parent-text="familyHelp">This checks knowledge, not control of the registered phone. It authorizes only the child whose details are checked. A guardian needs the parent's WhatsApp verification or staff approval.</p>
-        <label for="birth-year" data-parent-text="birth">Child’s birth year</label><input id="birth-year" inputmode="numeric" maxlength="4" data-numeric>
-        <label for="identifier-type" data-parent-text="identifier">Choose a family detail</label><select id="identifier-type"><option value="gr">GR number</option><option value="backup">Backup ID last four</option></select>
-        <label for="family-identifier" data-parent-text="identifierValue">GR number or backup ID last four</label><input id="family-identifier" autocomplete="off" maxlength="64">
-        <button id="family-button" class="primary full" data-parent-text="verifyButton">Verify</button><p id="auth-status" role="alert" class="status"></p>
+        <div class="verify-fields">
+          <div><label for="birth-year" data-parent-text="birth">Child’s birth year</label><input id="birth-year" inputmode="numeric" maxlength="4" data-numeric></div>
+          <div><label for="identifier-type" data-parent-text="identifier">Choose a family detail</label><select id="identifier-type"><option value="gr">GR number</option><option value="backup">Backup ID last four</option></select></div>
+          <div><label for="family-identifier" data-parent-text="identifierValue">GR number or backup ID last four</label><input id="family-identifier" autocomplete="off" maxlength="64"></div>
+        </div>
+        <p id="auth-status" role="alert" class="status"></p><button id="family-button" class="primary full" data-parent-text="verifyButton">Verify</button>
       </section>
       <section class="card step" id="step-4" hidden>
         <h1 data-parent-text="students">Choose a student</h1><div id="search-results"></div><p id="search-status" role="status"></p>
@@ -1475,7 +1494,6 @@
           </aside>
         </div>
       </section>
-      <p class="footer" id="school-footer">R. J. CHAWARE CONVENT</p>
     </div>
 </main>
     <main id="admin-view" class="wide" hidden>
@@ -1911,9 +1929,6 @@
         const tagline = state.config.schoolTagline || subtitle;
         $("brand-name").textContent = name;
         $("brand-sub").textContent = tagline;
-        $("school-footer").textContent = subtitle
-          ? name + " · " + subtitle
-          : name;
         document.title = name + " · School Document Portal";
         document.body.classList.toggle("phone", matchMedia("(max-width: 700px)").matches);
         $("otp-area").hidden = !state.config.otpConfigured;
