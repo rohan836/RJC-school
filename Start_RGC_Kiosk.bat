@@ -17,6 +17,7 @@ if errorlevel 1 (
 ) else (
   echo Server already running on port 3000.
 )
+echo Want phones to connect on any internet (4G/5G)? Run Start_Public_Tunnel.bat first.
 timeout /t 3 /nobreak >nul
 if exist "%ProgramFiles%\Google\Chrome\Application\chrome.exe" (start "" "%ProgramFiles%\Google\Chrome\Application\chrome.exe" --kiosk --kiosk-printing http://localhost:3000 & exit /b)
 if exist "%ProgramFiles(x86)%\Microsoft\Edge\Application\msedge.exe" (start "" "%ProgramFiles(x86)%\Microsoft\Edge\Application\msedge.exe" --kiosk --kiosk-printing http://localhost:3000 & exit /b)

@@ -7,3 +7,5 @@ portable-node/
 backups/
 *.log
 admin-credentials.txt
+public-url
+cloudflared-tunnel.log

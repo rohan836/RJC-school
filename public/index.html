@@ -319,8 +319,7 @@
         gap: 12px;
       }
       .grid2,
-      .layout,
-      .qr-grid {
+      .layout {
         display: grid;
         grid-template-columns: repeat(2, minmax(0, 1fr));
         gap: 22px;
@@ -552,35 +551,62 @@
         padding: 14px;
         margin: 20px 0;
       }
-      .monitor {
+      .narrow {
+        max-width: 780px;
+        margin-inline: auto;
+      }
+      .step-front {
+        max-width: none;
+      }
+      .front-split {
+        display: grid;
+        grid-template-columns: 1.05fr 0.95fr;
+        gap: 30px;
+        align-items: center;
+      }
+      .front-split:has(.front-qr[hidden]) {
+        grid-template-columns: 1fr;
+      }
+      .front-qr {
+        text-align: center;
+        border-left: 1px solid var(--hairline);
+        padding-left: 30px;
+      }
+      .front-qr .eyebrow {
+        margin-bottom: 0;
         text-align: center;
       }
-      .hero-code {
-        background: var(--forest);
-        color: #f8f4ee;
-        border-radius: 26px;
-        padding: 28px;
+      .qr-frame {
+        background: #ffffff;
+        border: 1px solid var(--hairline);
+        border-radius: 22px;
+        padding: 18px;
+        width: max-content;
+        margin: 14px auto 0;
+      }
+      .qr-frame img {
+        width: 208px;
+        height: 208px;
+        display: block;
+      }
+      .front-qr .code {
+        color: var(--forest);
+        font-size: clamp(46px, 6.4vw, 72px);
+        margin: 16px 0 4px;
+      }
+      .front-qr .bar {
+        margin-top: 10px;
+        margin-bottom: 6px;
+      }
+      .qr-help {
+        font-size: 13px;
+        color: var(--umber);
+        margin: 12px 0 0;
+        line-height: 1.6;
+      }
+      .privacy-line {
         text-align: left;
-        border: 1px solid rgba(248, 244, 238, 0.14);
-      }
-      .hero-code .eyebrow {
-        color: #f8f4ee;
-        opacity: 0.65;
-        margin-bottom: 0;
-      }
-      .hero-title {
-        font-family: var(--serif);
-        font-weight: 500;
-        letter-spacing: -0.02em;
-        font-size: clamp(24px, 3.6vw, 34px);
-        line-height: 1.2;
-        color: #f8f4ee;
-        margin: 18px 0 8px;
-      }
-      .hero-sub {
-        color: #f8f4ee;
-        opacity: 0.75;
-        margin-bottom: 10px;
+        margin-top: 20px;
       }
       .code {
         font-family: var(--serif);
@@ -588,16 +614,11 @@
         font-weight: 500;
         letter-spacing: 0.16em;
         line-height: 1.05;
-        color: #f8f4ee;
+        color: var(--forest);
         margin: 18px 0 4px;
         text-align: center;
         font-variant-numeric: tabular-nums;
         padding-left: 0.16em;
-      }
-      .hero-listen {
-        background: rgba(248, 244, 238, 0.12);
-        border-color: rgba(248, 244, 238, 0.2);
-        color: #f8f4ee;
       }
       .hero-meta {
         display: flex;
@@ -606,28 +627,11 @@
         font-size: 11px;
         letter-spacing: 0.12em;
         text-transform: uppercase;
-        color: #f8f4ee;
-        opacity: 0.85;
+        color: var(--umber);
+        opacity: 0.9;
       }
       .hero-meta strong {
         font-variant-numeric: tabular-nums;
-      }
-      .qr-grid {
-        margin-top: 22px;
-      }
-      .qr-card {
-        text-align: left;
-      }
-      .qr-card img {
-        width: 232px;
-        height: 232px;
-        max-width: 100%;
-        object-fit: contain;
-        background: #ffffff;
-        border: 1px solid var(--hairline);
-        border-radius: 20px;
-        padding: 16px;
-        margin-top: 6px;
       }
       .bar {
         height: 6px;
@@ -641,13 +645,6 @@
         background: var(--forest);
         transform-origin: left;
         transition: transform 0.25s linear;
-      }
-      .hero-code .bar {
-        background: rgba(248, 244, 238, 0.2);
-        margin-top: 8px;
-      }
-      .hero-code .bar div {
-        background: #c5b49d;
       }
       .tabs,
       .subnav {
@@ -818,9 +815,18 @@
         .card {
           padding: 24px 22px;
         }
-        .layout,
-        .qr-grid {
+        .layout {
           grid-template-columns: 1fr;
+        }
+        .front-split {
+          grid-template-columns: 1fr;
+          gap: 0;
+        }
+        .front-qr {
+          border-left: 0;
+          border-top: 1px solid var(--hairline);
+          padding: 24px 0 0;
+          margin-top: 20px;
         }
         .grid2 {
           gap: 10px;
@@ -877,53 +883,75 @@
         </div>
       </div>
       <nav class="nav" aria-label="Portal views">
-        <button data-view="parent" class="active">Parent Portal</button
-        ><button data-view="monitor">Live QR</button
+        <button data-view="parent" class="active">Front Panel</button
         ><button data-view="admin">Admin</button>
       </nav>
     </header>
-    <main id="parent-view">
+    <main id="parent-view" class="wide">
       <div class="stepbar" aria-label="Progress">
         <span></span><span></span><span></span><span></span>
       </div>
-      <section class="card step" id="step-1">
-        <div class="row">
-          <div class="eyebrow">RGC · WELCOME</div>
-          <button class="listen" data-speak>🔊 ऐका / सुनें</button>
+      <section class="card step step-front" id="step-1">
+        <div class="front-split">
+          <div class="front-copy">
+            <div class="row">
+              <div class="eyebrow">RGC · WELCOME</div>
+              <button class="listen" data-speak>🔊 ऐका / सुनें</button>
+            </div>
+            <div class="icon">▤</div>
+            <h1 data-t="welcome">School documents, made simple.</h1>
+            <p class="muted" data-t="languageHelp">
+              Choose your language to get started.
+            </p>
+            <button class="lang" data-lang="mr">
+              <span class="row"
+                ><span class="symbol"
+                  ><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#443A35" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 6 8.38 8.38 0 0 1-3.8-.9L3 21l1.1-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 6-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg></span
+                ><span
+                  ><strong>मराठी</strong><small>मराठीत पुढे चला</small></span
+                ></span
+              ><span class="arrow" aria-hidden="true">&rarr;</span></button
+            ><button class="lang" data-lang="hi">
+              <span class="row"
+                ><span class="symbol"
+                  ><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#443A35" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 6 8.38 8.38 0 0 1-3.8-.9L3 21l1.1-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 6-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg></span
+                ><span><strong>हिंदी</strong><small>हिंदी में आगे बढ़ें</small></span></span
+              ><span class="arrow" aria-hidden="true">&rarr;</span></button
+            ><button class="lang" data-lang="en">
+              <span class="row"
+                ><span class="symbol"
+                  ><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#443A35" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 6 8.38 8.38 0 0 1-3.8-.9L3 21l1.1-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 6-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg></span
+                ><span
+                  ><strong>English</strong><small>Continue in English</small></span
+                ></span
+              ><span class="arrow" aria-hidden="true">&rarr;</span>
+            </button>
+            <p class="footer privacy-line" data-t="privacy">
+              Your session clears automatically after use.
+            </p>
+          </div>
+          <aside class="front-qr" id="front-qr-panel" aria-label="Open on your phone">
+            <p class="eyebrow">SCAN TO OPEN ON YOUR PHONE</p>
+            <div class="qr-frame">
+              <img
+                id="qr-live"
+                alt="Scan to open the school portal on your phone QR code"
+              />
+            </div>
+            <div class="code" id="front-code">— — — —</div>
+            <div class="hero-meta dark">
+              <span>Campus code</span
+              ><span><strong id="front-seconds">60</strong>s left</span>
+            </div>
+            <div class="bar"><div id="front-countdown"></div></div>
+            <p class="qr-help">
+              Scan with your phone camera on any internet (4G/5G or Wi-Fi) to
+              open on your mobile.
+            </p>
+          </aside>
         </div>
-        <div class="icon">▤</div>
-        <h1 data-t="welcome">School documents, made simple.</h1>
-        <p class="muted" data-t="languageHelp">
-          Choose your language to get started.
-        </p>
-        <button class="lang" data-lang="mr">
-          <span class="row"
-            ><span class="symbol"
-              ><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#443A35" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 6 8.38 8.38 0 0 1-3.8-.9L3 21l1.1-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 6-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg></span
-            ><span
-              ><strong>मराठी</strong><small>मराठीत पुढे चला</small></span
-            ></span
-          ><span class="arrow" aria-hidden="true">&rarr;</span></button
-        ><button class="lang" data-lang="hi">
-          <span class="row"
-            ><span class="symbol"
-              ><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#443A35" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 6 8.38 8.38 0 0 1-3.8-.9L3 21l1.1-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 6-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg></span
-            ><span><strong>हिंदी</strong><small>हिंदी में आगे बढ़ें</small></span></span
-          ><span class="arrow" aria-hidden="true">&rarr;</span></button
-        ><button class="lang" data-lang="en">
-          <span class="row"
-            ><span class="symbol"
-              ><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#443A35" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 6 8.38 8.38 0 0 1-3.8-.9L3 21l1.1-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 6-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg></span
-            ><span
-              ><strong>English</strong><small>Continue in English</small></span
-            ></span
-          ><span class="arrow" aria-hidden="true">&rarr;</span>
-        </button>
-        <p class="footer" data-t="privacy">
-          Your session clears automatically after use.
-        </p>
       </section>
-      <section class="card step" id="step-2" hidden>
+      <section class="card step narrow" id="step-2" hidden>
         <div class="row">
           <button class="quiet" data-back="1" data-t="back">← Back</button
           ><button class="listen" data-speak>🔊 ऐका / सुनें</button>
@@ -974,7 +1002,7 @@
         <p class="status" id="search-status" role="status"></p>
         <div id="search-results"></div>
       </section>
-      <section class="card step" id="step-3" hidden>
+      <section class="card step narrow" id="step-3" hidden>
         <div class="row">
           <button class="quiet" data-back="2" data-t="back">← Back</button
           ><button class="listen" data-speak>🔊 ऐका / सुनें</button>
@@ -1056,7 +1084,7 @@
           Generate certificate
         </button>
       </section>
-      <section class="card step" id="step-4" hidden>
+      <section class="card step narrow" id="step-4" hidden>
         <div class="row">
           <span class="eyebrow" data-t="ready">YOUR DOCUMENT IS READY</span
           ><button class="listen" data-speak>🔊 ऐका / सुनें</button>
@@ -1090,44 +1118,6 @@
         </div>
       </section>
       <p class="footer" id="school-footer">RGC · School Document Portal</p>
-    </main>
-    <main id="monitor-view" class="wide monitor" hidden>
-      <section class="hero-code">
-        <div class="row">
-          <p class="eyebrow">SCHOOL COUNTER · LIVE</p>
-          <button class="listen hero-listen" data-speak>🔊 ऐका / सुनें</button>
-        </div>
-        <h1 class="hero-title">Welcome to your school’s document counter.</h1>
-        <p class="hero-sub">
-          Connect to school Wi-Fi, then scan the portal QR to continue on your
-          phone.
-        </p>
-        <div class="code" id="live-code">— — — —</div>
-        <div class="hero-meta">
-          <span>Current campus code</span
-          ><span><strong id="live-seconds">60</strong> seconds remaining</span>
-        </div>
-        <div class="bar"><div id="countdown-bar"></div></div>
-      </section>
-      <div class="qr-grid">
-        <section class="card qr-card">
-          <p class="eyebrow">01 · CONNECT</p>
-          <h2>School Wi-Fi</h2>
-          <div id="wifi-qr-area">
-            <img id="wifi-qr" alt="Connect to school Wi-Fi QR" />
-          </div>
-          <p class="muted" id="wifi-name">
-            Configure school Wi-Fi in Admin → Branding.
-          </p>
-        </section>
-        <section class="card qr-card">
-          <p class="eyebrow">02 · OPEN THE PORTAL</p>
-          <h2>Scan to get started</h2>
-          <img id="portal-qr" alt="Live school portal QR" />
-          <p id="portal-address" class="small muted break"></p>
-        </section>
-      </div>
-      <p class="status" id="monitor-status" role="status"></p>
     </main>
     <main id="admin-view" class="wide" hidden>
       <section
@@ -1177,7 +1167,7 @@
           <button data-admin-tab="students" class="active">
             Students Manager</button
           ><button data-admin-tab="templates">Templates Builder</button
-          ><button data-admin-tab="branding">Branding & Wi-Fi</button
+          ><button data-admin-tab="branding">Branding & Portal</button
           ><button data-admin-tab="logs">Issued Logs</button
           ><button data-admin-tab="security">Security & Backup</button>
         </nav>
@@ -1220,13 +1210,13 @@
       };
       let lastActivity = Date.now(),
         expiresAt = 0,
-        monitorUntil = 0,
+        frontUntil = 0,
         searchTimer,
         previewTimer,
         currentNumeric = null,
         searchEpoch = 0,
         previewEpoch = 0,
-        monitorLoading = false;
+        frontLoading = false;
       const field = (name, label, type = "text", required = false) =>
         `<label>${label}<input name="${name}" type="${type}" ${required ? "required" : ""} autocomplete="off"></label>`;
       const positions = (name) =>
@@ -1234,7 +1224,7 @@
       $("admin-panels").innerHTML =
         `<section id="admin-students" class="admin-section"><div class="layout"><div class="card"><div class="row"><h2>Student records</h2><button id="new-student">+ New</button></div><label for="student-filter">Search GR, name, class, or mobile</label><input id="student-filter" type="search"><label for="csv-file">1-click CSV import</label><input id="csv-file" type="file" accept=".csv"><button id="sample-csv" style="margin:12px 0">Download Sample CSV</button><p class="small muted">Matching GR numbers are updated. Imports validate every row before saving.</p><div class="table-wrap"><table><thead><tr><th>Student</th><th>Class</th><th>Status</th><th>Actions</th></tr></thead><tbody id="students-table"></tbody></table></div></div><form class="card" id="student-form"><h2 id="student-form-title">Add student</h2>${field("gr_number", "GR number", "text", true)}${field("full_name", "Full student name", "text", true)}${field("father_name", "Father / parent name")}<div class="grid2">${field("class_name", "Class", "text", true)}${field("division", "Division", "text", true)}${field("dob", "Birth date (DD/MM/YYYY)", "text", true)}${field("aadhaar_last4", "Aadhaar last four only")}</div>${field("parent_phone", "Registered mobile (10 digits)", "tel", true)}<label>Status<select name="status"><option>ACTIVE</option><option>INACTIVE</option></select></label><button class="primary full" style="margin-top:20px">Save student</button><button type="button" class="quiet full" id="cancel-student">Clear form</button></form></div></section>
 <section id="admin-templates" class="admin-section" hidden><div class="layout"><div class="card"><div class="row"><h2>Document templates</h2><button id="new-template">+ New</button></div><div id="templates-list"></div><form id="template-form"><input type="hidden" id="template-id">${field("title_en", "English title", "text", true)}${field("title_mr", "Marathi title", "text", true)}${field("title_hi", "Hindi title", "text", true)}<div class="subnav"><button type="button" data-body-lang="en" class="active">English body</button><button type="button" data-body-lang="mr">मराठी</button><button type="button" data-body-lang="hi">हिंदी</button></div><label for="template-body">Certificate body · basic HTML supported</label><textarea id="template-body" rows="8"></textarea><div class="placeholders" id="placeholder-buttons"></div><div class="grid2">${positions("sig_pos")}${positions("stamp_pos")}</div><label class="check"><input id="template-active" type="checkbox" checked> Available to parents</label><button class="primary full">Save template</button></form></div><div class="card"><p class="eyebrow">A4 · LIVE PREVIEW</p><h2>See it before issuing.</h2><p class="small muted">Sample student details and the selected body language.</p><iframe id="template-preview" class="frame" title="Live template A4 preview" sandbox="allow-same-origin"></iframe><p class="small muted" id="preview-status">Enter titles and body to preview.</p></div></div></section>
-<section id="admin-branding" class="admin-section" hidden><form class="card" id="branding-form"><h2>School branding & Wi-Fi</h2><div class="layout"><div>${field("school_name", "School name", "text", true)}${field("school_subtitle", "Subtitle / address")}${field("udise_no", "UDISE number")}${field("whatsapp_number", "School WhatsApp number")}${field("wifi_ssid", "School Wi-Fi SSID")}${field("wifi_password", "School Wi-Fi password", "password")}<p class="small muted">Wi-Fi credentials are encoded in the monitor QR. Parents must join the same network.</p></div><div id="image-uploaders"></div></div><button class="primary" style="margin-top:20px">Save branding & Wi-Fi</button></form></section>
+<section id="admin-branding" class="admin-section" hidden><form class="card" id="branding-form"><h2>School branding &amp; portal access</h2><div class="layout"><div>${field("school_name", "School name", "text", true)}${field("school_subtitle", "Subtitle / address")}${field("udise_no", "UDISE number")}${field("whatsapp_number", "School WhatsApp number")}${field("public_url", "Public tunnel URL (optional)", "url", false)}<p class="small muted">Shown inside the phone QR so parents can open the portal on any internet. Leave blank to auto-detect a running Cloudflare tunnel (run <code>Start_Public_Tunnel.bat</code>); otherwise the LAN address is used. Currently active: <strong id="active-portal-url">…</strong></p></div><div id="image-uploaders"></div></div><button class="primary" style="margin-top:20px">Save branding &amp; portal</button></form></section>
 <section id="admin-logs" class="admin-section" hidden><div class="card"><div class="row"><div><h2>Issued document register</h2><p class="small muted">Every issued document remains in the audit register.</p></div><button id="refresh-logs">Refresh</button></div><label for="logs-filter">Search serial, student, document, phone, or date</label><input id="logs-filter" type="search"><p class="small muted" id="logs-count"></p><div class="table-wrap"><table><thead><tr><th>Reference</th><th>Student</th><th>Document</th><th>Contact</th><th>Guardian</th><th>Issued</th><th>Verify</th></tr></thead><tbody id="logs-table"></tbody></table></div></div></section>
 <section id="admin-security" class="admin-section" hidden><div class="layout"><form class="card" id="password-form"><h2>Change admin password</h2><p class="small muted">Changing the password signs out all administrator sessions.</p>${field("currentPassword", "Current password", "password", true)}${field("newPassword", "New password (10–256 characters)", "password", true)}${field("repeatPassword", "Confirm new password", "password", true)}<button class="primary full" style="margin-top:20px">Update password</button></form><section class="card"><div class="icon">↧</div><h2>A safe copy of your records.</h2><p class="muted">Create a consistent SQLite snapshot while the portal stays open. Backups remain in RJC/backups.</p><button class="primary" id="backup-button">Create database backup</button><p class="small break" id="backup-status" role="status"></p><p class="small muted">Keep secure copies on separate storage to protect against disk failure.</p></section></div><section class="card" style="margin-top:20px"><div class="icon">⇲</div><h2>Prepare USB / Portable Package</h2><p class="muted">Run the portal on a PC without Node.js. Create a plug-and-play USB copy from this main PC:</p><ol class="small"><li>On this PC, double-click <code>Export_To_USB.bat</code> in the RJC folder.</li><li>Enter the USB drive letter when asked. The exporter copies the app, a matching portable Node.js (<code>portable-node\node.exe</code>, built for this PC&rsquo;s better-sqlite3), and a clean SQLite snapshot of <code>school.db</code> made with the backup API &mdash; never a raw copy of the live database.</li><li>Plug the USB stick into any Windows PC and double-click <code>Start_RGC_Kiosk.bat</code> inside <code>RJC_Portable</code>. No installation is required; the server starts on port 3000.</li></ol><p class="small muted">The export includes <code>admin-credentials.txt</code> if present &mdash; keep the USB stick secure. Automatic daily backups (<code>backups\auto-YYYY-MM-DD.db</code>, 14 kept) can be found in the RJC folder on this PC.</p></section></section>`;
       const tr = {
@@ -1469,14 +1459,14 @@
           if (state.view === "admin") logout();
         }
         state.view = view;
-        for (const name of ["parent", "monitor", "admin"])
+        for (const name of ["parent", "admin"])
           $(name + "-view").hidden = name !== view;
         document
           .querySelectorAll("[data-view]")
           .forEach((b) =>
             b.classList.toggle("active", b.dataset.view === view),
           );
-        if (view === "monitor") refreshMonitor();
+        if (view === "parent") refreshFrontQr();
       }
       function resetParent() {
         state.epoch++;
@@ -1711,9 +1701,7 @@
         const u = new SpeechSynthesisUtterance(
           state.view === "parent"
             ? t("speech")[state.step - 1]
-            : state.view === "monitor"
-              ? "Connect to school Wi-Fi. Scan the portal QR code and enter the campus code."
-              : "Authorized school staff can sign in to manage students and documents.",
+            : "Authorized school staff can sign in to manage students and documents.",
         );
         u.lang = { mr: "mr-IN", hi: "hi-IN", en: "en-IN" }[state.lang];
         u.voice = voices[0];
@@ -1721,32 +1709,22 @@
         speechSynthesis.cancel();
         speechSynthesis.speak(u);
       }
-      async function refreshMonitor() {
-        if (monitorLoading || state.view !== "monitor") return;
-        monitorLoading = true;
+      async function refreshFrontQr() {
+        if (frontLoading || state.view !== "parent") return;
+        frontLoading = true;
         try {
           const d = await json("/api/campus-code");
-          if (state.view !== "monitor") return;
-          monitorUntil = Date.now() + (d.expiresAt - d.serverTime);
-          $("live-code").textContent = d.code;
-          if ($("portal-qr").getAttribute("src") !== d.portalQr)
-            $("portal-qr").src = d.portalQr;
-          $("portal-address").textContent = d.portalLink;
-          if (d.wifiQr) {
-            $("wifi-qr-area").hidden = false;
-            if ($("wifi-qr").getAttribute("src") !== d.wifiQr)
-              $("wifi-qr").src = d.wifiQr;
-            $("wifi-name").textContent = d.wifiSsid;
-          } else {
-            $("wifi-qr-area").hidden = true;
-            $("wifi-name").textContent =
-              "Configure school Wi-Fi in Admin → Branding.";
-          }
-          $("monitor-status").textContent = "";
-        } catch (e) {
-          report(e, "monitor-status");
+          if (state.view !== "parent") return;
+          frontUntil = Date.now() + (d.expiresAt - d.serverTime);
+          $("front-code").textContent = d.code;
+          const img = $("qr-live");
+          if (img.getAttribute("src") !== d.portalQr) img.src = d.portalQr;
+          $("front-qr-panel").hidden = false;
+        } catch {
+          // Accessed through the public link (or offline): the school-only QR panel is hidden.
+          $("front-qr-panel").hidden = true;
         } finally {
-          monitorLoading = false;
+          frontLoading = false;
         }
       }
       const formData = (id) =>
@@ -1822,6 +1800,7 @@
           r = await json("/api/admin/dashboard", { admin: true });
         if (!token || state.token !== token) return;
         state.admin = r;
+        $("active-portal-url").textContent = r.activePortalUrl || "";
         renderStudents();
         renderTemplates();
         renderLogs();
@@ -2329,14 +2308,17 @@
             resetParent();
         }
         if (state.token && now - lastActivity > 900000) logout();
-        if (state.view === "monitor") {
-          const seconds = Math.max(0, (monitorUntil - now) / 1000);
-          $("live-seconds").textContent = Math.ceil(seconds);
-          $("countdown-bar").style.transform =
-            `scaleX(${Math.min(1, seconds / 60)})`;
+        if (state.view === "parent") {
+          const seconds = Math.max(0, (frontUntil - now) / 1000);
+          const secEl = $("front-seconds"),
+            barEl = $("front-countdown");
+          if (secEl && barEl) {
+            secEl.textContent = Math.ceil(seconds);
+            barEl.style.transform = `scaleX(${Math.min(1, seconds / 60)})`;
+          }
         }
       }, 200);
-      setInterval(refreshMonitor, 1000);
+      setInterval(refreshFrontQr, 1000);
       window.addEventListener("afterprint", resetParent);
       window.addEventListener("pagehide", () => {
         resetParent();
@@ -2348,6 +2330,7 @@
           if (/^\d{4}$/.test(code || "")) $("campus-code").value = code;
           history.replaceState(null, "", location.pathname);
           if (location.pathname === "/admin") switchView("admin");
+          else refreshFrontQr();
         })
         .catch((e) => report(e, "search-status"));
       goStep(1);

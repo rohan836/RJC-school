@@ -614,9 +614,25 @@ async function browserChecks(base) {
         path: path.join(process.env.KIOSK_QA_DIR, "admin.png"),
         fullPage: true,
       });
-    await page.click('[data-view="monitor"]');
-    await page.waitForFunction(() =>
-      document.getElementById("portal-qr").src.startsWith("data:"),
+    // Strictly two tabs (Front Panel & Admin) and one single live campus QR
+    const navViews = await page.$$eval("[data-view]", (els) =>
+      els.map((e) => e.dataset.view),
+    );
+    assert.deepEqual(navViews, ["parent", "admin"]);
+    assert.equal(await page.$("#monitor-view"), null);
+    await page.click('[data-view="parent"]');
+    await page.waitForFunction(
+      () => {
+        const img = document.getElementById("qr-live");
+        const code = document.getElementById("front-code");
+        return (
+          img &&
+          (img.getAttribute("src") || "").startsWith("data:") &&
+          code &&
+          /^[0-9]{4}$/.test(code.textContent.trim())
+        );
+      },
+      { timeout: 5000 },
     );
     assert.equal(await page.evaluate(() => state.token), "");
     await page.setViewport({ width: 390, height: 844 });

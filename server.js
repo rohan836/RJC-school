@@ -20,7 +20,43 @@ const preferred = interfaces.find((i) =>
 );
 const lanIp =
   process.env.LAN_IP || (preferred || interfaces[0])?.address || "localhost";
-const portalUrl = `http://${lanIp}:${port}`;
+const normalizePortalUrl = (value) => {
+  try {
+    const u = new URL(String(value || "").trim());
+    if (u.protocol !== "http:" && u.protocol !== "https:") return null;
+    return u.origin;
+  } catch {
+    return null;
+  }
+};
+const publicPortalEnv = process.env.PUBLIC_PORTAL_URL
+  ? normalizePortalUrl(process.env.PUBLIC_PORTAL_URL)
+  : null;
+if (process.env.PUBLIC_PORTAL_URL && !publicPortalEnv)
+  throw Error("Invalid PUBLIC_PORTAL_URL");
+// Base URL used inside the phone QR: Admin setting → .env → auto-detected
+// cloudflared tunnel (public-url file) → LAN fallback.
+function portalUrl() {
+  try {
+    const fromAdmin = normalizePortalUrl(settings().public_url || "");
+    if (fromAdmin) return fromAdmin;
+  } catch {}
+  if (publicPortalEnv) return publicPortalEnv;
+  try {
+    const auto = normalizePortalUrl(
+      fs.readFileSync(path.join(dataDir, "public-url"), "utf8"),
+    );
+    if (auto) return auto;
+  } catch {}
+  return `http://${lanIp}:${port}`;
+}
+const portalHostname = () => {
+  try {
+    return new URL(portalUrl()).hostname;
+  } catch {
+    return null;
+  }
+};
 const local = (req) =>
   ["127.0.0.1", "::1", "::ffff:127.0.0.1"].includes(req.socket.remoteAddress);
 const tokens = new Map();
@@ -40,6 +76,27 @@ if (process.env.PUBLIC_WEBHOOK_URL) {
     throw Error("Invalid PUBLIC_WEBHOOK_URL");
   }
 }
+// Routes that are safe to expose through the public tunnel host.
+// Everything else (/admin, /api/admin/*, /api/campus-code, ...) stays local.
+const isPublicPortalAllowed = (req) => {
+  const p = req.path;
+  if (
+    req.method === "GET" &&
+    (p === "/" || p === "/index.html" || p === "/favicon.ico")
+  )
+    return true;
+  if (req.method === "GET" && p.startsWith("/fonts/")) return true;
+  if (req.method === "GET" && p === "/api/public-config") return true;
+  if (
+    req.method === "POST" &&
+    (p === "/api/search-student" || p === "/api/generate-document")
+  )
+    return true;
+  if (req.method === "GET" && /^\/api\/documents\/[^/]+\/pdf$/.test(p))
+    return true;
+  if (req.method === "GET" && /^\/verify\/[^/]+$/.test(p)) return true;
+  return false;
+};
 app.use((req, res, next) => {
   if (
     process.env.PUBLIC_WEBHOOK_URL &&
@@ -49,7 +106,17 @@ app.use((req, res, next) => {
     return res
       .status(403)
       .json({ error: "Public access is restricted to the WhatsApp webhook." });
-  if (!allowedHosts.has(req.hostname))
+  const portalHost = portalHostname();
+  const isLocalPortal =
+    !portalHost ||
+    portalHost === lanIp ||
+    ["localhost", "127.0.0.1", "[::1]"].includes(portalHost);
+  if (portalHost && req.hostname === portalHost && !isLocalPortal) {
+    if (!isPublicPortalAllowed(req))
+      return res.status(403).json({
+        error: "This link provides access to the parent portal only.",
+      });
+  } else if (!allowedHosts.has(req.hostname))
     return res.status(403).json({ error: "Invalid host" });
   if (
     req.headers.origin &&
@@ -186,14 +253,14 @@ app.get("/api/campus-code", async (req, res) => {
   if (!qrCache) {
     const snapshot = { ...campus };
     const s = settings();
-    const url = `${portalUrl}/?code=${snapshot.code}`;
+    const url = `${portalUrl()}/?code=${snapshot.code}`;
     const wifi = s.wifi_ssid
       ? `WIFI:T:WPA;S:${wifiEscape(s.wifi_ssid)};P:${wifiEscape(s.wifi_password)};;`
       : null;
     const data = {
       ...snapshot,
       lanIp,
-      portalUrl,
+      portalUrl: portalUrl(),
       portalLink: url,
       portalQr: await qr(url),
       wifiQr: wifi ? await qr(wifi) : null,
@@ -224,7 +291,7 @@ app.get("/api/public-config", (req, res) =>
     schoolName: settings().school_name,
     isLocalKiosk:
       local(req) && ["localhost", "127.0.0.1", "[::1]"].includes(req.hostname),
-    portalUrl,
+    portalUrl: portalUrl(),
   }),
 );
 app.post("/api/search-student", (req, res) => {
@@ -391,7 +458,7 @@ function issue(b, allowLocal = false, receiptId = null) {
       class_name: student.class_name,
       division: student.division,
     },
-    verificationUrl: `${portalUrl}/verify/${serialNo}`,
+    verificationUrl: `${portalUrl()}/verify/${serialNo}`,
   };
   db.transaction(() => {
     db.prepare(
@@ -500,6 +567,7 @@ app.post("/api/admin/logout", (req, res) => {
 app.get("/api/admin/dashboard", (req, res) =>
   res.json({
     settings: settings(),
+    activePortalUrl: portalUrl(),
     students: db.prepare("SELECT * FROM students ORDER BY full_name").all(),
     templates: db.prepare("SELECT * FROM document_templates ORDER BY id").all(),
     logs: db
@@ -705,10 +773,23 @@ app.post("/api/admin/settings", (req, res) => {
       );
   if (req.body.udise_no !== undefined)
     s.udise_no = normalizeUdise(s.udise_no);
+  if (req.body.public_url !== undefined) {
+    const raw = text(
+      req.body.public_url || "",
+      "public tunnel URL",
+      300,
+      false,
+    );
+    if (raw && !normalizePortalUrl(raw))
+      fail(
+        "Public tunnel URL must be a valid http(s) URL, e.g. https://<name>.trycloudflare.com",
+      );
+    s.public_url = raw ? normalizePortalUrl(raw) : "";
+  }
   for (const k of ["logo_data", "signature_data", "stamp_data"])
     if (req.body[k] !== undefined) s[k] = png(req.body[k]);
   db.prepare(
-    "UPDATE school_settings SET school_name=@school_name,school_subtitle=@school_subtitle,udise_no=@udise_no,whatsapp_number=@whatsapp_number,wifi_ssid=@wifi_ssid,wifi_password=@wifi_password,logo_data=@logo_data,signature_data=@signature_data,stamp_data=@stamp_data WHERE id=1",
+    "UPDATE school_settings SET school_name=@school_name,school_subtitle=@school_subtitle,udise_no=@udise_no,whatsapp_number=@whatsapp_number,wifi_ssid=@wifi_ssid,wifi_password=@wifi_password,logo_data=@logo_data,signature_data=@signature_data,stamp_data=@stamp_data,public_url=@public_url WHERE id=1",
   ).run(s);
   qrCache = null;
   res.json({ ok: true });
@@ -740,7 +821,7 @@ app.post("/api/admin/template-preview", async (req, res) => {
       stampPos: t.stamp_pos,
       lang,
       settings: safeSettings(),
-      verificationUrl: portalUrl + "/verify/PREVIEW",
+      verificationUrl: portalUrl() + "/verify/PREVIEW",
     }),
   );
 });
@@ -778,7 +859,7 @@ app.use((err, req, res, next) => {
 });
 const server = app.listen(port, process.env.HOST || "0.0.0.0", () =>
   console.log(
-    `RGC School Document Portal\nSchool monitor: http://localhost:${port}\nLAN portal: ${portalUrl}\nAdmin: see ${path.join(dataDir, "admin-credentials.txt")}\nSample GR / birth year / Aadhaar last four: 4501/2013/1234, 4502/2011/2345, 4503/2012/3456, 4504/2014/4567, 4505/2015/5678`,
+    `RGC School Document Portal\nSchool monitor: http://localhost:${port}\nPortal link (used in the phone QR): ${portalUrl()}\nAdmin: see ${path.join(dataDir, "admin-credentials.txt")}\nSample GR / birth year / Aadhaar last four: 4501/2013/1234, 4502/2011/2345, 4503/2012/3456, 4504/2014/4567, 4505/2015/5678`,
   ),
 );
 server.on("error", (e) => {

@@ -39,6 +39,7 @@ function openDatabase(dir) {
     add("students", "aadhaar_last4", "TEXT DEFAULT ''");
     add("school_settings", "wifi_ssid", "TEXT DEFAULT ''");
     add("school_settings", "wifi_password", "TEXT DEFAULT ''");
+    add("school_settings", "public_url", "TEXT DEFAULT ''");
     add("document_templates", "body_mr", "TEXT DEFAULT ''");
     add("document_templates", "body_hi", "TEXT DEFAULT ''");
     add("issued_logs", "certificate_json", "TEXT");
