@@ -1415,12 +1415,10 @@
       }
       function speak() {
         if (!window.speechSynthesis) return alert(t("voiceUnavailable"));
-        const voices = speechSynthesis
-          .getVoices()
-          .filter(
-            (v) =>
-              v.localService && v.lang.toLowerCase().startsWith(state.lang),
-          );
+        const allVoices = speechSynthesis.getVoices(),
+          matches = (v) => v.lang.toLowerCase().startsWith(state.lang),
+          offline = allVoices.filter((v) => v.localService && matches(v)),
+          voices = offline.length ? offline : allVoices.filter(matches);
         if (!voices.length) return alert(t("voiceUnavailable"));
         const u = new SpeechSynthesisUtterance(
           state.view === "parent"

@@ -77,6 +77,18 @@ function openDatabase(dir) {
       "27200104502",
       "919800000000",
     );
+    const udiseRow = db
+      .prepare("SELECT udise_no FROM school_settings WHERE id=1")
+      .get();
+    if (udiseRow && udiseRow.udise_no) {
+      const normalized = String(udiseRow.udise_no)
+        .replace(/^\s*UDISE\s*:\s*/i, "")
+        .trim();
+      if (normalized !== udiseRow.udise_no)
+        db.prepare("UPDATE school_settings SET udise_no=? WHERE id=1").run(
+          normalized,
+        );
+    }
     if (db.pragma("user_version", { simple: true }) < 1) {
       const samples = [
         [

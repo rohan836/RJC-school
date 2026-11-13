@@ -36,6 +36,10 @@ const clean = (v) =>
     ],
     allowedAttributes: {},
   });
+const normalizeUdise = (v) =>
+  String(v ?? "")
+    .replace(/^\s*UDISE\s*:\s*/i, "")
+    .trim();
 const fonts = ["devanagari", "latin"]
   .map((script) => {
     const file = path.join(
@@ -53,6 +57,7 @@ const css =
 function renderCertificate(c) {
   const s = c.settings;
   const title = esc(c.docTitle);
+  const udise = normalizeUdise(s.udise_no);
   const signature = s.signature_data
     ? `<img src="${s.signature_data}" alt="Principal signature"><div>${c.lang === "mr" ? "मुख्याध्यापक" : c.lang === "hi" ? "प्रधानाचार्य" : "Principal"}</div>`
     : "<div>________________</div><div>Principal</div>";
@@ -65,7 +70,7 @@ function renderCertificate(c) {
         `<div>${c.sigPos === pos ? signature : ""}${c.stampPos === pos ? stamp : ""}</div>`,
     )
     .join("");
-  const body = `<article class="certificate"><header>${s.logo_data ? `<img src="${s.logo_data}" alt="School logo">` : ""}<h1>${esc(s.school_name)}</h1><div>${esc(s.school_subtitle)}</div><small>UDISE: ${esc(s.udise_no)}</small></header><div class="meta"><span>Ref: ${esc(c.serialNo)}</span><span>Date: ${esc(c.issuedAt)}</span></div><h2>${title}</h2><section>${clean(c.bodyHtml)}</section><div class="signatures">${positions}</div><footer class="qr"><img src="${c.verificationQr}" alt="Verification QR"><small>School record verification<br>${esc(c.serialNo)}<br>${esc(c.verificationUrl)}</small></footer></article>`;
+  const body = `<article class="certificate"><header>${s.logo_data ? `<img src="${s.logo_data}" alt="School logo">` : ""}<h1>${esc(s.school_name)}</h1><div>${esc(s.school_subtitle)}</div>${udise ? `<small>UDISE: ${esc(udise)}</small>` : ""}</header><div class="meta"><span>Ref: ${esc(c.serialNo)}</span><span>Date: ${esc(c.issuedAt)}</span></div><h2>${title}</h2><section>${clean(c.bodyHtml)}</section><div class="signatures">${positions}</div><footer class="qr"><img src="${c.verificationQr}" alt="Verification QR"><small>School record verification<br>${esc(c.serialNo)}<br>${esc(c.verificationUrl)}</small></footer></article>`;
   return {
     certificateBody: body,
     certificateCss: css,
@@ -126,4 +131,4 @@ async function pdf(html) {
     busy--;
   }
 }
-module.exports = { esc, clean, renderCertificate, pdf, browserPath };
+module.exports = { esc, clean, renderCertificate, pdf, browserPath, normalizeUdise };

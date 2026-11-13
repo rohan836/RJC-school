@@ -8,7 +8,7 @@ const QRCode = require("qrcode");
 const { parse } = require("csv-parse/sync");
 const { rateLimit } = require("express-rate-limit");
 const { openDatabase, hashPassword, checkPassword } = require("./db");
-const { esc, clean, renderCertificate, pdf } = require("./certificate");
+const { esc, clean, renderCertificate, pdf, normalizeUdise } = require("./certificate");
 const dataDir = process.env.KIOSK_DATA_DIR || __dirname;
 const port = Number(process.env.PORT || 3000);
 const db = openDatabase(dataDir);
@@ -136,6 +136,37 @@ const ticker = setInterval(() => {
   for (const [t, e] of tokens) if (e < Date.now()) tokens.delete(t);
 }, 1000);
 ticker.unref();
+// Automatic backup: if today's snapshot is missing, create it 10s after startup
+// (and every 24h afterwards). Keeps the 14 most recent auto-YYYY-MM-DD.db files.
+const autoBackupName = (date) => {
+  const y = date.getFullYear(),
+    m = String(date.getMonth() + 1).padStart(2, "0"),
+    d = String(date.getDate()).padStart(2, "0");
+  return `auto-${y}-${m}-${d}.db`;
+};
+async function autoBackup() {
+  try {
+    const dir = path.join(dataDir, "backups");
+    fs.mkdirSync(dir, { recursive: true });
+    const dest = path.join(dir, autoBackupName(new Date()));
+    if (!fs.existsSync(dest)) {
+      await db.backup(dest);
+      console.log("Automatic backup saved: " + dest);
+    }
+    const autos = fs
+      .readdirSync(dir)
+      .filter((f) => /^auto-\d{4}-\d{2}-\d{2}\.db$/.test(f))
+      .sort();
+    for (const f of autos.slice(0, Math.max(0, autos.length - 14)))
+      fs.unlinkSync(path.join(dir, f));
+  } catch (e) {
+    console.error("Automatic backup failed: " + (e?.message || e));
+  }
+}
+const backupTimer = setInterval(autoBackup, 24 * 60 * 60 * 1000);
+backupTimer.unref();
+const startupBackup = setTimeout(autoBackup, 10000);
+startupBackup.unref();
 const qr = (t) =>
   QRCode.toDataURL(t, { width: 280, margin: 2, errorCorrectionLevel: "M" });
 const wifiEscape = (s) => String(s || "").replace(/[\\;,:\"]/g, "\\$&");
@@ -672,6 +703,8 @@ app.post("/api/admin/settings", (req, res) => {
         k === "wifi_password" ? 128 : 300,
         k === "school_name",
       );
+  if (req.body.udise_no !== undefined)
+    s.udise_no = normalizeUdise(s.udise_no);
   for (const k of ["logo_data", "signature_data", "stamp_data"])
     if (req.body[k] !== undefined) s[k] = png(req.body[k]);
   db.prepare(
@@ -760,6 +793,8 @@ server.on("error", (e) => {
 for (const signal of ["SIGINT", "SIGTERM"])
   process.on(signal, () => {
     clearInterval(ticker);
+    clearInterval(backupTimer);
+    clearTimeout(startupBackup);
     wa.close();
     server.close(() => {
       db.close();
