@@ -299,6 +299,8 @@ function createWhatsApp({ db, issue, decorate, pdf, fail }, transport) {
           .status(503)
           .json({ error: "Configure WhatsApp credentials first." });
       const signature = String(req.headers["x-hub-signature-256"] || "");
+      if (!/^sha256=[0-9a-f]{64}$/i.test(signature))
+        return res.sendStatus(401);
       const expected =
         "sha256=" +
         crypto
@@ -306,8 +308,10 @@ function createWhatsApp({ db, issue, decorate, pdf, fail }, transport) {
           .update(req.rawBody || Buffer.alloc(0))
           .digest("hex");
       if (
-        signature.length !== expected.length ||
-        !crypto.timingSafeEqual(Buffer.from(signature), Buffer.from(expected))
+        !crypto.timingSafeEqual(
+          Buffer.from(signature.toLowerCase(), "ascii"),
+          Buffer.from(expected, "ascii"),
+        )
       )
         return res.sendStatus(401);
       if (req.body.object !== "whatsapp_business_account")

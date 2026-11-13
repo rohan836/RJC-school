@@ -9,3 +9,7 @@ backups/
 admin-credentials.txt
 public-url
 cloudflared-tunnel.log
+# Local imports and database snapshots may contain identifiable student data.
+*.csv
+*.sqlite
+*.sqlite3
