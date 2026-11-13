@@ -9,9 +9,9 @@ An offline-first web app for a school document counter: parents/guardians scan a
 | | |
 |---|---|
 | Project location | `C:\RJC` |
-| Application name | RGC — School Document Portal |
+| Application name | RJC — School Document Portal (R. J. Chaware Convent) |
 | Stack | Node.js ≥ 22 (v26.13.0) · Express 5 · better-sqlite3 (WAL, synchronous FULL) · puppeteer-core (system Chrome/Edge for PDFs) |
-| Frontend | Single-page `public/index.html` — three views: Parent Portal · Live QR monitor · Admin (no build step, no framework) |
+| Frontend | Single-page `public/index.html` — two views: Front Panel (parent wizard + live QR) · Admin (no build step, no framework) |
 | Database | `school.db` (SQLite, WAL) — seeded demo records; admin stored as scrypt hash |
 | Port | 3000 (`HOST=0.0.0.0`); admin via `http://localhost:3000/admin` |
 | Repository | Private GitHub: `rohan836/school-document-kiosk`, branch `main`, pushed 2026-11-13 |
@@ -33,13 +33,13 @@ An offline-first web app for a school document counter: parents/guardians scan a
 | `db.js` | Schema + additive migrations, demo seeds, scrypt hashing, credential file |
 | `certificate.js` | A4 HTML certificate renderer + PDF via puppeteer-core; UDISE normalization |
 | `whatsapp.js` | Meta WhatsApp Cloud API bot (trilingual, HMAC-signed webhooks, retry-safe issuance) — **not configured** (needs Meta credentials) |
-| `public/index.html` | The whole UI: parent wizard, on-screen numpad, voice guidance (local voices preferred, any matching voice as fallback), admin 5 tabs |
+| `public/index.html` | The whole UI: parent wizard, on-screen numpad, voice guidance (local voices preferred, any matching voice as fallback), admin 5 tabs. Desktop-first layout — header and workspace are `width: 94%; max-width: 1380px`, with two-column splits for Steps 2–4 and the admin grids; single column below 860 px |
 | `public/fonts/` | Bundled Noto Sans Devanagari (offline) |
 | `backups/` | `pre-upgrade-*.db`, `qa/`, `previous-project/` archive, **auto-YYYY-MM-DD.db** (automatic, keeps 14) |
 | `Start_school_kiosk.bat` → calls `Start_RGC_Kiosk.bat` | Wrapper |
 
 ## Database & data
-Tables: `students` (5 demo, GR 4501–4505) · `document_templates` (3, all active) · `admin_users` (1, scrypt) · `school_settings` (seeded Nashik school branding; logo/signature/stamp and Wi-Fi **not set**) · `issued_logs` · `verification_attempts` · `webhook_receipts`. Migrations via `user_version = 1`. `issued_logs` is the permanent audit trail. `udise_no` is normalized (no double "UDISE:" prefix).
+Tables: `students` (6 records, GR 4501–4506) · `document_templates` (3, all active) · `admin_users` (1, scrypt) · `school_settings` (seeded R. J. Chaware Convent branding; logo/signature/stamp and Wi-Fi **not set**) · `issued_logs` · `verification_attempts` · `webhook_receipts`. Migrations via `user_version = 2` (v2 replaced the placeholder Nashik branding with the real school identity and added GR 4506). `issued_logs` is the permanent audit trail. `udise_no` is normalized (no double "UDISE:" prefix).
 
 ## Security model (local school network)
 - Live campus code shown only on the school monitor; rotates every 60 s and after each issuance.
@@ -56,7 +56,7 @@ Tables: `students` (5 demo, GR 4501–4505) · `document_templates` (3, all acti
 Private repo `rohan836/school-document-kiosk`, `main` in sync with `origin/main`. `.gitignore` excludes `node_modules/`, `portable-node/`, `*.db`, `*.db-wal`, `*.db-shm`, `.env`, `backups/`, `*.log`, `admin-credentials.txt`. Databases, backups, and credentials **never** reach GitHub.
 
 ## Before official use (known gaps)
-Replace demo students & school branding; upload logo/signature/stamp PNGs and Wi-Fi credentials; test the physical printer and signature/stamp placement; install Windows Marathi/Hindi speech-voice packs (else the app falls back to any matching voice or reports missing voices); enable LAN firewall rule for Node.js; HTTP only on LAN — never expose the portal publicly; WhatsApp automation needs Meta business setup + public HTTPS webhook (untested); Fee Clearance template assumes office confirmation (no fee ledger); only one admin account (no per-staff roles).
+Replace the remaining demo students (GR 4501–4505) with real records; upload the school logo/signature/stamp PNGs and Wi-Fi credentials; enter the correct UDISE number (the placeholder Nashik code was removed by the branding migration, so the field is empty until set in Admin → Branding & Portal); test the physical printer and signature/stamp placement; install Windows Marathi/Hindi speech-voice packs (else the app falls back to any matching voice or reports missing voices); enable LAN firewall rule for Node.js; HTTP only on LAN — never expose the portal publicly; WhatsApp automation needs Meta business setup + public HTTPS webhook (untested); Fee Clearance template assumes office confirmation (no fee ledger); only one admin account (no per-staff roles).
 
 ## Troubleshooting
 | Symptom | Fix |

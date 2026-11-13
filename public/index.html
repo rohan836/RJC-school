@@ -2,8 +2,8 @@
 <html lang="en">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width,initial-scale=1" />
-    <title>RGC · School Document Portal</title>
+    <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+    <title>RJC · School Document Portal</title>
     <style>
       @font-face {
         font-family: Noto;
@@ -43,7 +43,7 @@
         background: var(--canvas);
         color: var(--ink);
         font:
-          16px var(--sans);
+          17px var(--sans);
         font-variant-numeric: tabular-nums;
         letter-spacing: 0.01em;
       }
@@ -61,8 +61,8 @@
         color: var(--umber);
         font-weight: 600;
         letter-spacing: 0.01em;
-        padding: 13px 20px;
-        min-height: 52px;
+        padding: 15px 26px;
+        min-height: 60px;
         transition:
           transform 0.18s var(--ease),
           background 0.18s var(--ease),
@@ -101,6 +101,11 @@
       .quiet:hover {
         background: var(--dune);
       }
+      .quiet.full {
+        text-align: left;
+        padding-left: 0;
+        padding-right: 0;
+      }
       button:focus-visible,
       input:focus-visible,
       select:focus-visible,
@@ -118,8 +123,9 @@
         background: var(--canvas);
         font-variant-numeric: tabular-nums;
         color: var(--ink);
-        padding: 13px 14px;
-        min-height: 52px;
+        font-size: 17px;
+        padding: 16px 18px;
+        min-height: 60px;
         transition:
           border-color 0.16s var(--ease),
           box-shadow 0.16s var(--ease);
@@ -142,15 +148,15 @@
         accent-color: var(--forest);
       }
       input[type="file"] {
-        font-size: 13px;
+        font-size: 15px;
       }
       label {
         display: block;
-        font-size: 12.5px;
+        font-size: 14px;
         font-weight: 650;
         letter-spacing: 0.03em;
         color: var(--umber);
-        margin: 16px 0 8px;
+        margin: 20px 0 10px;
       }
       h1,
       h2,
@@ -161,21 +167,21 @@
       h1 {
         font-family: var(--serif);
         font-weight: 500;
-        font-size: clamp(30px, 4.2vw, 40px);
+        font-size: clamp(34px, 3.2vw, 42px);
         letter-spacing: -0.02em;
         line-height: 1.15;
-        margin-bottom: 10px;
+        margin-bottom: 12px;
         color: var(--ink);
       }
       h2 {
         font-family: var(--serif);
         font-weight: 500;
-        font-size: 22px;
+        font-size: 26px;
         letter-spacing: -0.01em;
         color: var(--ink);
       }
       h3 {
-        font-size: 16px;
+        font-size: 19px;
       }
       p {
         line-height: 1.75;
@@ -185,55 +191,64 @@
         opacity: 0.85;
       }
       .small {
-        font-size: 13px;
+        font-size: 15px;
       }
       .eyebrow {
         color: var(--umber);
         opacity: 0.8;
         text-transform: uppercase;
-        font-size: 10.5px;
+        font-size: 12px;
         font-weight: 700;
-        letter-spacing: 1.9px;
-        margin-bottom: 12px;
+        letter-spacing: 2px;
+        margin-bottom: 14px;
       }
       .top {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        padding: 16px max(22px, calc((100vw - 1120px) / 2));
-        gap: 20px;
+        padding: 18px 0;
         background: rgba(248, 244, 238, 0.85);
         border-bottom: 1px solid var(--hairline);
         backdrop-filter: blur(18px);
       }
+      .top-inner {
+        width: 94%;
+        max-width: 1380px;
+        margin: auto;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 20px;
+      }
       .brand {
         display: flex;
         align-items: center;
-        gap: 14px;
+        gap: 16px;
+        min-width: 0;
       }
       .mark {
-        width: 46px;
-        height: 46px;
+        width: 58px;
+        height: 58px;
+        flex: 0 0 auto;
         display: grid;
         place-items: center;
         background: var(--forest);
-        border-radius: 15px;
+        border-radius: 18px;
         color: #f8f4ee;
         font-family: var(--serif);
-        font-size: 13px;
+        font-size: 16px;
         font-weight: 600;
-        letter-spacing: 2.5px;
+        letter-spacing: 3px;
       }
       .brand strong {
         font-family: var(--serif);
         font-weight: 500;
-        font-size: 17px;
+        font-size: 20px;
         display: block;
         letter-spacing: -0.01em;
       }
       .brand small {
-        font-size: 12px;
+        display: block;
+        font-size: 13.5px;
         color: var(--umber);
+        line-height: 1.4;
       }
       .nav {
         display: flex;
@@ -242,13 +257,14 @@
         border-radius: 999px;
         gap: 4px;
         border: 1px solid var(--hairline);
+        flex: 0 0 auto;
       }
       .nav button {
         background: transparent;
         border: 0;
-        min-height: 40px;
-        padding: 9px 17px;
-        font-size: 13px;
+        min-height: 46px;
+        padding: 11px 22px;
+        font-size: 15px;
         border-radius: 999px;
         color: var(--umber);
       }
@@ -262,29 +278,30 @@
         box-shadow: none;
       }
       main {
-        max-width: 680px;
-        padding: 30px 20px 70px;
+        width: 94%;
+        max-width: 1380px;
+        padding: 34px 0 80px;
         margin: auto;
       }
       .wide {
-        max-width: 1120px;
+        max-width: 1380px;
       }
       .card {
         background: var(--dune);
         border: 1px solid var(--hairline);
         border-radius: 26px;
-        padding: 28px;
+        padding: 34px 36px;
         box-shadow: none;
       }
-      @media (min-width: 761px) {
+      @media (min-width: 861px) {
         .card {
-          padding: 32px 34px;
+          padding: 40px 44px;
         }
       }
       .stepbar {
         display: flex;
-        gap: 8px;
-        margin-bottom: 22px;
+        gap: 10px;
+        margin-bottom: 28px;
       }
       .stepbar span {
         height: 3px;
@@ -322,8 +339,30 @@
       .layout {
         display: grid;
         grid-template-columns: repeat(2, minmax(0, 1fr));
-        gap: 22px;
+        gap: 36px;
         align-items: start;
+      }
+      .layout-wide {
+        grid-template-columns: minmax(0, 1.45fr) minmax(0, 1fr);
+      }
+      /* Two-column desktop split: form on the left, keypad / preview on the right. */
+      .split-2 {
+        display: grid;
+        grid-template-columns: minmax(0, 1.08fr) minmax(0, 0.92fr);
+        gap: 44px;
+        align-items: start;
+      }
+      .split-2.preview-split {
+        grid-template-columns: minmax(0, 1.32fr) minmax(0, 0.68fr);
+      }
+      .split-side {
+        background: var(--dune-deep);
+        border: 1px solid var(--hairline);
+        border-radius: 24px;
+        padding: 28px 30px 32px;
+      }
+      .split-side > .eyebrow {
+        text-align: center;
       }
       .full {
         width: 100%;
@@ -337,11 +376,11 @@
         background: var(--canvas);
         color: var(--ink);
         border: 1px solid var(--hairline);
-        padding: 18px 20px;
-        margin-top: 14px;
-        border-radius: 22px;
-        min-height: 86px;
-        gap: 14px;
+        padding: 24px 28px;
+        margin-top: 16px;
+        border-radius: 24px;
+        min-height: 104px;
+        gap: 18px;
         transition:
           transform 0.22s var(--ease),
           border-color 0.22s var(--ease),
@@ -356,7 +395,7 @@
       .lang strong {
         font-family: var(--serif);
         font-weight: 500;
-        font-size: 21px;
+        font-size: 25px;
         letter-spacing: -0.01em;
         color: var(--ink);
         display: block;
@@ -364,12 +403,12 @@
       .lang small {
         display: block;
         color: var(--umber);
-        margin-top: 4px;
-        font-size: 12px;
+        margin-top: 6px;
+        font-size: 14px;
       }
       .lang .symbol {
-        width: 46px;
-        height: 46px;
+        width: 56px;
+        height: 56px;
         background: var(--dune-deep);
         border: 1px solid var(--hairline);
         border-radius: 50%;
@@ -380,7 +419,7 @@
       }
       .lang .arrow {
         color: var(--taupe);
-        font-size: 20px;
+        font-size: 24px;
         transition: transform 0.22s var(--ease);
       }
       .lang:hover .arrow {
@@ -388,27 +427,28 @@
         color: var(--forest);
       }
       .listen {
-        font-size: 13px;
-        min-height: 42px;
+        font-size: 15px;
+        min-height: 48px;
+        padding: 12px 22px;
         background: var(--dune-deep);
         color: var(--umber);
         border: 1px solid var(--hairline);
         white-space: nowrap;
       }
       .status {
-        min-height: 24px;
-        font-size: 14px;
+        min-height: 26px;
+        font-size: 16px;
         color: var(--danger);
-        margin: 14px 0;
+        margin: 18px 0;
         overflow-wrap: anywhere;
       }
       .notice {
-        padding: 14px 16px;
+        padding: 18px 20px;
         border-radius: 16px;
         background: #f3ead9;
         color: #6d4c1e;
         border: 1px solid #e0d2b8;
-        font-size: 13px;
+        font-size: 15px;
         line-height: 1.7;
       }
       .student {
@@ -420,12 +460,13 @@
         border: 1px solid var(--hairline);
         background: var(--canvas);
         color: var(--ink);
-        margin-top: 12px;
-        padding: 16px 18px;
-        border-radius: 16px;
-        gap: 10px;
+        margin-top: 14px;
+        padding: 20px 24px;
+        border-radius: 18px;
+        gap: 12px;
         flex-wrap: wrap;
         font-variant-numeric: tabular-nums;
+        font-size: 17px;
         transition:
           border-color 0.18s var(--ease),
           transform 0.18s var(--ease);
@@ -439,33 +480,34 @@
         display: block;
         color: var(--umber);
         font-weight: 400;
-        margin-top: 5px;
+        margin-top: 6px;
+        font-size: 14.5px;
       }
       .badge {
         background: var(--dune-deep);
         color: var(--umber);
         border: 1px solid var(--hairline);
         border-radius: 999px;
-        padding: 6px 12px;
-        font-size: 12px;
+        padding: 8px 16px;
+        font-size: 13.5px;
         letter-spacing: 0.03em;
         white-space: nowrap;
       }
       .pad {
         display: grid;
         grid-template-columns: repeat(3, 1fr);
-        gap: 8px;
-        margin: 16px auto;
-        max-width: 308px;
+        gap: 12px;
+        margin: 0 auto;
+        max-width: 420px;
       }
       .pad button {
-        min-height: 58px;
+        min-height: 76px;
         background: var(--dune-deep);
         color: var(--ink);
-        font-size: 22px;
+        font-size: 28px;
         font-variant-numeric: tabular-nums;
-        padding: 7px;
-        border-radius: 18px;
+        padding: 8px;
+        border-radius: 20px;
         box-shadow: 0 2px 0 rgba(68, 58, 53, 0.18);
         transition:
           transform 0.1s var(--ease),
@@ -480,32 +522,36 @@
         box-shadow: 0 0 0 rgba(68, 58, 53, 0);
       }
       .pad button:last-child {
-        font-size: 14px;
+        font-size: 16px;
         letter-spacing: 0.02em;
       }
       .selected {
-        padding: 16px 18px;
+        padding: 20px 24px;
         background: var(--dune-deep);
         border: 1px solid var(--hairline);
-        border-radius: 16px;
-        margin-bottom: 16px;
+        border-radius: 18px;
+        margin-bottom: 22px;
         font-variant-numeric: tabular-nums;
+        font-size: 17px;
       }
       .check {
         display: flex;
         align-items: center;
         gap: 12px;
         line-height: 1.6;
+        font-size: 16px;
       }
       .document {
         width: 100%;
         text-align: left;
-        margin: 6px 0;
+        margin: 10px 0;
         border: 1px solid var(--hairline);
         background: var(--canvas);
         color: var(--ink);
-        padding: 16px 18px;
-        border-radius: 16px;
+        padding: 22px 24px;
+        border-radius: 18px;
+        min-height: 76px;
+        font-size: 19px;
         transition:
           border-color 0.18s var(--ease),
           background 0.18s var(--ease);
@@ -520,8 +566,17 @@
       }
       .actions {
         display: flex;
-        gap: 10px;
+        gap: 16px;
         flex-wrap: wrap;
+      }
+      .action-stack {
+        display: grid;
+        gap: 16px;
+      }
+      .action-stack button {
+        width: 100%;
+        min-height: 80px;
+        font-size: 18px;
       }
       #pdf-button {
         background: var(--ink);
@@ -539,21 +594,17 @@
       }
       .frame {
         width: 100%;
-        height: 780px;
+        height: 940px;
         border: 1px solid var(--hairline);
-        border-radius: 16px;
+        border-radius: 18px;
         background: #ffffff;
       }
       .preview-wrap {
         background: var(--dune-deep);
         border: 1px solid var(--hairline);
-        border-radius: 18px;
-        padding: 14px;
-        margin: 20px 0;
-      }
-      .narrow {
-        max-width: 780px;
-        margin-inline: auto;
+        border-radius: 22px;
+        padding: 20px;
+        margin: 24px 0;
       }
       .step-front {
         max-width: none;
@@ -561,7 +612,7 @@
       .front-split {
         display: grid;
         grid-template-columns: 1.05fr 0.95fr;
-        gap: 30px;
+        gap: 44px;
         align-items: center;
       }
       .front-split:has(.front-qr[hidden]) {
@@ -570,7 +621,7 @@
       .front-qr {
         text-align: center;
         border-left: 1px solid var(--hairline);
-        padding-left: 30px;
+        padding-left: 44px;
       }
       .front-qr .eyebrow {
         margin-bottom: 0;
@@ -579,38 +630,38 @@
       .qr-frame {
         background: #ffffff;
         border: 1px solid var(--hairline);
-        border-radius: 22px;
-        padding: 18px;
+        border-radius: 26px;
+        padding: 24px;
         width: max-content;
-        margin: 14px auto 0;
+        margin: 16px auto 0;
       }
       .qr-frame img {
-        width: 208px;
-        height: 208px;
+        width: 260px;
+        height: 260px;
         display: block;
       }
       .front-qr .code {
         color: var(--forest);
-        font-size: clamp(46px, 6.4vw, 72px);
-        margin: 16px 0 4px;
+        font-size: clamp(54px, 5vw, 86px);
+        margin: 20px 0 6px;
       }
       .front-qr .bar {
-        margin-top: 10px;
-        margin-bottom: 6px;
+        margin-top: 12px;
+        margin-bottom: 8px;
       }
       .qr-help {
-        font-size: 13px;
+        font-size: 15px;
         color: var(--umber);
-        margin: 12px 0 0;
+        margin: 14px 0 0;
         line-height: 1.6;
       }
       .privacy-line {
         text-align: left;
-        margin-top: 20px;
+        margin-top: 24px;
       }
       .code {
         font-family: var(--serif);
-        font-size: clamp(64px, 11vw, 108px);
+        font-size: clamp(72px, 8vw, 120px);
         font-weight: 500;
         letter-spacing: 0.16em;
         line-height: 1.05;
@@ -624,7 +675,7 @@
         display: flex;
         justify-content: space-between;
         gap: 12px;
-        font-size: 11px;
+        font-size: 12.5px;
         letter-spacing: 0.12em;
         text-transform: uppercase;
         color: var(--umber);
@@ -634,11 +685,11 @@
         font-variant-numeric: tabular-nums;
       }
       .bar {
-        height: 6px;
+        height: 8px;
         overflow: hidden;
         border-radius: 4px;
         background: var(--dune-deep);
-        margin-top: 16px;
+        margin-top: 18px;
       }
       .bar div {
         height: 100%;
@@ -651,7 +702,7 @@
         display: flex;
         gap: 4px;
         overflow: auto;
-        margin: 20px 0;
+        margin: 24px 0;
         border-bottom: 1px solid var(--hairline);
         white-space: nowrap;
         scrollbar-width: none;
@@ -662,13 +713,13 @@
       }
       .tabs button,
       .subnav button {
-        font-size: 13px;
+        font-size: 15px;
         background: transparent;
         color: var(--umber);
         border: 0;
         border-radius: 0;
-        min-height: 46px;
-        padding: 12px 18px;
+        min-height: 52px;
+        padding: 14px 22px;
         letter-spacing: 0.02em;
         border-bottom: 2px solid transparent;
         margin-bottom: -1px;
@@ -687,20 +738,20 @@
       }
       .table-wrap {
         overflow: auto;
-        max-height: 640px;
+        max-height: 760px;
         border: 1px solid var(--hairline);
-        border-radius: 16px;
+        border-radius: 18px;
         background: var(--canvas);
       }
       table {
         width: 100%;
         border-collapse: collapse;
-        font-size: 13px;
+        font-size: 15px;
         font-variant-numeric: tabular-nums;
       }
       th {
         text-align: left;
-        font-size: 11px;
+        font-size: 12px;
         text-transform: uppercase;
         letter-spacing: 0.09em;
         color: var(--umber);
@@ -711,7 +762,7 @@
       }
       td,
       th {
-        padding: 14px 16px;
+        padding: 16px 18px;
         border-bottom: 1px solid var(--hairline);
         white-space: nowrap;
       }
@@ -723,9 +774,9 @@
       }
       td button,
       .student button {
-        font-size: 12px;
-        min-height: 34px;
-        padding: 7px 14px;
+        font-size: 13.5px;
+        min-height: 40px;
+        padding: 9px 18px;
         margin: 2px;
         border-radius: 999px;
       }
@@ -733,21 +784,21 @@
         display: flex;
         gap: 6px;
         flex-wrap: wrap;
-        margin: 10px 0;
+        margin: 12px 0;
       }
       .placeholders button {
-        font-size: 11px;
+        font-size: 12.5px;
         letter-spacing: 0.02em;
-        min-height: 32px;
-        padding: 6px 12px;
+        min-height: 38px;
+        padding: 8px 14px;
         border-radius: 999px;
         background: var(--dune-deep);
         color: var(--umber);
         border: 1px solid var(--hairline);
       }
       .image-preview {
-        height: 90px;
-        max-width: 150px;
+        height: 130px;
+        max-width: 220px;
         object-fit: contain;
         background: var(--canvas);
         border: 1px solid var(--hairline);
@@ -755,8 +806,8 @@
         padding: 6px;
       }
       .dropzone {
-        width: 150px;
-        height: 90px;
+        width: 220px;
+        height: 130px;
         display: flex;
         flex-direction: column;
         align-items: center;
@@ -765,32 +816,36 @@
         border: 1.5px dashed var(--taupe);
         border-radius: 12px;
         color: var(--umber);
-        font-size: 11px;
+        font-size: 13px;
         letter-spacing: 0.04em;
         background: var(--canvas);
       }
       .dropzone svg {
         color: var(--taupe);
       }
+      #image-uploaders .row {
+        justify-content: flex-start;
+        gap: 16px;
+      }
       .footer {
         text-align: center;
         color: var(--umber);
         opacity: 0.7;
-        font-size: 11px;
+        font-size: 13px;
         letter-spacing: 0.04em;
-        margin-top: 26px;
+        margin-top: 32px;
       }
       .icon {
         background: var(--dune-deep);
         border: 1px solid var(--hairline);
-        border-radius: 18px;
-        width: 60px;
-        height: 60px;
+        border-radius: 22px;
+        width: 76px;
+        height: 76px;
         display: grid;
         place-items: center;
         color: var(--umber);
-        font-size: 26px;
-        margin: 10px 0 22px;
+        font-size: 32px;
+        margin: 12px 0 26px;
       }
       .break {
         overflow-wrap: anywhere;
@@ -798,11 +853,13 @@
       #print-sheet {
         display: none;
       }
-      @media (max-width: 760px) {
+      @media (max-width: 860px) {
         .top {
+          padding: 14px 0;
+        }
+        .top-inner {
           align-items: stretch;
           flex-direction: column;
-          padding: 14px 20px;
           gap: 12px;
         }
         .nav {
@@ -815,8 +872,12 @@
         .card {
           padding: 24px 22px;
         }
-        .layout {
+        .layout,
+        .layout-wide,
+        .grid2,
+        .split-2 {
           grid-template-columns: 1fr;
+          gap: 20px;
         }
         .front-split {
           grid-template-columns: 1fr;
@@ -828,18 +889,95 @@
           padding: 24px 0 0;
           margin-top: 20px;
         }
-        .grid2 {
-          gap: 10px;
+        .split-side {
+          padding: 22px 18px 26px;
+        }
+        .pad {
+          max-width: 360px;
         }
         main {
           padding-top: 22px;
         }
         .frame {
-          height: 560px;
+          height: 620px;
+        }
+        .qr-frame img {
+          width: 220px;
+          height: 220px;
         }
         .code {
           letter-spacing: 0.1em;
           padding-left: 0.1em;
+        }
+      }
+      html {
+        -webkit-text-size-adjust: 100%;
+      }
+      body {
+        -webkit-tap-highlight-color: transparent;
+      }
+      /* Phone mode: hide the kiosk numpad — phones use their native keyboard */
+      body.phone .pad {
+        display: none !important;
+      }
+      input,
+      select,
+      textarea {
+        font-size: 16px;
+      }
+      @supports (padding: max(0px)) {
+        main {
+          padding-left: max(20px, env(safe-area-inset-left));
+          padding-right: max(20px, env(safe-area-inset-right));
+          padding-bottom: max(70px, calc(env(safe-area-inset-bottom) + 24px));
+        }
+      }
+      @media (max-width: 560px) {
+        main {
+          padding: 16px 14px 56px;
+        }
+        .card {
+          padding: 20px 18px;
+          border-radius: 20px;
+        }
+        .grid2 {
+          grid-template-columns: 1fr;
+        }
+        h1 {
+          font-size: clamp(26px, 7.6vw, 32px);
+        }
+        .brand small {
+          display: none;
+        }
+        .nav button {
+          padding: 9px 12px;
+          font-size: 12px;
+        }
+        .actions .primary,
+        .actions #pdf-button,
+        .actions #whatsapp-button {
+          width: 100%;
+        }
+        .frame {
+          height: 68vh;
+        }
+      }
+      @media (orientation: landscape) and (max-height: 540px) {
+        .top {
+          padding-top: 10px;
+          padding-bottom: 10px;
+        }
+        .stepbar {
+          margin-bottom: 12px;
+        }
+        main {
+          padding-top: 14px;
+        }
+        .frame {
+          height: 80vh;
+        }
+        .pad button {
+          min-height: 48px;
         }
       }
       @media (prefers-reduced-motion: reduce) {
@@ -875,17 +1013,19 @@
   </head>
   <body>
     <header class="top">
-      <div class="brand">
-        <div class="mark">RGC</div>
-        <div>
-          <strong>School Document Portal</strong
-          ><small>Simple. Local. Ready when you are.</small>
+      <div class="top-inner">
+        <div class="brand">
+          <div class="mark">RJC</div>
+          <div>
+            <strong id="brand-name">R. J. CHAWARE CONVENT</strong
+            ><small id="brand-sub">Jain Minority Institute</small>
+          </div>
         </div>
+        <nav class="nav" aria-label="Portal views">
+          <button data-view="parent" class="active">Front Panel</button
+          ><button data-view="admin">Admin</button>
+        </nav>
       </div>
-      <nav class="nav" aria-label="Portal views">
-        <button data-view="parent" class="active">Front Panel</button
-        ><button data-view="admin">Admin</button>
-      </nav>
     </header>
     <main id="parent-view" class="wide">
       <div class="stepbar" aria-label="Progress">
@@ -895,7 +1035,7 @@
         <div class="front-split">
           <div class="front-copy">
             <div class="row">
-              <div class="eyebrow">RGC · WELCOME</div>
+              <div class="eyebrow">RJC · WELCOME</div>
               <button class="listen" data-speak>🔊 ऐका / सुनें</button>
             </div>
             <div class="icon">▤</div>
@@ -951,7 +1091,7 @@
           </aside>
         </div>
       </section>
-      <section class="card step narrow" id="step-2" hidden>
+      <section class="card step" id="step-2" hidden>
         <div class="row">
           <button class="quiet" data-back="1" data-t="back">← Back</button
           ><button class="listen" data-speak>🔊 ऐका / सुनें</button>
@@ -961,169 +1101,203 @@
         <p class="muted" data-t="findHelp">
           Use a mobile number or class and name.
         </p>
-        <div class="subnav">
-          <button data-search-mode="phone" class="active" data-t="mobile">
-            Mobile number</button
-          ><button data-search-mode="name" data-t="nameSearch">
-            Class & name
-          </button>
-        </div>
-        <div id="phone-search">
-          <label for="parent-phone" data-t="registered"
-            >Registered mobile number</label
-          ><input
-            id="parent-phone"
-            inputmode="numeric"
-            maxlength="10"
-            autocomplete="off"
-            data-numeric
-            placeholder="10 digits"
-          />
-          <div class="pad" data-pad="2"></div>
-        </div>
-        <div id="name-search" hidden>
-          <div class="grid2">
-            <div>
-              <label for="search-class" data-t="class">Class</label
-              ><select id="search-class"></select>
+        <div class="split-2">
+          <div class="split-main">
+            <div class="subnav">
+              <button data-search-mode="phone" class="active" data-t="mobile">
+                Mobile number</button
+              ><button data-search-mode="name" data-t="nameSearch">
+                Class &amp; name
+              </button>
             </div>
-            <div>
-              <label for="search-division" data-t="division">Division</label
-              ><select id="search-division"></select>
+            <div id="phone-search">
+              <label for="parent-phone" data-t="registered"
+                >Registered mobile number</label
+              ><input
+                id="parent-phone"
+                inputmode="numeric"
+                maxlength="10"
+                autocomplete="off"
+                data-numeric
+                placeholder="10 digits"
+              />
             </div>
+            <div id="name-search" hidden>
+              <div class="grid2">
+                <div>
+                  <label for="search-class" data-t="class">Class</label
+                  ><select id="search-class"></select>
+                </div>
+                <div>
+                  <label for="search-division" data-t="division">Division</label
+                  ><select id="search-division"></select>
+                </div>
+              </div>
+              <label for="search-name" data-t="studentFather"
+                >Student or father’s name</label
+              ><input id="search-name" maxlength="100" autocomplete="off" />
+              <p class="small muted" data-t="twoLetters">
+                Type at least two letters.
+              </p>
+            </div>
+            <p class="status" id="search-status" role="status"></p>
+            <div id="search-results"></div>
           </div>
-          <label for="search-name" data-t="studentFather"
-            >Student or father’s name</label
-          ><input id="search-name" maxlength="100" autocomplete="off" />
-          <p class="small muted" data-t="twoLetters">
-            Type at least two letters.
-          </p>
+          <aside class="split-side">
+            <div id="pad-2-block">
+              <p class="eyebrow">ON-SCREEN NUMBER PAD</p>
+              <div class="pad" data-pad="2"></div>
+              <p class="small muted" style="text-align: center; margin-top: 16px">
+                Tap a number to type it into the mobile number field.
+              </p>
+            </div>
+            <div id="pad-2-alt" hidden>
+              <p class="eyebrow">CLASS &amp; NAME SEARCH</p>
+              <p class="muted">
+                Type the student’s name in the field on the left. Matching
+                students appear as soon as you enter two letters.
+              </p>
+            </div>
+          </aside>
         </div>
-        <p class="status" id="search-status" role="status"></p>
-        <div id="search-results"></div>
       </section>
-      <section class="card step narrow" id="step-3" hidden>
+      <section class="card step" id="step-3" hidden>
         <div class="row">
           <button class="quiet" data-back="2" data-t="back">← Back</button
           ><button class="listen" data-speak>🔊 ऐका / सुनें</button>
         </div>
         <p class="eyebrow" data-t="stepThree">STEP 3 OF 4</p>
         <h1 data-t="verify">Verify & choose a document</h1>
-        <div class="selected" id="selected-student"></div>
-        <button class="quiet full" id="backup-toggle" data-t="trouble">
-          Having trouble with birth year?
-        </button>
-        <div id="birth-field">
-          <label for="birth-year" data-t="birthYear">Child’s birth year</label
-          ><input
-            id="birth-year"
-            inputmode="numeric"
-            maxlength="4"
-            data-numeric
-            placeholder="YYYY"
-          />
+        <div class="split-2">
+          <div class="split-main">
+            <div class="selected" id="selected-student"></div>
+            <button class="quiet full" id="backup-toggle" data-t="trouble">
+              Having trouble with birth year?
+            </button>
+            <div id="birth-field">
+              <label for="birth-year" data-t="birthYear">Child’s birth year</label
+              ><input
+                id="birth-year"
+                inputmode="numeric"
+                maxlength="4"
+                data-numeric
+                placeholder="YYYY"
+              />
+            </div>
+            <div id="gr-field" hidden>
+              <label for="confirm-gr" data-t="gr">Student GR number</label
+              ><input
+                id="confirm-gr"
+                inputmode="numeric"
+                maxlength="40"
+                data-numeric
+                autocomplete="off"
+              />
+            </div>
+            <div id="aadhaar-field" hidden>
+              <label for="aadhaar-last4" data-t="aadhaar"
+                >Last four digits of student Aadhaar</label
+              ><input
+                id="aadhaar-last4"
+                inputmode="numeric"
+                maxlength="4"
+                data-numeric
+                autocomplete="off"
+              />
+            </div>
+            <div id="campus-field">
+              <label for="campus-code" data-t="campus">Live campus code</label
+              ><input
+                id="campus-code"
+                inputmode="numeric"
+                maxlength="4"
+                data-numeric
+                autocomplete="off"
+              />
+              <p class="small muted" data-t="campusHelp">
+                Read the code on the school screen.
+              </p>
+            </div>
+            <label class="check"
+              ><input type="checkbox" id="guardian-toggle" /><span data-t="guardian"
+                >I am a visiting guardian</span
+              ></label
+            >
+            <div id="guardian-field" hidden>
+              <p class="notice" data-t="guardianNotice">
+                Guardian collection is recorded with this mobile number.
+              </p>
+              <label for="guardian-phone" data-t="guardianMobile"
+                >Guardian’s mobile number</label
+              ><input
+                id="guardian-phone"
+                inputmode="numeric"
+                maxlength="10"
+                data-numeric
+                autocomplete="off"
+              />
+            </div>
+            <p class="status" id="verify-status" role="alert"></p>
+          </div>
+          <aside class="split-side">
+            <p class="eyebrow">ON-SCREEN NUMBER PAD</p>
+            <div class="pad" data-pad="3"></div>
+            <h3 data-t="chooseDocument" style="margin-top: 28px">
+              Choose a document
+            </h3>
+            <div id="document-list"></div>
+            <button class="primary full" id="generate-button" data-t="generate">
+              Generate certificate
+            </button>
+          </aside>
         </div>
-        <div id="gr-field" hidden>
-          <label for="confirm-gr" data-t="gr">Student GR number</label
-          ><input
-            id="confirm-gr"
-            inputmode="numeric"
-            maxlength="40"
-            data-numeric
-            autocomplete="off"
-          />
-        </div>
-        <div id="aadhaar-field" hidden>
-          <label for="aadhaar-last4" data-t="aadhaar"
-            >Last four digits of student Aadhaar</label
-          ><input
-            id="aadhaar-last4"
-            inputmode="numeric"
-            maxlength="4"
-            data-numeric
-            autocomplete="off"
-          />
-        </div>
-        <div id="campus-field">
-          <label for="campus-code" data-t="campus">Live campus code</label
-          ><input
-            id="campus-code"
-            inputmode="numeric"
-            maxlength="4"
-            data-numeric
-            autocomplete="off"
-          />
-          <p class="small muted" data-t="campusHelp">
-            Read the code on the school screen.
-          </p>
-        </div>
-        <label class="check"
-          ><input type="checkbox" id="guardian-toggle" /><span data-t="guardian"
-            >I am a visiting guardian</span
-          ></label
-        >
-        <div id="guardian-field" hidden>
-          <p class="notice" data-t="guardianNotice">
-            Guardian collection is recorded with this mobile number.
-          </p>
-          <label for="guardian-phone" data-t="guardianMobile"
-            >Guardian’s mobile number</label
-          ><input
-            id="guardian-phone"
-            inputmode="numeric"
-            maxlength="10"
-            data-numeric
-            autocomplete="off"
-          />
-        </div>
-        <div class="pad" data-pad="3"></div>
-        <h3 data-t="chooseDocument">Choose a document</h3>
-        <div id="document-list"></div>
-        <p class="status" id="verify-status" role="alert"></p>
-        <button class="primary full" id="generate-button" data-t="generate">
-          Generate certificate
-        </button>
       </section>
-      <section class="card step narrow" id="step-4" hidden>
+      <section class="card step" id="step-4" hidden>
         <div class="row">
           <span class="eyebrow" data-t="ready">YOUR DOCUMENT IS READY</span
           ><button class="listen" data-speak>🔊 ऐका / सुनें</button>
         </div>
-        <h1 data-t="certificateReady">All set.</h1>
-        <p class="muted" data-t="readyHelp">
-          Print, download, or share the certificate details.
-        </p>
-        <div class="actions">
-          <button class="primary" id="print-button" data-t="print">
-            Print Copy Now</button
-          ><button id="pdf-button" data-t="pdf">Download / Save PDF</button
-          ><button id="whatsapp-button" data-t="whatsapp">
-            Send via WhatsApp
-          </button>
-        </div>
-        <div class="preview-wrap">
-          <iframe
-            class="frame"
-            id="certificate-frame"
-            title="A4 certificate preview"
-            sandbox="allow-same-origin"
-          ></iframe>
-        </div>
-        <p class="status" id="document-status" role="status"></p>
-        <div class="row">
-          <span class="small muted"
-            ><span data-t="clearsIn">Clears in</span>
-            <strong id="wipe-seconds">45</strong>s</span
-          ><button class="primary" id="done-button" data-t="done">Done</button>
+        <div class="split-2 preview-split">
+          <div class="split-main">
+            <div class="preview-wrap">
+              <iframe
+                class="frame"
+                id="certificate-frame"
+                title="A4 certificate preview"
+                sandbox="allow-same-origin"
+              ></iframe>
+            </div>
+            <p class="status" id="document-status" role="status"></p>
+          </div>
+          <aside class="split-side">
+            <h1 data-t="certificateReady">All set.</h1>
+            <p class="muted" data-t="readyHelp">
+              Print, download, or share the certificate details.
+            </p>
+            <div class="action-stack" style="margin-top: 26px">
+              <button class="primary" id="print-button" data-t="print">
+                Print Copy Now</button
+              ><button id="pdf-button" data-t="pdf">Download / Save PDF</button
+              ><button id="whatsapp-button" data-t="whatsapp">
+                Send via WhatsApp
+              </button>
+            </div>
+            <div class="row" style="margin-top: 26px">
+              <span class="small muted"
+                ><span data-t="clearsIn">Clears in</span>
+                <strong id="wipe-seconds">45</strong>s</span
+              ><button class="primary" id="done-button" data-t="done">Done</button>
+            </div>
+          </aside>
         </div>
       </section>
-      <p class="footer" id="school-footer">RGC · School Document Portal</p>
+      <p class="footer" id="school-footer">R. J. CHAWARE CONVENT</p>
     </main>
     <main id="admin-view" class="wide" hidden>
       <section
         class="card"
         id="admin-login"
-        style="max-width: 450px; margin: 20px auto"
+        style="max-width: 560px; margin: 24px auto"
       >
         <div class="row">
           <p class="eyebrow">SCHOOL OFFICE</p>
@@ -1155,7 +1329,7 @@
       <div id="admin-content" hidden>
         <div class="row">
           <div>
-            <p class="eyebrow">RGC · SCHOOL OFFICE</p>
+            <p class="eyebrow">RJC · SCHOOL OFFICE</p>
             <h1>Administration</h1>
           </div>
           <div class="row">
@@ -1222,7 +1396,7 @@
       const positions = (name) =>
         `<label>${name === "sig_pos" ? "Principal signature" : "School stamp"}<select name="${name}"><option value="left">Left</option><option value="center">Center</option><option value="right" ${name === "sig_pos" ? "selected" : ""}>Right</option><option value="none">Hidden</option></select></label>`;
       $("admin-panels").innerHTML =
-        `<section id="admin-students" class="admin-section"><div class="layout"><div class="card"><div class="row"><h2>Student records</h2><button id="new-student">+ New</button></div><label for="student-filter">Search GR, name, class, or mobile</label><input id="student-filter" type="search"><label for="csv-file">1-click CSV import</label><input id="csv-file" type="file" accept=".csv"><button id="sample-csv" style="margin:12px 0">Download Sample CSV</button><p class="small muted">Matching GR numbers are updated. Imports validate every row before saving.</p><div class="table-wrap"><table><thead><tr><th>Student</th><th>Class</th><th>Status</th><th>Actions</th></tr></thead><tbody id="students-table"></tbody></table></div></div><form class="card" id="student-form"><h2 id="student-form-title">Add student</h2>${field("gr_number", "GR number", "text", true)}${field("full_name", "Full student name", "text", true)}${field("father_name", "Father / parent name")}<div class="grid2">${field("class_name", "Class", "text", true)}${field("division", "Division", "text", true)}${field("dob", "Birth date (DD/MM/YYYY)", "text", true)}${field("aadhaar_last4", "Aadhaar last four only")}</div>${field("parent_phone", "Registered mobile (10 digits)", "tel", true)}<label>Status<select name="status"><option>ACTIVE</option><option>INACTIVE</option></select></label><button class="primary full" style="margin-top:20px">Save student</button><button type="button" class="quiet full" id="cancel-student">Clear form</button></form></div></section>
+        `<section id="admin-students" class="admin-section"><div class="layout layout-wide"><div class="card"><div class="row"><h2>Student records</h2><button id="new-student">+ New</button></div><label for="student-filter">Search GR, name, class, or mobile</label><input id="student-filter" type="search"><label for="csv-file">1-click CSV import</label><input id="csv-file" type="file" accept=".csv"><button id="sample-csv" style="margin:12px 0">Download Sample CSV</button><p class="small muted">Matching GR numbers are updated. Imports validate every row before saving.</p><div class="table-wrap"><table><thead><tr><th>Student</th><th>Class</th><th>Status</th><th>Actions</th></tr></thead><tbody id="students-table"></tbody></table></div></div><form class="card" id="student-form"><h2 id="student-form-title">Add student</h2>${field("gr_number", "GR number", "text", true)}${field("full_name", "Full student name", "text", true)}${field("father_name", "Father / parent name")}<div class="grid2">${field("class_name", "Class", "text", true)}${field("division", "Division", "text", true)}${field("dob", "Birth date (DD/MM/YYYY)", "text", true)}${field("aadhaar_last4", "Aadhaar last four only")}</div>${field("parent_phone", "Registered mobile (10 digits)", "tel", true)}<label>Status<select name="status"><option>ACTIVE</option><option>INACTIVE</option></select></label><button class="primary full" style="margin-top:20px">Save student</button><button type="button" class="quiet full" id="cancel-student">Clear form</button></form></div></section>
 <section id="admin-templates" class="admin-section" hidden><div class="layout"><div class="card"><div class="row"><h2>Document templates</h2><button id="new-template">+ New</button></div><div id="templates-list"></div><form id="template-form"><input type="hidden" id="template-id">${field("title_en", "English title", "text", true)}${field("title_mr", "Marathi title", "text", true)}${field("title_hi", "Hindi title", "text", true)}<div class="subnav"><button type="button" data-body-lang="en" class="active">English body</button><button type="button" data-body-lang="mr">मराठी</button><button type="button" data-body-lang="hi">हिंदी</button></div><label for="template-body">Certificate body · basic HTML supported</label><textarea id="template-body" rows="8"></textarea><div class="placeholders" id="placeholder-buttons"></div><div class="grid2">${positions("sig_pos")}${positions("stamp_pos")}</div><label class="check"><input id="template-active" type="checkbox" checked> Available to parents</label><button class="primary full">Save template</button></form></div><div class="card"><p class="eyebrow">A4 · LIVE PREVIEW</p><h2>See it before issuing.</h2><p class="small muted">Sample student details and the selected body language.</p><iframe id="template-preview" class="frame" title="Live template A4 preview" sandbox="allow-same-origin"></iframe><p class="small muted" id="preview-status">Enter titles and body to preview.</p></div></div></section>
 <section id="admin-branding" class="admin-section" hidden><form class="card" id="branding-form"><h2>School branding &amp; portal access</h2><div class="layout"><div>${field("school_name", "School name", "text", true)}${field("school_subtitle", "Subtitle / address")}${field("udise_no", "UDISE number")}${field("whatsapp_number", "School WhatsApp number")}${field("public_url", "Public tunnel URL (optional)", "url", false)}<p class="small muted">Shown inside the phone QR so parents can open the portal on any internet. Leave blank to auto-detect a running Cloudflare tunnel (run <code>Start_Public_Tunnel.bat</code>); otherwise the LAN address is used. Currently active: <strong id="active-portal-url">…</strong></p></div><div id="image-uploaders"></div></div><button class="primary" style="margin-top:20px">Save branding &amp; portal</button></form></section>
 <section id="admin-logs" class="admin-section" hidden><div class="card"><div class="row"><div><h2>Issued document register</h2><p class="small muted">Every issued document remains in the audit register.</p></div><button id="refresh-logs">Refresh</button></div><label for="logs-filter">Search serial, student, document, phone, or date</label><input id="logs-filter" type="search"><p class="small muted" id="logs-count"></p><div class="table-wrap"><table><thead><tr><th>Reference</th><th>Student</th><th>Document</th><th>Contact</th><th>Guardian</th><th>Issued</th><th>Verify</th></tr></thead><tbody id="logs-table"></tbody></table></div></div></section>
@@ -1503,7 +1677,15 @@
       }
       async function loadConfig() {
         state.config = await json("/api/public-config");
-        $("school-footer").textContent = state.config.schoolName + " · RGC";
+        const name = state.config.schoolName || "R. J. CHAWARE CONVENT";
+        const subtitle = state.config.schoolSubtitle || "";
+        const tagline = state.config.schoolTagline || subtitle;
+        $("brand-name").textContent = name;
+        $("brand-sub").textContent = tagline;
+        $("school-footer").textContent = subtitle
+          ? name + " · " + subtitle
+          : name;
+        document.title = name + " · School Document Portal";
         const classes = [
           ...new Set(state.config.classes.map((c) => c.class_name)),
         ];
@@ -1514,6 +1696,7 @@
           classes.map((c) => `<option>${esc(c)}</option>`).join("");
         updateDivisions();
         $("campus-field").hidden = state.config.isLocalKiosk;
+        document.body.classList.toggle("phone", !state.config.isLocalKiosk);
       }
       function updateDivisions() {
         const rows = state.config?.classes || [];
@@ -2102,6 +2285,8 @@
             searchEpoch++;
             $("phone-search").hidden = state.searchMode !== "phone";
             $("name-search").hidden = state.searchMode !== "name";
+            $("pad-2-block").hidden = state.searchMode !== "phone";
+            $("pad-2-alt").hidden = state.searchMode === "phone";
             document
               .querySelectorAll("[data-search-mode]")
               .forEach((el) => el.classList.toggle("active", el === b));

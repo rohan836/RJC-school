@@ -75,11 +75,24 @@ test(
       assert.equal((await req("/api/admin/dashboard")).status, 401);
       await login();
       let dashboard = (await req("/api/admin/dashboard")).data;
-      assert.equal(dashboard.students.length, 5);
+      assert.equal(dashboard.students.length, 6);
       assert.equal(dashboard.templates.length, 3);
       assert.ok(
-        dashboard.students.every((s) => /^\d{4}$/.test(s.aadhaar_last4)),
+        dashboard.students
+          .filter((s) => s.gr_number !== "4506")
+          .every((s) => /^\d{4}$/.test(s.aadhaar_last4)),
       );
+      const identityCard = dashboard.students.find(
+        (s) => s.gr_number === "4506",
+      );
+      assert.ok(identityCard);
+      assert.equal(identityCard.full_name, "Vedant Vivek Deoda");
+      assert.equal(identityCard.father_name, "Vivek Deoda");
+      assert.equal(identityCard.class_name, "8th");
+      assert.equal(identityCard.division, "A");
+      assert.equal(identityCard.dob, "09/06/2013");
+      assert.equal(identityCard.birth_year, "2013");
+      assert.equal(identityCard.parent_phone, "9423128313");
       assert.ok(fs.existsSync(path.join(dir, "admin-credentials.txt")));
       const config = (await req("/api/public-config")).data;
       assert.ok(config.isLocalKiosk);
@@ -164,7 +177,7 @@ test(
         lang: "mr",
       });
       assert.equal(issued.status, 200);
-      assert.match(issued.data.serialNo, /^RGC-\d{4}-\d{5}$/);
+      assert.match(issued.data.serialNo, /^RJC-\d{4}-\d{5}$/);
       assert.match(issued.data.bodyHtml, /प्रमाणित/);
       assert.ok(
         !JSON.stringify(issued.data.settings).includes("wifi_password"),
@@ -495,7 +508,7 @@ test(
       await stop();
       await start();
       await login("new-password-123");
-      assert.equal((await req("/api/admin/dashboard")).data.students.length, 7);
+      assert.equal((await req("/api/admin/dashboard")).data.students.length, 8);
     } finally {
       if (child && child.exitCode === null) await stop();
       fs.rmSync(dir, { recursive: true, force: true });
@@ -688,8 +701,46 @@ test("migration preserves existing school records and credentials", () => {
     );
     d.close();
     d = openDatabase(dir);
-    assert.equal(d.prepare("SELECT count(*) n FROM students").get().n, 5);
+    assert.equal(d.prepare("SELECT count(*) n FROM students").get().n, 6);
     assert.equal(d.pragma("integrity_check", { simple: true }), "ok");
+  } finally {
+    d.close();
+    fs.rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+test("branding migration replaces the placeholder school with the real identity", () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "rgc-brand-"));
+  const { openDatabase } = require("../db");
+  let d = new Database(path.join(dir, "school.db"));
+  d.exec(
+    `CREATE TABLE school_settings(id INTEGER PRIMARY KEY CHECK(id=1), school_name TEXT, school_subtitle TEXT, udise_no TEXT, whatsapp_number TEXT, logo_data TEXT, signature_data TEXT, stamp_data TEXT);`,
+  );
+  d.prepare(
+    "INSERT INTO school_settings(id,school_name,school_subtitle,udise_no) VALUES(1,?,?,?)",
+  ).run(
+    "SHREE VIDYA MANDIR HIGH SCHOOL, NASHIK",
+    "Recognized by Govt. of Maharashtra • Marathi & Semi-English Medium",
+    "27200104502",
+  );
+  d.close();
+  try {
+    d = openDatabase(dir);
+    const s = d.prepare("SELECT * FROM school_settings WHERE id=1").get();
+    assert.equal(s.school_name, "R. J. CHAWARE CONVENT");
+    assert.match(s.school_subtitle, /^Jain Minority Institute •/);
+    assert.match(
+      s.school_subtitle,
+      /Chaware Line, Karanja \(Lad\), Dist\. Washim, Maharashtra 444105$/,
+    );
+    assert.equal(s.udise_no, "");
+    assert.equal(d.pragma("user_version", { simple: true }), 2);
+    assert.equal(
+      d.prepare("SELECT count(*) n FROM students WHERE gr_number='4506'").get()
+        .n,
+      1,
+    );
+    d.close();
   } finally {
     d.close();
     fs.rmSync(dir, { recursive: true, force: true });

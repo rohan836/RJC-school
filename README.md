@@ -1,6 +1,6 @@
-# RGC — School Document Portal
+# RJC — School Document Portal
 
-The active project lives in **RJC**. RGC is the application name. The old project remains archived under the ignored `backups/previous-project` directory.
+The active project lives in **RJC**. RJC is the application name, for **R. J. Chaware Convent** (Jain Minority Institute · Karanja Education Society's · Chaware Line, Karanja (Lad), Dist. Washim, Maharashtra 444105). The old project remains archived under the ignored `backups/previous-project` directory.
 
 ## Permanent install at C:\RJC & USB portable package
 
@@ -25,12 +25,15 @@ The server detects a LAN IPv4 address and prints the phone portal URL on startup
 | 4503 | Sai Mahesh Shinde      | 2012       | 3456                   | 9822033333        |
 | 4504 | Swarali Sandeep Jadhav | 2014       | 4567                   | 9822044444        |
 | 4505 | Vedant Nitin Pawar     | 2015       | 5678                   | 9822055555        |
+| 4506 | Vedant Vivek Deoda     | 2013       | —                      | 9423128313        |
 
-These are synthetic demonstration records, not actual Aadhaar information. Migration preserves existing student records, school settings, passwords, templates and issued logs. It fills demo Aadhaar suffixes only for matching demo names. Replace demo records and school branding before issuing official documents.
+These are synthetic demonstration records, not actual Aadhaar information. Migration preserves existing student records, school settings, passwords, templates and issued logs. It fills demo Aadhaar suffixes only for matching demo names. Replace demo records before issuing official documents. GR 4506 (from the school identity card) has no Aadhaar suffix, so only birth-year or guardian verification works for that record.
 
 ## Parent and counter flows
 
 Choose Marathi, Hindi or English; search by registered mobile or class/division/name; verify with birth year or GR plus Aadhaar last four; select a document; print, download a real PDF or share its details through WhatsApp. The mouse numpad enters digits into the focused numeric field. Guardian collection requires a contact number, birth year and GR number and is flagged in the audit log.
+
+The kiosk is designed for a desktop monitor at 100% zoom. The header and workspace use `width: 94%; max-width: 1380px`, so the portal fills a 1080p or 1440p screen without a narrow boxed card. Steps 2 and 3 use a two-column split — search and verification on the left, a large tactile on-screen numpad (and the document list) on the right. Step 4 shows a wide A4 preview beside large Print / Download PDF / WhatsApp / Done buttons. Every admin tab uses the same wide multi-column grids. Below 860 px the layout collapses to a single column so a phone scanning the QR code still stacks cleanly.
 
 Three incorrect family-verification attempts lock the student record for 15 minutes, including across server restarts. The backup route does not bypass the lock. A localhost/127.0.0.1 front-panel connection can bypass the campus code; a LAN request cannot obtain that bypass by setting the client flag. Campus codes rotate every 60 seconds and after each issuance. Only the Front Panel PC (localhost) can retrieve the live code and QR; the panel polls once a second and uses Data URLs.
 

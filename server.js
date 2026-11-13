@@ -289,6 +289,10 @@ app.get("/api/public-config", (req, res) =>
       )
       .all(),
     schoolName: settings().school_name,
+    schoolSubtitle: settings().school_subtitle,
+    schoolTagline: String(settings().school_subtitle || "")
+      .split("•")[0]
+      .trim(),
     isLocalKiosk:
       local(req) && ["localhost", "127.0.0.1", "[::1]"].includes(req.hostname),
     portalUrl: portalUrl(),
@@ -409,7 +413,7 @@ function issue(b, allowLocal = false, receiptId = null) {
     year: "numeric",
     timeZone: "Asia/Kolkata",
   }).format(new Date());
-  const prefix = `RGC-${year}-`;
+  const prefix = `RJC-${year}-`;
   if (
     db
       .prepare("SELECT count(*) AS n FROM issued_logs WHERE serial_no LIKE ?")
@@ -536,7 +540,7 @@ app.get("/verify/:serial", async (req, res) => {
     .status(log ? 200 : 404)
     .type("html")
     .send(
-      `<!doctype html><html><meta charset="utf-8"><meta name="viewport" content="width=device-width"><title>RGC · Verify certificate</title><style>body{font:18px system-ui;background:#f2f2f7;padding:10vh 6vw;color:#17202b}main{background:white;border-radius:24px;max-width:600px;padding:36px;margin:auto}p{overflow-wrap:anywhere}</style><main><h1>${log ? "✓ School record found" : "Record not found"}</h1>${log ? `<p>${esc(log.doc_title)}</p><p>Reference: ${esc(log.serial_no)}</p><p>Issued: ${esc(log.issued_at)}</p><small>Verify identity and the printed details with the school office. This page confirms the reference exists; it does not authenticate altered printed content.</small>` : "<p>Check the reference number or contact the school office.</p>"}</main></html>`,
+      `<!doctype html><html><meta charset="utf-8"><meta name="viewport" content="width=device-width"><title>RJC · Verify certificate</title><style>body{font:18px system-ui;background:#f2f2f7;padding:10vh 6vw;color:#17202b}main{background:white;border-radius:24px;max-width:600px;padding:36px;margin:auto}p{overflow-wrap:anywhere}</style><main><h1>${log ? "✓ School record found" : "Record not found"}</h1>${log ? `<p>${esc(log.doc_title)}</p><p>Reference: ${esc(log.serial_no)}</p><p>Issued: ${esc(log.issued_at)}</p><small>Verify identity and the printed details with the school office. This page confirms the reference exists; it does not authenticate altered printed content.</small>` : "<p>Check the reference number or contact the school office.</p>"}</main></html>`,
     );
 });
 app.post(
@@ -859,7 +863,7 @@ app.use((err, req, res, next) => {
 });
 const server = app.listen(port, process.env.HOST || "0.0.0.0", () =>
   console.log(
-    `RGC School Document Portal\nSchool monitor: http://localhost:${port}\nPortal link (used in the phone QR): ${portalUrl()}\nAdmin: see ${path.join(dataDir, "admin-credentials.txt")}\nSample GR / birth year / Aadhaar last four: 4501/2013/1234, 4502/2011/2345, 4503/2012/3456, 4504/2014/4567, 4505/2015/5678`,
+    `RJC — School Document Portal\nSchool monitor: http://localhost:${port}\nPortal link (used in the phone QR): ${portalUrl()}\nAdmin: see ${path.join(dataDir, "admin-credentials.txt")}\nSample GR / birth year / Aadhaar last four: 4501/2013/1234, 4502/2011/2345, 4503/2012/3456, 4504/2014/4567, 4505/2015/5678, 4506/2013 (no Aadhaar suffix)`,
   ),
 );
 server.on("error", (e) => {

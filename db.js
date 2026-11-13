@@ -2,6 +2,20 @@ const Database = require("better-sqlite3");
 const crypto = require("node:crypto");
 const fs = require("node:fs");
 const path = require("node:path");
+// Real school identity. BRAND is what a fresh install starts with; LEGACY_BRAND is
+// the placeholder that earlier versions seeded, so the migration can recognise and
+// replace it without touching branding a school administrator has already changed.
+const BRAND = {
+  schoolName: "R. J. CHAWARE CONVENT",
+  schoolSubtitle:
+    "Jain Minority Institute • Karanja Education Society's • Chaware Line, Karanja (Lad), Dist. Washim, Maharashtra 444105",
+};
+const LEGACY_BRAND = {
+  schoolName: "SHREE VIDYA MANDIR HIGH SCHOOL, NASHIK",
+  schoolSubtitle:
+    "Recognized by Govt. of Maharashtra • Marathi & Semi-English Medium",
+};
+const MONOGRAM = "RJC";
 function hashPassword(password) {
   const salt = crypto.randomBytes(16).toString("hex");
   return salt + ":" + crypto.scryptSync(password, salt, 64).toString("hex");
@@ -73,9 +87,9 @@ function openDatabase(dir) {
     db.prepare(
       `INSERT OR IGNORE INTO school_settings(id,school_name,school_subtitle,udise_no,whatsapp_number) VALUES(1,?,?,?,?)`,
     ).run(
-      "SHREE VIDYA MANDIR HIGH SCHOOL, NASHIK",
-      "Recognized by Govt. of Maharashtra • Marathi & Semi-English Medium",
-      "27200104502",
+      BRAND.schoolName,
+      BRAND.schoolSubtitle,
+      "",
       "919800000000",
     );
     const udiseRow = db
@@ -147,6 +161,17 @@ function openDatabase(dir) {
           "9822055555",
           "5678",
         ],
+        [
+          "4506",
+          "Vedant Vivek Deoda",
+          "Vivek Deoda",
+          "8th",
+          "A",
+          "09/06/2013",
+          "2013",
+          "9423128313",
+          "",
+        ],
       ];
       for (const row of samples) {
         db.prepare(
@@ -204,7 +229,37 @@ function openDatabase(dir) {
       }
       db.pragma("user_version = 1");
     }
+    // Migration 2: real school identity. Replaces the placeholder Nashik branding
+    // on databases created before the rename and adds the student from the school
+    // identity card. Branding edited by an administrator is never overwritten.
+    if (db.pragma("user_version", { simple: true }) < 2) {
+      const branding = db
+        .prepare(
+          "SELECT school_name, school_subtitle FROM school_settings WHERE id=1",
+        )
+        .get();
+      if (branding && branding.school_name === LEGACY_BRAND.schoolName) {
+        db.prepare(
+          "UPDATE school_settings SET school_name=?, school_subtitle=?, udise_no=? WHERE id=1",
+        ).run(BRAND.schoolName, BRAND.schoolSubtitle, "");
+      }
+      db.prepare(
+        `INSERT OR IGNORE INTO students(gr_number,full_name,father_name,class_name,division,dob,birth_year,parent_phone,aadhaar_last4,status) VALUES(?,?,?,?,?,?,?,?,?,?)`,
+      ).run(
+        "4506",
+        "Vedant Vivek Deoda",
+        "Vivek Deoda",
+        "8th",
+        "A",
+        "09/06/2013",
+        "2013",
+        "9423128313",
+        "",
+        "ACTIVE",
+      );
+      db.pragma("user_version = 2");
+    }
   })();
   return db;
 }
-module.exports = { openDatabase, hashPassword, checkPassword };
+module.exports = { openDatabase, hashPassword, checkPassword, BRAND, MONOGRAM };

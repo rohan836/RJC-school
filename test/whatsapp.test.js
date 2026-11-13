@@ -22,7 +22,7 @@ test("signed multilingual WhatsApp flow uploads PDF, deduplicates retries and cl
         assert.equal(body.birthYear, "2013");
         issues.push(body);
         const cert = {
-          serialNo: "RGC-2026-" + (10000 + issues.length),
+          serialNo: "RJC-2026-" + (10000 + issues.length),
           lang: body.lang,
         };
         db.prepare(
