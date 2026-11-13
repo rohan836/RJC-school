@@ -1,4 +1,5 @@
 node_modules/
+portable-node/
 *.db
 *.db-wal
 *.db-shm

@@ -2,8 +2,13 @@
 
 The active project lives in **RJC**. RGC is the application name. The old project remains archived under the ignored `backups/previous-project` directory.
 
-## Start on this PC
+## Permanent install at C:\RJC & USB portable package
 
+The project lives at **C:\RJC**. On this PC, `Start_Server_Silent.vbs` starts the server hidden in the background (a shortcut sits in the Startup folder, pointing at `C:\RJC`), and `Start_RGC_Kiosk.bat` (also on the Desktop) starts the server if port 3000 is free and opens Chrome/Edge in `--kiosk --kiosk-printing` mode. `Start_RGC_Kiosk.bat` works from any drive — it uses `cd /d "%~dp0"` and prefers a bundled `portable-node\node.exe`, falling back to system Node.js.
+
+For a **USB plug-and-play copy** (for a PC without Node.js): double-click `Export_To_USB.bat` on this PC and enter the USB drive letter. It creates `<USB>:\RJC_Portable\` with the app, `node_modules`, a matching portable `portable-node\node.exe` (same Node build, so the native better-sqlite3 module works), a clean `school.db` snapshot produced with SQLite's online backup API, and `admin-credentials.txt` if present. Plug the USB stick into any Windows PC and double-click `RJC_Portable\Start_RGC_Kiosk.bat` — no installation required. `portable-node/` and `*.db` are gitignored and never pushed to GitHub. The same helper is noted in **Admin → Security & Backup**.
+
+## Start on this PC
 1. Install Node.js 22 or 24 LTS and Chrome or Edge.
 2. Run `npm ci` once while online. All application assets, QR generation, fonts and PDF rendering then work without internet.
 3. Run `npm start` and open http://localhost:3000. For full-screen kiosk printing, double-click `Start_RGC_Kiosk.bat`. Close an existing server before launching a new one.
