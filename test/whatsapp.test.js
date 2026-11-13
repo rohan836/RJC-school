@@ -141,3 +141,17 @@ test("signed multilingual WhatsApp flow uploads PDF, deduplicates retries and cl
     fs.rmSync(dir, { recursive: true, force: true });
   }
 });
+test('authentication template transport sends a code and reports network failures', async () => {
+  const { createOtpTransport } = require('../whatsapp');
+  const env = { WHATSAPP_TOKEN: 'synthetic-token', PHONE_NUMBER_ID: 'synthetic-id', WHATSAPP_AUTH_TEMPLATE: 'parent_auth', WHATSAPP_API_VERSION: 'v25.0' };
+  let payload;
+  const service = createOtpTransport({ env, transport: async message => { payload = message; } });
+  assert.equal(service.configured(), true);
+  await service.sendOtp('9800000001', '123456', 'en');
+  assert.equal(payload.type, 'template');
+  assert.equal(payload.template.name, 'parent_auth');
+  assert.equal(payload.template.components[0].parameters[0].text, '123456');
+  const failed = createOtpTransport({ env, transport: async () => { throw Error('offline'); } });
+  await assert.rejects(failed.sendOtp('9800000001', '123456'), /offline/);
+  assert.equal(createOtpTransport({ env: {} }).configured(), false);
+});

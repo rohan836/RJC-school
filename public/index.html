@@ -2,7 +2,10 @@
 <html lang="en">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+    <meta
+      name="viewport"
+      content="width=device-width,initial-scale=1,viewport-fit=cover"
+    />
     <title>RJC · School Document Portal</title>
     <style>
       @font-face {
@@ -29,7 +32,8 @@
         --ring: rgba(29, 59, 42, 0.18);
         --ease: cubic-bezier(0.22, 1, 0.36, 1);
         --serif: Georgia, "Times New Roman", "Noto Sans Devanagari", serif;
-        --sans: system-ui, -apple-system, "Segoe UI", "Noto Sans Devanagari",
+        --sans:
+          system-ui, -apple-system, "Segoe UI", "Noto Sans Devanagari",
           sans-serif;
       }
       * {
@@ -42,8 +46,7 @@
         margin: 0;
         background: var(--canvas);
         color: var(--ink);
-        font:
-          17px var(--sans);
+        font: 17px var(--sans);
         font-variant-numeric: tabular-nums;
         letter-spacing: 0.01em;
       }
@@ -277,6 +280,10 @@
         color: #f8f4ee;
         box-shadow: none;
       }
+      .nav .active:hover {
+        background: var(--forest);
+        color: #f8f4ee;
+      }
       main {
         width: 94%;
         max-width: 1380px;
@@ -297,6 +304,9 @@
         .card {
           padding: 40px 44px;
         }
+        html {
+          scrollbar-gutter: stable;
+        }
       }
       .stepbar {
         display: flex;
@@ -314,16 +324,14 @@
         background: var(--forest);
       }
       .step {
-        animation: enter 0.26s var(--ease);
+        animation: enter 0.16s ease-out;
       }
       @keyframes enter {
         from {
           opacity: 0;
-          transform: translateY(8px);
         }
         to {
           opacity: 1;
-          transform: translateY(0);
         }
       }
       [hidden] {
@@ -333,6 +341,19 @@
         display: flex;
         align-items: center;
         justify-content: space-between;
+        gap: 12px;
+      }
+      .admin-heading {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
+        align-items: start;
+        gap: 20px;
+      }
+      .admin-heading-actions {
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        flex-wrap: wrap;
         gap: 12px;
       }
       .grid2,
@@ -493,38 +514,6 @@
         letter-spacing: 0.03em;
         white-space: nowrap;
       }
-      .pad {
-        display: grid;
-        grid-template-columns: repeat(3, 1fr);
-        gap: 12px;
-        margin: 0 auto;
-        max-width: 420px;
-      }
-      .pad button {
-        min-height: 76px;
-        background: var(--dune-deep);
-        color: var(--ink);
-        font-size: 28px;
-        font-variant-numeric: tabular-nums;
-        padding: 8px;
-        border-radius: 20px;
-        box-shadow: 0 2px 0 rgba(68, 58, 53, 0.18);
-        transition:
-          transform 0.1s var(--ease),
-          box-shadow 0.1s var(--ease),
-          background 0.1s var(--ease);
-      }
-      .pad button:hover {
-        background: #dcd4c3;
-      }
-      .pad button:active {
-        transform: translateY(2px);
-        box-shadow: 0 0 0 rgba(68, 58, 53, 0);
-      }
-      .pad button:last-child {
-        font-size: 16px;
-        letter-spacing: 0.02em;
-      }
       .selected {
         padding: 20px 24px;
         background: var(--dune-deep);
@@ -571,12 +560,19 @@
       }
       .action-stack {
         display: grid;
+        grid-template-columns: minmax(0, 1fr);
         gap: 16px;
+        min-width: 0;
       }
       .action-stack button {
         width: 100%;
+        min-width: 0;
         min-height: 80px;
         font-size: 18px;
+        white-space: normal;
+      }
+      .split-side {
+        min-width: 0;
       }
       #pdf-button {
         background: var(--ink);
@@ -611,12 +607,15 @@
       }
       .front-split {
         display: grid;
-        grid-template-columns: 1.05fr 0.95fr;
+        grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr);
         gap: 44px;
         align-items: center;
       }
       .front-split:has(.front-qr[hidden]) {
-        grid-template-columns: 1fr;
+        grid-template-columns: minmax(0, 1fr);
+      }
+      body.phone .front-split {
+        grid-template-columns: minmax(0, 1fr);
       }
       .front-qr {
         text-align: center;
@@ -695,7 +694,7 @@
         height: 100%;
         background: var(--forest);
         transform-origin: left;
-        transition: transform 0.25s linear;
+        transition: transform 1s linear;
       }
       .tabs,
       .subnav {
@@ -735,6 +734,11 @@
         background: transparent;
         border-bottom-color: var(--forest);
         font-weight: 650;
+      }
+      .tabs .active:hover,
+      .subnav .active:hover {
+        color: var(--forest);
+        background: transparent;
       }
       .table-wrap {
         overflow: auto;
@@ -819,6 +823,15 @@
         font-size: 13px;
         letter-spacing: 0.04em;
         background: var(--canvas);
+        cursor: pointer;
+        transition:
+          border-color 0.16s var(--ease),
+          background 0.16s var(--ease);
+      }
+      .dropzone:hover,
+      .dropzone.dragging {
+        border-color: var(--forest);
+        background: #f3f0e8;
       }
       .dropzone svg {
         color: var(--taupe);
@@ -850,6 +863,9 @@
       .break {
         overflow-wrap: anywhere;
       }
+      #preview-status {
+        min-height: 1.5em;
+      }
       #print-sheet {
         display: none;
       }
@@ -875,13 +891,21 @@
         .layout,
         .layout-wide,
         .grid2,
-        .split-2 {
-          grid-template-columns: 1fr;
+        .split-2,
+        .split-2.preview-split {
+          grid-template-columns: minmax(0, 1fr);
           gap: 20px;
         }
         .front-split {
-          grid-template-columns: 1fr;
+          grid-template-columns: minmax(0, 1fr);
           gap: 0;
+        }
+        .admin-heading {
+          grid-template-columns: minmax(0, 1fr);
+          gap: 8px;
+        }
+        .admin-heading-actions {
+          justify-content: flex-start;
         }
         .front-qr {
           border-left: 0;
@@ -891,9 +915,6 @@
         }
         .split-side {
           padding: 22px 18px 26px;
-        }
-        .pad {
-          max-width: 360px;
         }
         main {
           padding-top: 22px;
@@ -916,8 +937,8 @@
       body {
         -webkit-tap-highlight-color: transparent;
       }
-      /* Phone mode: hide the kiosk numpad — phones use their native keyboard */
-      body.phone .pad {
+      /* Phone mode: the campus QR panel belongs to the school screen only */
+      body.phone .front-qr {
         display: none !important;
       }
       input,
@@ -941,7 +962,7 @@
           border-radius: 20px;
         }
         .grid2 {
-          grid-template-columns: 1fr;
+          grid-template-columns: minmax(0, 1fr);
         }
         h1 {
           font-size: clamp(26px, 7.6vw, 32px);
@@ -961,6 +982,22 @@
         .frame {
           height: 68vh;
         }
+        .front-copy > .row,
+        .step > .row,
+        .admin-login > .row,
+        #admin-students .card > .row,
+        #admin-logs .card > .row,
+        .split-side > .row {
+          flex-wrap: wrap;
+        }
+        #image-uploaders .row {
+          flex-wrap: wrap;
+        }
+        #image-uploaders .image-preview,
+        #image-uploaders .dropzone {
+          flex: 0 1 220px;
+          max-width: 100%;
+        }
       }
       @media (orientation: landscape) and (max-height: 540px) {
         .top {
@@ -976,9 +1013,235 @@
         .frame {
           height: 80vh;
         }
-        .pad button {
-          min-height: 48px;
+      }
+      /* Shared desktop shell; keep physical certificate dimensions in print CSS. */
+      @media screen and (min-width: 861px) {
+        .top-inner,
+        main,
+        main.wide {
+          width: calc(100% - 64px);
+          max-width: 1800px;
         }
+        main {
+          padding-left: 0;
+          padding-right: 0;
+        }
+        #admin-content .card {
+          padding: 28px 30px;
+        }
+        #admin-panels .layout {
+          gap: 24px;
+        }
+        #admin-students .layout {
+          grid-template-columns: minmax(0, 1.4fr) minmax(380px, 1fr);
+        }
+        #admin-templates .layout {
+          grid-template-columns: minmax(0, 1fr) minmax(0, 1.05fr);
+        }
+        #admin-templates .frame {
+          height: min(84vh, 1020px);
+          min-height: 580px;
+        }
+        #admin-branding .layout {
+          grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
+        }
+        #admin-security > .layout {
+          grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+        }
+        #admin-content label,
+        #admin-content .tabs button {
+          font-size: 16px;
+        }
+        #admin-panels input,
+        #admin-panels select,
+        #admin-panels textarea {
+          font-size: 17px;
+        }
+        #admin-panels .grid2 {
+          gap: 20px;
+        }
+      }
+      @media screen and (min-width: 861px) and (max-width: 1100px) {
+        #admin-students .layout,
+        #admin-templates .layout {
+          grid-template-columns: minmax(0, 1fr);
+        }
+      }
+      @media screen and (min-width: 1101px) {
+        .top { padding: 6px 0; }
+        .mark { width: 42px; height: 42px; border-radius: 12px; }
+        #admin-view { padding-top: 8px; padding-bottom: 4px; }
+        #admin-view .eyebrow { margin-bottom: 4px; }
+        #admin-view h1 { font-size: 28px; margin: 0; }
+        #admin-view h2 { font-size: 20px; margin: 0 0 8px; }
+        #admin-view p { margin: 6px 0; }
+        #admin-view .tabs { margin: 8px 0 12px; }
+        #admin-status:empty { display: none; }
+        #admin-view .tabs button { min-height: 38px; padding: 7px 16px; }
+        #admin-content .card { padding: 10px 18px; border-radius: 16px; }
+        #admin-panels button { min-height: 36px; padding: 7px 15px; }
+        #admin-panels input:not([type="checkbox"]), #admin-panels select { min-height: 36px; height: 36px; padding: 6px 10px; }
+        #admin-panels label { margin-top: 7px; font-size: 14px; }
+        #admin-panels .grid2 { gap: 8px 14px; }
+        #admin-panels td, #admin-panels th { padding: 7px 10px; }
+        #admin-students .table-wrap { max-height: 240px; }
+        #student-form { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 14px; align-content: start; }
+        #student-form h2, #student-form .grid2 { grid-column: 1 / -1; }
+        #student-form .grid2 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+        #student-form button { margin-top: 10px !important; }
+        #admin-templates .frame { min-height: 0; height: min(46vh, 480px); }
+        #templates-list { display: flex; gap: 6px; overflow-x: auto; }
+        #templates-list > * { flex: 1 0 200px; }
+        #template-form { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0 10px; }
+        #template-form .subnav, #template-form textarea, #template-form .placeholders, #template-form .grid2, #template-form .check, #template-form button.primary, #template-form > label[for="template-body"] { grid-column: 1 / -1; }
+        #template-form textarea { height: 100px; min-height: 100px; }
+        #image-uploaders { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+        #image-uploaders .row { flex-wrap: wrap; }
+        #image-uploaders .dropzone, #image-uploaders .image-preview { width: 100%; min-height: 70px; height: 70px; }
+        #admin-security { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+        #admin-security[hidden] { display: none; }
+        #admin-security > .layout { display: contents; }
+        #admin-security > section.card { grid-column: 1 / -1; margin-top: 0 !important; }
+        #templates-list .student { padding: 8px; margin-top: 4px; display: block; font-size: 14px; }
+        #templates-list .student small { margin: 0; }
+        #templates-list .student button { min-height: 30px; padding: 4px 8px; }
+        #template-form label { margin: 4px 0; }
+        #template-form .subnav { margin: 4px 0; }
+        #template-form .subnav button { min-height: 32px; padding: 5px 12px; }
+        #template-form .check { margin: 4px 0; }
+        #template-form .placeholders { margin: 4px 0; gap: 4px; }
+        #template-form .placeholders button { min-height: 28px; padding: 4px 8px; }
+        #template-form textarea { height: 64px; min-height: 64px; }
+        #admin-security { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+        #admin-security > section.card { grid-column: auto; }
+        #admin-security .icon { width: 42px; height: 42px; margin: 4px 0 8px; font-size: 22px; }
+        #admin-security p, #admin-security ol { font-size: 14px; line-height: 1.35; }
+      }
+
+      /* The counter code stays visible while the wizard changes steps. */
+      .parent-workspace { display:grid; grid-template-columns:minmax(280px, .38fr) minmax(0, .62fr); gap:28px; align-items:start; }
+      .parent-wizard { min-width:0; }
+      .parent-workspace > .front-qr { position:sticky; top:18px; border:1px solid var(--hairline); padding:28px; }
+      .parent-wizard .front-split { display:block; }
+      .parent-workspace:has(> .front-qr[hidden]), body.phone .parent-workspace { grid-template-columns:minmax(0,1fr); }
+      @media screen and (max-width:860px) {
+        .parent-workspace { display:block; }
+        .parent-workspace > .front-qr { position:static; margin-bottom:20px; }
+      }
+
+
+      /* One paper surface for the counter: scan left, changing steps right. */
+      #parent-view.parent-workspace {
+        margin: 18px auto; padding: 24px; gap: 0;
+        grid-template-columns: minmax(270px, .34fr) minmax(0, .66fr);
+        align-items: stretch; background: #fffdf9;
+        border: 1px solid var(--hairline); border-radius: 8px;
+        min-height: calc(100dvh - 118px);
+      }
+      #parent-view > .front-qr {
+        position: static; top: auto; margin: 0; padding: 24px;
+        border: 0; border-right: 1px solid var(--hairline);
+        border-radius: 0; background: transparent; box-shadow: none;
+        display: flex; flex-direction: column; align-items: center; justify-content: center;
+      }
+      #parent-view .parent-wizard { padding: 8px 32px; align-self: stretch; }
+      #parent-view .parent-wizard {
+        display: flex; flex-direction: column; justify-content: center;
+        min-width: 0; min-height: 100%;
+      }
+      #parent-view .parent-wizard > .footer {
+        width: min(100%, 76ch); margin: auto auto 0; padding-top: 28px;
+        line-height: 1.55; text-wrap: pretty;
+      }
+      #parent-view .parent-wizard > .step {
+        border: 0; border-radius: 0; padding: 0; background: transparent; box-shadow: none;
+      }
+      #parent-view .stepbar { gap: 14px; margin: 0 0 26px; }
+      #parent-view .stepbar span { min-width: 0; }
+      #parent-view #step-2 #search-query { display: block; width: 100%; margin: 12px 0 14px; }
+      #parent-view #step-2 #search-button { display: block; width: 100%; margin: 0; }
+      #parent-view #step-2 #search-privacy { margin: 10px 0 0; line-height: 1.5; }
+      #parent-view #step-3 > p[data-parent-text="neutral"] {
+        max-width: 72ch; margin: 8px 0 22px; line-height: 1.6; color: var(--umber);
+      }
+      #parent-view #step-3 #otp-area {
+        padding-bottom: 20px; margin-bottom: 22px; border-bottom: 1px solid var(--hairline);
+      }
+      #parent-view #step-3 #otp-area label { margin-top: 0; }
+      #parent-view #step-3 #otp-area input,
+      #parent-view #step-3 #birth-year,
+      #parent-view #step-3 #identifier-type,
+      #parent-view #step-3 #family-identifier {
+        display: block; width: 100%; margin: 0 0 14px;
+      }
+      #parent-view #step-3 h2 { margin: 20px 0 10px; font-size: 25px; }
+      #parent-view #step-3 .notice {
+        padding: 2px 0 2px 14px; margin: 10px 0 18px; border: 0;
+        border-left: 2px solid var(--dune-deep); border-radius: 0;
+        background: transparent; color: var(--umber); line-height: 1.6;
+      }
+      #parent-view #step-3 #family-button { margin-top: 4px; }
+      #parent-view #step-3 #auth-status { margin: 12px 0 0; }
+      #parent-view .front-copy > .icon { display: none; }
+      #parent-view h1 { font-size: clamp(28px, 2.3vw, 36px); margin: 12px 0; }
+      #parent-view .lang {
+        min-height: 76px; padding: 12px 10px; margin-top: 8px;
+        border: 0; border-bottom: 1px solid var(--hairline); border-radius: 0;
+        background: transparent; box-shadow: none;
+      }
+      #parent-view .lang:hover { background: var(--canvas); }
+      #parent-view .lang .symbol { width: 42px; height: 42px; }
+      #parent-view .lang strong { font-size: 24px; }
+      #parent-view .privacy-line { margin: 18px 0 0; }
+      #parent-view .qr-frame { padding: 12px; border: 1px solid var(--hairline); border-radius: 4px; margin: 20px 0; }
+      #parent-view #qr-live { width: 220px; height: 220px; max-width: 100%; }
+      #parent-view .front-qr .code { font-size: 64px; margin: 4px 0 12px; }
+      #parent-view .front-qr .hero-meta, #parent-view .front-qr .bar { width: 100%; }
+      #parent-view .qr-help { max-width: 36ch; margin-bottom: 0; }
+      #parent-view:has(> .front-qr[hidden]), body.phone #parent-view { grid-template-columns: minmax(0, 1fr); }
+      @media screen and (max-width: 860px) {
+        #parent-view.parent-workspace { min-height: 0; padding: 18px; margin: 14px auto; }
+        #parent-view > .front-qr { padding: 12px 0 22px; border-right: 0; border-bottom: 1px solid var(--hairline); margin-bottom: 20px; }
+        #parent-view .parent-wizard { padding: 0; }
+        #parent-view .parent-wizard > .footer { margin-top: 24px; padding-top: 16px; }
+        #parent-view .stepbar { gap: 8px; margin-bottom: 20px; }
+        #parent-view h1 { font-size: 28px; }
+        #parent-view .lang strong { font-size: 22px; }
+      }
+
+
+      /* Single paper administration surface: sections are content, not windows. */
+      #admin-view { background: #fffdf9; margin: 18px auto; padding: 18px 24px; border: 0; border-radius: 0; box-shadow: none; }
+      #admin-view .card, #admin-content .card {
+        background: transparent; border: 0; border-radius: 0; box-shadow: none;
+        padding: 10px 12px;
+      }
+      #admin-view .table-wrap { border: 0; border-radius: 0; }
+      #admin-view th { background: #f4f0e8; }
+      #admin-view td, #admin-view th { border-bottom: 1px solid #e7e1d7; }
+      #admin-view .student { background: transparent; border: 0; border-bottom: 1px solid #e7e1d7; border-radius: 0; box-shadow: none; }
+      #admin-view input:not([type="checkbox"]), #admin-view select, #admin-view textarea {
+        border: 0; border-bottom: 1px solid #bdb3a3; border-radius: 0;
+        background: #f8f6f1; box-shadow: none;
+      }
+      #admin-view .tabs { border-bottom: 1px solid var(--hairline); }
+      #admin-view .tabs button { border-radius: 0; box-shadow: none; }
+      #admin-view .dropzone, #admin-view .image-preview { border: 0; border-radius: 0; background: #f4f0e8; }
+      #admin-view .frame { border: 0; border-radius: 0; background: white; }
+      #admin-view .icon { border: 0; border-radius: 0; background: transparent; }
+      @media screen and (max-width: 860px) {
+        #admin-view { margin: 12px auto; padding: 12px; }
+        #admin-view .card, #admin-content .card { padding: 10px 0; }
+      }
+
+      @media screen and (min-width:1101px) {
+        #admin-view { margin: 0 auto; padding: 8px 16px 4px; }
+        #admin-view .card, #admin-content .card { padding: 6px 8px; }
+      }
+      @media screen and (min-width:1101px) {
+        #admin-security { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 18px; }
+        #admin-security code { overflow-wrap:anywhere; }
+        #admin-security > section.card p, #admin-security > section.card ol { font-size:13px; line-height:1.25; }
       }
       @media (prefers-reduced-motion: reduce) {
         *,
@@ -1027,50 +1290,12 @@
         </nav>
       </div>
     </header>
-    <main id="parent-view" class="wide">
-      <div class="stepbar" aria-label="Progress">
-        <span></span><span></span><span></span><span></span>
-      </div>
-      <section class="card step step-front" id="step-1">
-        <div class="front-split">
-          <div class="front-copy">
-            <div class="row">
-              <div class="eyebrow">RJC · WELCOME</div>
-              <button class="listen" data-speak>🔊 ऐका / सुनें</button>
-            </div>
-            <div class="icon">▤</div>
-            <h1 data-t="welcome">School documents, made simple.</h1>
-            <p class="muted" data-t="languageHelp">
-              Choose your language to get started.
-            </p>
-            <button class="lang" data-lang="mr">
-              <span class="row"
-                ><span class="symbol"
-                  ><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#443A35" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 6 8.38 8.38 0 0 1-3.8-.9L3 21l1.1-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 6-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg></span
-                ><span
-                  ><strong>मराठी</strong><small>मराठीत पुढे चला</small></span
-                ></span
-              ><span class="arrow" aria-hidden="true">&rarr;</span></button
-            ><button class="lang" data-lang="hi">
-              <span class="row"
-                ><span class="symbol"
-                  ><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#443A35" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 6 8.38 8.38 0 0 1-3.8-.9L3 21l1.1-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 6-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg></span
-                ><span><strong>हिंदी</strong><small>हिंदी में आगे बढ़ें</small></span></span
-              ><span class="arrow" aria-hidden="true">&rarr;</span></button
-            ><button class="lang" data-lang="en">
-              <span class="row"
-                ><span class="symbol"
-                  ><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#443A35" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 6 8.38 8.38 0 0 1-3.8-.9L3 21l1.1-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 6-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg></span
-                ><span
-                  ><strong>English</strong><small>Continue in English</small></span
-                ></span
-              ><span class="arrow" aria-hidden="true">&rarr;</span>
-            </button>
-            <p class="footer privacy-line" data-t="privacy">
-              Your session clears automatically after use.
-            </p>
-          </div>
-          <aside class="front-qr" id="front-qr-panel" aria-label="Open on your phone">
+    <main id="parent-view" class="wide parent-workspace">
+          <aside
+            class="card front-qr"
+            id="front-qr-panel"
+            aria-label="Open on your phone"
+          >
             <p class="eyebrow">SCAN TO OPEN ON YOUR PHONE</p>
             <div class="qr-frame">
               <img
@@ -1089,170 +1314,127 @@
               open on your mobile.
             </p>
           </aside>
+<div class="parent-wizard">
+      <div class="stepbar" aria-label="Progress">
+        <span></span><span></span><span></span><span></span><span></span><span></span>
+      </div>
+      <section class="card step step-front" id="step-1">
+        <div class="front-split">
+          <div class="front-copy">
+            <div class="row">
+              <div class="eyebrow">RJC · WELCOME</div>
+              <button class="listen" data-speak>🔊 ऐका / सुनें</button>
+            </div>
+            <div class="icon">▤</div>
+            <h1 data-t="welcome">School documents, made simple.</h1>
+            <p class="muted" data-t="languageHelp">
+              Choose your language to get started.
+            </p>
+            <button class="lang" data-lang="mr">
+              <span class="row"
+                ><span class="symbol"
+                  ><svg
+                    width="22"
+                    height="22"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="#443A35"
+                    stroke-width="1.5"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    aria-hidden="true"
+                  >
+                    <path
+                      d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 6 8.38 8.38 0 0 1-3.8-.9L3 21l1.1-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 6-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"
+                    /></svg></span
+                ><span
+                  ><strong>मराठी</strong><small>मराठीत पुढे चला</small></span
+                ></span
+              ><span class="arrow" aria-hidden="true">&rarr;</span></button
+            ><button class="lang" data-lang="hi">
+              <span class="row"
+                ><span class="symbol"
+                  ><svg
+                    width="22"
+                    height="22"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="#443A35"
+                    stroke-width="1.5"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    aria-hidden="true"
+                  >
+                    <path
+                      d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 6 8.38 8.38 0 0 1-3.8-.9L3 21l1.1-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 6-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"
+                    /></svg></span
+                ><span
+                  ><strong>हिंदी</strong><small>हिंदी में आगे बढ़ें</small></span
+                ></span
+              ><span class="arrow" aria-hidden="true">&rarr;</span></button
+            ><button class="lang" data-lang="en">
+              <span class="row"
+                ><span class="symbol"
+                  ><svg
+                    width="22"
+                    height="22"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="#443A35"
+                    stroke-width="1.5"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    aria-hidden="true"
+                  >
+                    <path
+                      d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 6 8.38 8.38 0 0 1-3.8-.9L3 21l1.1-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 6-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"
+                    /></svg></span
+                ><span
+                  ><strong>English</strong
+                  ><small>Continue in English</small></span
+                ></span
+              ><span class="arrow" aria-hidden="true">&rarr;</span>
+            </button>
+            <p class="footer privacy-line" data-t="privacy">
+              Your session clears automatically after use.
+            </p>
+          </div>
+
         </div>
       </section>
       <section class="card step" id="step-2" hidden>
-        <div class="row">
-          <button class="quiet" data-back="1" data-t="back">← Back</button
-          ><button class="listen" data-speak>🔊 ऐका / सुनें</button>
-        </div>
-        <p class="eyebrow" data-t="stepTwo">STEP 2 OF 4</p>
+        <button class="quiet" data-back="1" data-t="back">← Back</button>
         <h1 data-t="find">Find your student</h1>
-        <p class="muted" data-t="findHelp">
-          Use a mobile number or class and name.
-        </p>
-        <div class="split-2">
-          <div class="split-main">
-            <div class="subnav">
-              <button data-search-mode="phone" class="active" data-t="mobile">
-                Mobile number</button
-              ><button data-search-mode="name" data-t="nameSearch">
-                Class &amp; name
-              </button>
-            </div>
-            <div id="phone-search">
-              <label for="parent-phone" data-t="registered"
-                >Registered mobile number</label
-              ><input
-                id="parent-phone"
-                inputmode="numeric"
-                maxlength="10"
-                autocomplete="off"
-                data-numeric
-                placeholder="10 digits"
-              />
-            </div>
-            <div id="name-search" hidden>
-              <div class="grid2">
-                <div>
-                  <label for="search-class" data-t="class">Class</label
-                  ><select id="search-class"></select>
-                </div>
-                <div>
-                  <label for="search-division" data-t="division">Division</label
-                  ><select id="search-division"></select>
-                </div>
-              </div>
-              <label for="search-name" data-t="studentFather"
-                >Student or father’s name</label
-              ><input id="search-name" maxlength="100" autocomplete="off" />
-              <p class="small muted" data-t="twoLetters">
-                Type at least two letters.
-              </p>
-            </div>
-            <p class="status" id="search-status" role="status"></p>
-            <div id="search-results"></div>
-          </div>
-          <aside class="split-side">
-            <div id="pad-2-block">
-              <p class="eyebrow">ON-SCREEN NUMBER PAD</p>
-              <div class="pad" data-pad="2"></div>
-              <p class="small muted" style="text-align: center; margin-top: 16px">
-                Tap a number to type it into the mobile number field.
-              </p>
-            </div>
-            <div id="pad-2-alt" hidden>
-              <p class="eyebrow">CLASS &amp; NAME SEARCH</p>
-              <p class="muted">
-                Type the student’s name in the field on the left. Matching
-                students appear as soon as you enter two letters.
-              </p>
-            </div>
-          </aside>
-        </div>
+        <label for="search-query" data-t="searchAll">Name, mobile number, GR number or class</label>
+        <input id="search-query" type="search" maxlength="100" autocomplete="off" enterkeyhint="search" placeholder="Name, mobile number, GR number or class">
+        <button class="primary full" id="search-button" data-t="findStudent">Find student</button>
+        <p class="small muted" id="search-privacy">Select the matching student to continue. Contact details and records remain protected until verification.</p>
+        <p id="phone-status" class="status" role="status"></p><div id="candidate-results"></div>
       </section>
       <section class="card step" id="step-3" hidden>
-        <div class="row">
-          <button class="quiet" data-back="2" data-t="back">← Back</button
-          ><button class="listen" data-speak>🔊 ऐका / सुनें</button>
-        </div>
-        <p class="eyebrow" data-t="stepThree">STEP 3 OF 4</p>
-        <h1 data-t="verify">Verify & choose a document</h1>
-        <div class="split-2">
-          <div class="split-main">
-            <div class="selected" id="selected-student"></div>
-            <button class="quiet full" id="backup-toggle" data-t="trouble">
-              Having trouble with birth year?
-            </button>
-            <div id="birth-field">
-              <label for="birth-year" data-t="birthYear">Child’s birth year</label
-              ><input
-                id="birth-year"
-                inputmode="numeric"
-                maxlength="4"
-                data-numeric
-                placeholder="YYYY"
-              />
-            </div>
-            <div id="gr-field" hidden>
-              <label for="confirm-gr" data-t="gr">Student GR number</label
-              ><input
-                id="confirm-gr"
-                inputmode="numeric"
-                maxlength="40"
-                data-numeric
-                autocomplete="off"
-              />
-            </div>
-            <div id="aadhaar-field" hidden>
-              <label for="aadhaar-last4" data-t="aadhaar"
-                >Last four digits of student Aadhaar</label
-              ><input
-                id="aadhaar-last4"
-                inputmode="numeric"
-                maxlength="4"
-                data-numeric
-                autocomplete="off"
-              />
-            </div>
-            <div id="campus-field">
-              <label for="campus-code" data-t="campus">Live campus code</label
-              ><input
-                id="campus-code"
-                inputmode="numeric"
-                maxlength="4"
-                data-numeric
-                autocomplete="off"
-              />
-              <p class="small muted" data-t="campusHelp">
-                Read the code on the school screen.
-              </p>
-            </div>
-            <label class="check"
-              ><input type="checkbox" id="guardian-toggle" /><span data-t="guardian"
-                >I am a visiting guardian</span
-              ></label
-            >
-            <div id="guardian-field" hidden>
-              <p class="notice" data-t="guardianNotice">
-                Guardian collection is recorded with this mobile number.
-              </p>
-              <label for="guardian-phone" data-t="guardianMobile"
-                >Guardian’s mobile number</label
-              ><input
-                id="guardian-phone"
-                inputmode="numeric"
-                maxlength="10"
-                data-numeric
-                autocomplete="off"
-              />
-            </div>
-            <p class="status" id="verify-status" role="alert"></p>
-          </div>
-          <aside class="split-side">
-            <p class="eyebrow">ON-SCREEN NUMBER PAD</p>
-            <div class="pad" data-pad="3"></div>
-            <h3 data-t="chooseDocument" style="margin-top: 28px">
-              Choose a document
-            </h3>
-            <div id="document-list"></div>
-            <button class="primary full" id="generate-button" data-t="generate">
-              Generate certificate
-            </button>
-          </aside>
-        </div>
+        <button class="quiet" data-back="2" data-t="back">← Back</button>
+        <h1 data-parent-text="verify">Verify your details</h1>
+        <p data-parent-text="neutral">If the number is registered and WhatsApp is available, a code may arrive. If it does not arrive, use the family check.</p>
+        <div id="otp-area"><label for="otp-code" data-parent-text="otp">WhatsApp verification code</label><input id="otp-code" inputmode="numeric" maxlength="6" data-numeric autocomplete="one-time-code"><button id="otp-button" class="primary full" data-parent-text="verifyButton">Verify</button></div>
+        <h2 data-parent-text="family">Family Secret Check</h2>
+        <p class="notice" data-parent-text="familyHelp">This checks knowledge, not control of the registered phone. It authorizes only the child whose details are checked. A guardian needs the parent's WhatsApp verification or staff approval.</p>
+        <label for="birth-year" data-parent-text="birth">Child’s birth year</label><input id="birth-year" inputmode="numeric" maxlength="4" data-numeric>
+        <label for="identifier-type" data-parent-text="identifier">Choose a family detail</label><select id="identifier-type"><option value="gr">GR number</option><option value="backup">Backup ID last four</option></select>
+        <label for="family-identifier" data-parent-text="identifierValue">GR number or backup ID last four</label><input id="family-identifier" autocomplete="off" maxlength="64">
+        <button id="family-button" class="primary full" data-parent-text="verifyButton">Verify</button><p id="auth-status" role="alert" class="status"></p>
       </section>
       <section class="card step" id="step-4" hidden>
+        <h1 data-parent-text="students">Choose a student</h1><div id="search-results"></div><p id="search-status" role="status"></p>
+      </section>
+      <section class="card step" id="step-5" hidden>
+        <button class="quiet" data-back="4" data-t="back">← Back</button><h1 data-parent-text="document">Choose a document</h1>
+        <div class="selected" id="selected-student"></div><div id="document-list"></div>
+        <label for="campus-code" data-t="campus">Live campus code</label><input id="campus-code" inputmode="numeric" maxlength="4" autocomplete="off" data-numeric><p class="small muted" data-t="campusHelp">Read the code on the school screen.</p>
+        <label class="check" id="guardian-option"><input type="checkbox" id="guardian-toggle"><span data-t="guardian">I am a visiting guardian</span></label>
+        <div id="guardian-field" hidden><label for="guardian-phone" data-t="guardianMobile">Guardian mobile number</label><input id="guardian-phone" inputmode="numeric" maxlength="10" data-numeric></div>
+        <p class="status" id="verify-status" role="alert"></p><button class="primary full" id="generate-button" data-t="generate">Generate certificate</button>
+      </section>
+      <section class="card step" id="step-6" hidden>
         <div class="row">
           <span class="eyebrow" data-t="ready">YOUR DOCUMENT IS READY</span
           ><button class="listen" data-speak>🔊 ऐका / सुनें</button>
@@ -1286,13 +1468,16 @@
               <span class="small muted"
                 ><span data-t="clearsIn">Clears in</span>
                 <strong id="wipe-seconds">45</strong>s</span
-              ><button class="primary" id="done-button" data-t="done">Done</button>
+              ><button class="primary" id="done-button" data-t="done">
+                Done
+              </button>
             </div>
           </aside>
         </div>
       </section>
       <p class="footer" id="school-footer">R. J. CHAWARE CONVENT</p>
-    </main>
+    </div>
+</main>
     <main id="admin-view" class="wide" hidden>
       <section
         class="card"
@@ -1327,12 +1512,12 @@
         </p>
       </section>
       <div id="admin-content" hidden>
-        <div class="row">
+        <div class="admin-heading">
           <div>
             <p class="eyebrow">RJC · SCHOOL OFFICE</p>
             <h1>Administration</h1>
           </div>
-          <div class="row">
+          <div class="admin-heading-actions">
             <button class="listen" data-speak>🔊 ऐका / सुनें</button
             ><button id="logout-button">Lock admin</button>
           </div>
@@ -1368,12 +1553,12 @@
         lang: "en",
         step: 1,
         view: "parent",
-        searchMode: "phone",
         verificationMode: "primary",
         student: null,
         templateId: null,
         cert: null,
         token: "",
+        parentToken: "", challenge: "", authMethod: "", guardianApproval: new URLSearchParams(location.search).get("guardian") || "",
         config: null,
         admin: null,
         bodyLang: "en",
@@ -1387,7 +1572,6 @@
         frontUntil = 0,
         searchTimer,
         previewTimer,
-        currentNumeric = null,
         searchEpoch = 0,
         previewEpoch = 0,
         frontLoading = false;
@@ -1401,6 +1585,7 @@
 <section id="admin-branding" class="admin-section" hidden><form class="card" id="branding-form"><h2>School branding &amp; portal access</h2><div class="layout"><div>${field("school_name", "School name", "text", true)}${field("school_subtitle", "Subtitle / address")}${field("udise_no", "UDISE number")}${field("whatsapp_number", "School WhatsApp number")}${field("public_url", "Public tunnel URL (optional)", "url", false)}<p class="small muted">Shown inside the phone QR so parents can open the portal on any internet. Leave blank to auto-detect a running Cloudflare tunnel (run <code>Start_Public_Tunnel.bat</code>); otherwise the LAN address is used. Currently active: <strong id="active-portal-url">…</strong></p></div><div id="image-uploaders"></div></div><button class="primary" style="margin-top:20px">Save branding &amp; portal</button></form></section>
 <section id="admin-logs" class="admin-section" hidden><div class="card"><div class="row"><div><h2>Issued document register</h2><p class="small muted">Every issued document remains in the audit register.</p></div><button id="refresh-logs">Refresh</button></div><label for="logs-filter">Search serial, student, document, phone, or date</label><input id="logs-filter" type="search"><p class="small muted" id="logs-count"></p><div class="table-wrap"><table><thead><tr><th>Reference</th><th>Student</th><th>Document</th><th>Contact</th><th>Guardian</th><th>Issued</th><th>Verify</th></tr></thead><tbody id="logs-table"></tbody></table></div></div></section>
 <section id="admin-security" class="admin-section" hidden><div class="layout"><form class="card" id="password-form"><h2>Change admin password</h2><p class="small muted">Changing the password signs out all administrator sessions.</p>${field("currentPassword", "Current password", "password", true)}${field("newPassword", "New password (10–256 characters)", "password", true)}${field("repeatPassword", "Confirm new password", "password", true)}<button class="primary full" style="margin-top:20px">Update password</button></form><section class="card"><div class="icon">↧</div><h2>A safe copy of your records.</h2><p class="muted">Create a consistent SQLite snapshot while the portal stays open. Backups remain in RJC/backups.</p><button class="primary" id="backup-button">Create database backup</button><p class="small break" id="backup-status" role="status"></p><p class="small muted">Keep secure copies on separate storage to protect against disk failure.</p></section></div><section class="card" style="margin-top:20px"><div class="icon">⇲</div><h2>Prepare USB / Portable Package</h2><p class="muted">Run the portal on a PC without Node.js. Create a plug-and-play USB copy from this main PC:</p><ol class="small"><li>On this PC, double-click <code>Export_To_USB.bat</code> in the RJC folder.</li><li>Enter the USB drive letter when asked. The exporter copies the app, a matching portable Node.js (<code>portable-node\node.exe</code>, built for this PC&rsquo;s better-sqlite3), and a clean SQLite snapshot of <code>school.db</code> made with the backup API &mdash; never a raw copy of the live database.</li><li>Plug the USB stick into any Windows PC and double-click <code>Start_RGC_Kiosk.bat</code> inside <code>RJC_Portable</code>. No installation is required; the server starts on port 3000.</li></ol><p class="small muted">The export includes <code>admin-credentials.txt</code> if present &mdash; keep the USB stick secure. Automatic daily backups (<code>backups\auto-YYYY-MM-DD.db</code>, 14 kept) can be found in the RJC folder on this PC.</p></section></section>`;
+      $("admin-security").insertAdjacentHTML("beforeend", `<form class="card" id="guardian-approval-form"><h2>Approve guardian collection</h2><p class="small muted">Use the counter PC and your administrator password. The approval applies to one student and expires in 10 minutes.</p><label>Student GR number<input name="grNumber" required autocomplete="off"></label><label>Guardian mobile<input name="guardianPhone" inputmode="numeric" maxlength="10" required autocomplete="off"></label><label>Administrator password<input name="password" type="password" required autocomplete="current-password"></label><button class="primary full">Approve guardian</button><p id="guardian-approval-status" role="status"></p><img id="guardian-approval-qr" alt="Guardian approval QR" hidden style="max-width:200px"><a id="guardian-approval-link" hidden>Open guardian approval</a></form>`);
       const tr = {
         en: {
           welcome: "School documents, made simple.",
@@ -1409,15 +1594,16 @@
           back: "← Back",
           stepTwo: "STEP 2 OF 4",
           find: "Find your student",
-          findHelp:
-            "Use the registered mobile number, or search by class and name.",
+          findHelp: "One search box: name, mobile number, GR number or class.",
+          searchAll: "Name, mobile number, GR number or class",
+          findStudent: "Find student",
           mobile: "Mobile number",
           nameSearch: "Class & name",
           registered: "Registered mobile number",
           class: "Class",
           division: "Division",
           studentFather: "Student or father’s name",
-          twoLetters: "Type at least two letters.",
+          twoLetters: "Type at least 2 characters.",
           stepThree: "STEP 3 OF 4",
           verify: "Verify & choose a document",
           trouble: "Having trouble with birth year?",
@@ -1430,8 +1616,20 @@
             "Read the code on the school screen. It changes every 60 seconds.",
           guardian: "I am a visiting guardian",
           guardianNotice:
-            "Guardian collection will be recorded with this mobile number. Enter the child’s birth year and GR number.",
+            "Guardian collection is recorded with this mobile number. Verify the child using the selected check above.",
           guardianMobile: "Guardian’s mobile number",
+          grExplain:
+            "GR means General Register, the school’s student record number. Search by name if you do not know it.",
+          backupHelp:
+            "Use the child’s full date of birth and the last four digits of the mobile number registered with the school. This check does not need a GR number. Ask school staff to update the registered number if you cannot access it.",
+          dateOfBirth: "Child’s full date of birth",
+          registeredPhoneLast4:
+            "Last four digits of the mobile number registered with the school",
+          birthYearRequired: "Enter the child’s four-digit birth year.",
+          detailedCheckRequired:
+            "Enter the full date of birth and all four registered mobile digits.",
+          guardianContactRequired:
+            "Enter a 10-digit mobile number for the visiting guardian.",
           chooseDocument: "Choose a document",
           generate: "Generate certificate",
           ready: "YOUR DOCUMENT IS READY",
@@ -1451,8 +1649,8 @@
             "An offline voice for this language is not installed. Ask school staff to help.",
           speech: [
             "Choose Marathi, Hindi, or English to begin.",
-            "Enter your registered mobile number using the number pad, or find the student by class, division, and name.",
-            "Enter the child’s birth year. On your phone, enter the live campus code. Choose a document and select Generate certificate.",
+            "Enter a name, mobile number, GR number or class in the search box, then select your student.",
+            "Enter the child’s birth year, or use the detailed check with full date of birth and the registered mobile number’s last four digits. On your phone, enter the live campus code. Choose a document and select Generate certificate.",
             "Your certificate is ready. Print it, download the PDF, or select Done to clear your information.",
           ],
         },
@@ -1463,14 +1661,17 @@
           back: "← मागे",
           stepTwo: "टप्पा २ / ४",
           find: "विद्यार्थी शोधा",
-          findHelp: "नोंदणीकृत मोबाईल क्रमांक किंवा इयत्ता व नाव वापरा.",
+          findHelp:
+            "एकच शोध पेटी: नाव, मोबाईल क्रमांक, जनरल रजिस्टर क्रमांक किंवा इयत्ता.",
+          searchAll: "नाव, मोबाईल क्रमांक, जनरल रजिस्टर क्रमांक किंवा इयत्ता",
+          findStudent: "विद्यार्थी शोधा",
           mobile: "मोबाईल क्रमांक",
           nameSearch: "इयत्ता व नाव",
           registered: "नोंदणीकृत मोबाईल क्रमांक",
           class: "इयत्ता",
           division: "तुकडी",
           studentFather: "विद्यार्थ्याचे किंवा वडिलांचे नाव",
-          twoLetters: "किमान दोन अक्षरे टाका.",
+          twoLetters: "किमान 2 अक्षरे टाका.",
           stepThree: "टप्पा ३ / ४",
           verify: "पडताळणी व प्रमाणपत्र निवड",
           trouble: "जन्मवर्ष आठवत नाही?",
@@ -1482,8 +1683,20 @@
           campusHelp: "शाळेच्या स्क्रीनवरील कोड टाका. तो दर ६० सेकंदांनी बदलतो.",
           guardian: "मी विद्यार्थ्याचा प्रतिनिधी आहे",
           guardianNotice:
-            "या मोबाईल क्रमांकासह प्रतिनिधीची नोंद केली जाईल. जन्मवर्ष व रजिस्टर क्रमांक टाका.",
+            "या मोबाईल क्रमांकासह प्रतिनिधीची नोंद केली जाईल. वरीलपैकी निवडलेली पडताळणी पद्धत वापरा.",
           guardianMobile: "प्रतिनिधीचा मोबाईल क्रमांक",
+          grExplain:
+            "GR म्हणजे जनरल रजिस्टर क्रमांक—शाळेतील विद्यार्थ्याचा नोंद क्रमांक. तो माहीत नसल्यास नावाने शोधा.",
+          backupHelp:
+            "विद्यार्थ्याची संपूर्ण जन्मतारीख आणि शाळेत नोंदवलेल्या मोबाईल क्रमांकाचे शेवटचे चार अंक वापरा. या तपासणीसाठी GR क्रमांक लागत नाही. हा क्रमांक उपलब्ध नसल्यास शाळेतील कर्मचाऱ्यांना मदत किंवा अद्ययावत करण्यास विचारा.",
+          dateOfBirth: "विद्यार्थ्याची संपूर्ण जन्मतारीख",
+          registeredPhoneLast4:
+            "शाळेत नोंदवलेल्या मोबाईल क्रमांकाचे शेवटचे चार अंक",
+          birthYearRequired: "विद्यार्थ्याचे चार अंकी जन्मवर्ष टाका.",
+          detailedCheckRequired:
+            "संपूर्ण जन्मतारीख आणि नोंदवलेल्या मोबाईल क्रमांकाचे चारही अंक टाका.",
+          guardianContactRequired:
+            "प्रतिनिधीचा 10 अंकी मोबाईल क्रमांक टाका.",
           chooseDocument: "प्रमाणपत्र निवडा",
           generate: "प्रमाणपत्र तयार करा",
           ready: "तुमचे प्रमाणपत्र तयार आहे",
@@ -1502,8 +1715,8 @@
             "या भाषेचा ऑफलाइन आवाज उपलब्ध नाही. शाळेतील कर्मचाऱ्यांची मदत घ्या.",
           speech: [
             "सुरू करण्यासाठी मराठी, हिंदी किंवा इंग्रजी भाषा निवडा.",
-            "अंकांच्या बटणांनी नोंदणीकृत मोबाईल क्रमांक टाका किंवा इयत्ता, तुकडी आणि नावाने विद्यार्थी शोधा.",
-            "विद्यार्थ्याचे जन्मवर्ष टाका. फोन वापरत असल्यास शाळेच्या स्क्रीनवरील कॅम्पस कोड टाका. प्रमाणपत्र निवडून तयार करा बटण दाबा.",
+            "शोध पेटीत नाव, मोबाईल क्रमांक, रजिस्टर क्रमांक किंवा इयत्ता टाका आणि विद्यार्थी निवडा.",
+            "विद्यार्थ्याचे जन्मवर्ष टाका किंवा संपूर्ण जन्मतारीख व शाळेत नोंदवलेल्या मोबाईल क्रमांकाचे शेवटचे चार अंक वापरा. फोनवर शाळेच्या स्क्रीनवरील कॅम्पस कोड टाका. प्रमाणपत्र निवडून तयार करा बटण दाबा.",
             "प्रमाणपत्र तयार आहे. प्रत छापा, पी डी एफ डाउनलोड करा किंवा माहिती हटवण्यासाठी पूर्ण झाले बटण दाबा.",
           ],
         },
@@ -1514,14 +1727,16 @@
           back: "← पीछे",
           stepTwo: "चरण २ / ४",
           find: "छात्र खोजें",
-          findHelp: "पंजीकृत मोबाइल नंबर या कक्षा और नाम से खोजें।",
+          findHelp: "एक ही खोज बॉक्स: नाम, मोबाइल नंबर, जनरल रजिस्टर नंबर या कक्षा।",
+          searchAll: "नाम, मोबाइल नंबर, जनरल रजिस्टर नंबर या कक्षा",
+          findStudent: "छात्र खोजें",
           mobile: "मोबाइल नंबर",
           nameSearch: "कक्षा और नाम",
           registered: "पंजीकृत मोबाइल नंबर",
           class: "कक्षा",
           division: "विभाग",
           studentFather: "छात्र या पिता का नाम",
-          twoLetters: "कम से कम दो अक्षर लिखें।",
+          twoLetters: "कम से कम 2 अक्षर लिखें।",
           stepThree: "चरण ३ / ४",
           verify: "सत्यापन और प्रमाणपत्र चुनें",
           trouble: "जन्म वर्ष याद नहीं है?",
@@ -1534,8 +1749,20 @@
             "विद्यालय स्क्रीन पर दिख रहा कोड डालें। यह हर 60 सेकंड में बदलता है।",
           guardian: "मैं छात्र का प्रतिनिधि हूँ",
           guardianNotice:
-            "इस मोबाइल नंबर के साथ प्रतिनिधि की जानकारी दर्ज होगी। जन्म वर्ष और रजिस्टर नंबर डालें।",
+            "इस मोबाइल नंबर के साथ प्रतिनिधि की जानकारी दर्ज होगी। ऊपर चुनी गई जाँच विधि का उपयोग करें।",
           guardianMobile: "प्रतिनिधि का मोबाइल नंबर",
+          grExplain:
+            "GR का अर्थ जनरल रजिस्टर नंबर है—विद्यालय में छात्र का रिकॉर्ड नंबर। यह न पता हो तो नाम से खोजें।",
+          backupHelp:
+            "बच्चे की पूरी जन्मतिथि और विद्यालय में दर्ज मोबाइल नंबर के आखिरी चार अंक डालें। इस जाँच के लिए GR नंबर की जरूरत नहीं है। यह नंबर उपलब्ध न हो तो विद्यालय के कर्मचारियों से मदद या अपडेट के लिए कहें।",
+          dateOfBirth: "बच्चे की पूरी जन्मतिथि",
+          registeredPhoneLast4:
+            "विद्यालय में दर्ज मोबाइल नंबर के आखिरी चार अंक",
+          birthYearRequired: "बच्चे का चार अंकों वाला जन्म वर्ष डालें।",
+          detailedCheckRequired:
+            "पूरी जन्मतिथि और विद्यालय में दर्ज मोबाइल नंबर के चारों आखिरी अंक डालें।",
+          guardianContactRequired:
+            "प्रतिनिधि का 10 अंकों वाला मोबाइल नंबर डालें।",
           chooseDocument: "प्रमाणपत्र चुनें",
           generate: "प्रमाणपत्र बनाएँ",
           ready: "आपका प्रमाणपत्र तैयार है",
@@ -1554,8 +1781,8 @@
             "इस भाषा की ऑफलाइन आवाज़ उपलब्ध नहीं है। विद्यालय के कर्मचारी से मदद लें।",
           speech: [
             "शुरू करने के लिए मराठी, हिंदी या अंग्रेज़ी भाषा चुनें।",
-            "अंकों के बटन से पंजीकृत मोबाइल नंबर डालें या कक्षा, विभाग और नाम से छात्र खोजें।",
-            "बच्चे का जन्म वर्ष डालें। फोन पर विद्यालय की स्क्रीन वाला कैंपस कोड डालें। प्रमाणपत्र चुनकर बनाएँ बटन दबाएँ।",
+            "खोज बॉक्स में नाम, मोबाइल नंबर, रजिस्टर नंबर या कक्षा डालें और छात्र चुनें।",
+            "बच्चे का जन्म वर्ष डालें या पूरी जन्मतिथि और विद्यालय में दर्ज मोबाइल नंबर के आखिरी चार अंक इस्तेमाल करें। फोन पर विद्यालय की स्क्रीन वाला कैंपस कोड डालें। प्रमाणपत्र चुनकर बनाएँ बटन दबाएँ।",
             "प्रमाणपत्र तैयार है। प्रिंट करें, पी डी एफ डाउनलोड करें या जानकारी हटाने के लिए पूर्ण बटन दबाएँ।",
           ],
         },
@@ -1566,9 +1793,17 @@
         document
           .querySelectorAll("[data-t]")
           .forEach((el) => (el.textContent = t(el.dataset.t)));
-        $("backup-toggle").textContent = t(
-          state.verificationMode === "backup" ? "useBirth" : "trouble",
-        );
+        const labels = {
+          en: {mobile:'Registered parent mobile',mobileLabel:'Enter the registered 10-digit mobile number',continue:'Continue',verify:'Verify your details',neutral:'If the number is registered and WhatsApp is available, a code may arrive. If it does not arrive, use the family check.',otp:'WhatsApp verification code',verifyButton:'Verify',family:'Family Secret Check',familyHelp:'This checks knowledge, not control of the registered phone. It authorizes only the child whose details are checked. A guardian needs the parent’s WhatsApp verification or staff approval.',birth:'Child’s birth year',identifier:'Choose a family detail',identifierGr:'GR number',identifierBackup:'Backup ID (last four digits)',students:'Choose a student',document:'Choose a document'},
+          mr: {mobile:'नोंदणीकृत पालक मोबाईल',mobileLabel:'नोंदणीकृत १० अंकी मोबाईल क्रमांक टाका',continue:'पुढे',verify:'माहितीची पडताळणी',neutral:'क्रमांक नोंदणीकृत असल्यास आणि व्हॉट्सॲप उपलब्ध असल्यास कोड येऊ शकतो. कोड न आल्यास कौटुंबिक तपासणी वापरा.',otp:'व्हॉट्सॲप पडताळणी कोड',verifyButton:'पडताळा',family:'कौटुंबिक गुप्त तपासणी',familyHelp:'ही माहितीची तपासणी आहे; फोनवरील नियंत्रणाचा पुरावा नाही. फक्त तपासलेल्या विद्यार्थ्यासाठी परवानगी मिळते. प्रतिनिधीस पालकाची व्हॉट्सॲप पडताळणी किंवा कर्मचाऱ्यांची मंजुरी आवश्यक आहे.',birth:'विद्यार्थ्याचे जन्मवर्ष',identifier:'तपशील निवडा',identifierGr:'जीआर क्रमांक',identifierBackup:'पर्यायी ओळख क्रमांकाचे शेवटचे चार अंक',students:'विद्यार्थी निवडा',document:'प्रमाणपत्र निवडा'},
+          hi: {mobile:'पंजीकृत अभिभावक मोबाइल',mobileLabel:'पंजीकृत १० अंकों का मोबाइल नंबर दर्ज करें',continue:'आगे',verify:'विवरण सत्यापित करें',neutral:'नंबर पंजीकृत होने और व्हाट्सऐप उपलब्ध होने पर कोड आ सकता है। कोड न आए तो पारिवारिक जाँच करें।',otp:'व्हाट्सऐप सत्यापन कोड',verifyButton:'सत्यापित करें',family:'पारिवारिक गोपनीय जाँच',familyHelp:'यह जानकारी की जाँच है, फोन पर नियंत्रण का प्रमाण नहीं। केवल जाँचे गए बच्चे के लिए अनुमति मिलती है। प्रतिनिधि के लिए अभिभावक का व्हाट्सऐप सत्यापन या कर्मचारी की मंजूरी आवश्यक है।',birth:'बच्चे का जन्म वर्ष',identifier:'विवरण चुनें',identifierGr:'जीआर नंबर',identifierBackup:'वैकल्पिक पहचान के अंतिम चार अंक',students:'छात्र चुनें',document:'प्रमाणपत्र चुनें'}
+        }; document.querySelectorAll('[data-parent-text]').forEach(el => el.textContent = labels[state.lang][el.dataset.parentText]);
+        const identifierLabel = $('family-identifier').labels[0];
+        const backupId = $('identifier-type').value === 'backup';
+        identifierLabel.textContent = labels[state.lang][backupId ? 'identifierBackup' : 'identifierGr'];
+        $('family-identifier').maxLength = backupId ? 4 : 64;
+        if (backupId) $('family-identifier').setAttribute('inputmode', 'numeric');
+        else $('family-identifier').removeAttribute('inputmode');
       }
       async function api(
         url,
@@ -1577,6 +1812,7 @@
         const headers = {
           ...(body === undefined ? {} : { "Content-Type": "application/json" }),
           ...(admin ? { "x-admin-token": state.token } : {}),
+          ...(state.parentToken ? { "x-parent-session": state.parentToken } : {}),
           ...options.headers,
         };
         let r;
@@ -1615,16 +1851,6 @@
         document
           .querySelectorAll(".stepbar span")
           .forEach((el, i) => el.classList.toggle("on", i < n));
-        currentNumeric =
-          n === 2
-            ? $("parent-phone")
-            : n === 3
-              ? $(
-                  state.verificationMode === "backup"
-                    ? "confirm-gr"
-                    : "birth-year",
-                )
-              : null;
         window.scrollTo(0, 0);
       }
       function switchView(view) {
@@ -1643,6 +1869,8 @@
         if (view === "parent") refreshFrontQr();
       }
       function resetParent() {
+        if (state.parentToken) fetch("/api/parent/done", { method: "POST", headers: { "x-parent-session": state.parentToken }, keepalive: true }).catch(() => {});
+        state.parentToken = ""; state.challenge = ""; state.authMethod = "";
         state.epoch++;
         searchEpoch++;
         clearTimeout(searchTimer);
@@ -1660,6 +1888,7 @@
         });
         for (const id of [
           "search-results",
+          "candidate-results",
           "selected-student",
           "document-list",
           "search-status",
@@ -1686,166 +1915,58 @@
           ? name + " · " + subtitle
           : name;
         document.title = name + " · School Document Portal";
-        const classes = [
-          ...new Set(state.config.classes.map((c) => c.class_name)),
-        ];
-        $("search-class").innerHTML =
-          '<option value="">' +
-          esc(t("all")) +
-          "</option>" +
-          classes.map((c) => `<option>${esc(c)}</option>`).join("");
-        updateDivisions();
-        $("campus-field").hidden = state.config.isLocalKiosk;
-        document.body.classList.toggle("phone", !state.config.isLocalKiosk);
+        document.body.classList.toggle("phone", matchMedia("(max-width: 700px)").matches);
+        $("otp-area").hidden = !state.config.otpConfigured;
       }
-      function updateDivisions() {
-        const rows = state.config?.classes || [];
-        const cls = $("search-class").value;
-        const divisions = [
-          ...new Set(
-            rows
-              .filter((c) => !cls || c.class_name === cls)
-              .map((c) => c.division),
-          ),
-        ];
-        $("search-division").innerHTML =
-          '<option value="">' +
-          esc(t("all")) +
-          "</option>" +
-          divisions.map((d) => `<option>${esc(d)}</option>`).join("");
-      }
-      function scheduleSearch() {
-        clearTimeout(searchTimer);
-        const version = ++searchEpoch;
-        searchTimer = setTimeout(async () => {
-          const epoch = state.epoch;
-          try {
-            const phone = $("parent-phone").value,
-              query = $("search-name").value;
-            if (
-              (state.searchMode === "phone" && phone.length !== 10) ||
-              (state.searchMode === "name" && query.trim().length < 2)
-            ) {
-              $("search-results").replaceChildren();
-              $("search-status").textContent = "";
-              return;
-            }
-            const r = await json("/api/search-student", {
-              method: "POST",
-              body: {
-                mode: state.searchMode,
-                phone,
-                query,
-                className: $("search-class").value,
-                division: $("search-division").value,
-              },
-            });
-            if (
-              epoch !== state.epoch ||
-              version !== searchEpoch ||
-              state.step !== 2
-            )
-              return;
-            $("search-status").textContent = r.students.length
-              ? ""
-              : t("noResults");
-            $("search-results").replaceChildren();
-            for (const s of r.students) {
-              const b = document.createElement("button");
-              b.className = "student";
-              b.innerHTML = `<span><strong>${esc(s.full_name)}</strong><small>${esc(s.class_name)} · ${esc(s.division)} · ${esc(s.masked_phone)}</small></span><span class="badge">GR ${esc(s.gr_number)}</span>`;
-              b.onclick = () => chooseStudent(s);
-              $("search-results").append(b);
-            }
-          } catch (e) {
-            if (epoch === state.epoch) report(e, "search-status");
-          }
-        }, 200);
-      }
-      function chooseStudent(s) {
-        state.student = s;
-        state.templateId = null;
-        $("selected-student").innerHTML =
-          `<strong>${esc(s.full_name)}</strong><div class="small muted">${esc(s.class_name)} · ${esc(s.division)} · GR ${esc(s.gr_number)} · ${esc(s.masked_phone)}</div>`;
-        $("document-list").replaceChildren();
-        for (const tpl of state.config.templates) {
-          const b = document.createElement("button");
-          b.className = "document";
-          b.textContent = "▤  " + tpl["title_" + state.lang];
-          b.onclick = () => {
-            state.templateId = tpl.id;
-            document
-              .querySelectorAll(".document")
-              .forEach((el) => el.classList.remove("chosen"));
-            b.classList.add("chosen");
-          };
-          $("document-list").append(b);
+      async function acceptVerification(result) {
+        state.parentToken = result.sessionToken; state.authMethod = result.method;
+        const data = await json('/api/parent/students'); state.config.templates = data.templates;
+        $('search-results').replaceChildren();
+        for (const student of data.students) {
+          const button = document.createElement('button'); button.className = 'student';
+          button.innerHTML = `<strong>${esc(student.full_name)}</strong><small>${esc(student.class_name)} · ${esc(student.division)}</small>`;
+          button.onclick = () => chooseStudent(student); $('search-results').append(button);
         }
-        if (!state.config.templates.length)
-          $("document-list").textContent =
-            "No documents are available. Contact school staff.";
-        goStep(3);
+        goStep(4);
       }
-      function updateVerification() {
-        const guardian = $("guardian-toggle").checked;
-        if (guardian) state.verificationMode = "primary";
-        const backup = state.verificationMode === "backup";
-        $("birth-field").hidden = backup;
-        $("gr-field").hidden = !backup && !guardian;
-        $("aadhaar-field").hidden = !backup;
-        $("guardian-field").hidden = !guardian;
-        $("backup-toggle").disabled = guardian;
-        $("backup-toggle").textContent = t(backup ? "useBirth" : "trouble");
-        currentNumeric = $(backup ? "confirm-gr" : "birth-year");
-      }
-      async function generate() {
-        if (state.generating) return;
-        if (!state.templateId)
-          return report(Error(t("chooseFirst")), "verify-status");
-        const epoch = state.epoch;
-        const body = {
-          grNumber: state.student.gr_number,
-          templateId: state.templateId,
-          birthYear: $("birth-year").value,
-          campusCode: $("campus-code").value,
-          verificationMode: state.verificationMode,
-          confirmGr: $("confirm-gr").value,
-          aadhaarLast4: $("aadhaar-last4").value,
-          isGuardian: $("guardian-toggle").checked,
-          guardianPhone: $("guardian-phone").value,
-          isLocalKiosk: state.config.isLocalKiosk,
-          lang: state.lang,
-        };
-        state.generating = true;
-        $("generate-button").disabled = true;
-        $("verify-status").textContent = t("working");
+      async function runSearch() {
+        clearTimeout(searchTimer); const version = ++searchEpoch; const epoch = state.epoch;
+        const query = $('search-query').value.trim();
+        $('candidate-results').replaceChildren();
+        if (query.length < 2) { $('phone-status').textContent = t('twoLetters'); return; }
         try {
-          const cert = await json("/api/generate-document", {
-            method: "POST",
-            body,
-          });
-          if (epoch !== state.epoch || state.view !== "parent") return;
-          state.cert = cert;
-          $("certificate-frame").srcdoc = cert.certificateHtml;
-          const style = document.createElement("style");
-          style.textContent = "@media print{" + cert.certificateCss + "}";
-          $("print-sheet").replaceChildren(style);
-          $("print-sheet").insertAdjacentHTML(
-            "beforeend",
-            cert.certificateBody,
-          );
-          expiresAt = Date.now() + 45000;
-          lastActivity = Date.now();
-          $("wipe-seconds").textContent = "45";
-          goStep(4);
-        } catch (e) {
-          if (epoch === state.epoch) report(e, "verify-status");
-        } finally {
-          if (epoch === state.epoch) {
-            state.generating = false;
-            $("generate-button").disabled = false;
+          const result = await json('/api/parent/find', {method:'POST',body:{query}});
+          if (version !== searchEpoch || epoch !== state.epoch || state.step !== 2) return;
+          $('phone-status').textContent = result.students.length ? '' : t('noResults');
+          for (const candidate of result.students) {
+            const button = document.createElement('button'); button.className = 'student';
+            button.textContent = candidate.label + ' · ' + candidate.class_name + ' / ' + candidate.division;
+            button.onclick = async () => { button.disabled = true; try {
+              const r = await json('/api/parent/start',{method:'POST',body:{studentRef:candidate.studentRef,lang:state.lang}});
+              if (epoch !== state.epoch) return;
+              state.challenge = r.challengeId; goStep(3);
+            } catch(e) { report(e,'phone-status'); } finally { button.disabled = false; } };
+            $('candidate-results').append(button);
           }
-        }
+        } catch(e) { if (epoch === state.epoch && version === searchEpoch) report(e,'phone-status'); }
+      }
+      function chooseStudent(student) {
+        state.student = student; state.templateId = null;
+        $('selected-student').textContent = student.full_name + ' · ' + student.class_name + ' ' + student.division;
+        $('document-list').replaceChildren();
+        for (const tpl of state.config.templates) { const b = document.createElement('button'); b.className = 'document'; b.textContent = tpl['title_' + state.lang]; b.onclick = () => { state.templateId = tpl.id; document.querySelectorAll('.document').forEach(el => el.classList.remove('chosen')); b.classList.add('chosen'); }; $('document-list').append(b); }
+        $('guardian-option').hidden = state.authMethod !== 'otp'; $('guardian-toggle').checked = false; updateVerification(); goStep(5);
+      }
+      function updateVerification() { $('guardian-field').hidden = !$('guardian-toggle').checked; }
+      async function generate() {
+        if (state.generating || !state.student || !state.templateId) return report(Error(t('chooseFirst')), 'verify-status');
+        state.generating = true; $('generate-button').disabled = true;
+        try {
+          const cert = await json('/api/generate-document', { method: 'POST', body: { studentRef: state.student.studentRef, templateId: state.templateId, campusCode: $('campus-code').value, isGuardian: $('guardian-toggle').checked, guardianPhone: $('guardian-phone').value, lang: state.lang } });
+          state.cert = cert; $('certificate-frame').srcdoc = cert.certificateHtml;
+          const style = document.createElement('style'); style.textContent = '@media print{' + cert.certificateCss + '}'; $('print-sheet').replaceChildren(style); $('print-sheet').insertAdjacentHTML('beforeend', cert.certificateBody);
+          expiresAt = Date.now() + 45000; lastActivity = Date.now(); $('wipe-seconds').textContent = '45'; goStep(6);
+        } catch (e) { report(e, 'verify-status'); } finally { state.generating = false; $('generate-button').disabled = false; }
       }
       async function downloadPdf() {
         if (!state.cert) return;
@@ -2087,7 +2208,10 @@
         state.bodies = { en: "", mr: "", hi: "" };
         state.bodyLang = "en";
         selectBodyLanguage("en", false);
+        clearTimeout(previewTimer);
+        previewEpoch++;
         $("template-preview").removeAttribute("srcdoc");
+        $("preview-status").textContent = "Enter titles and body to preview.";
       }
       function selectBodyLanguage(lang, save = true) {
         if (save) state.bodies[state.bodyLang] = $("template-body").value;
@@ -2113,6 +2237,7 @@
       function schedulePreview() {
         clearTimeout(previewTimer);
         const version = ++previewEpoch;
+        if (state.token) $("preview-status").textContent = "Updating preview…";
         previewTimer = setTimeout(async () => {
           if (!state.token) return;
           const body = { ...templatePayload(), lang: state.bodyLang };
@@ -2166,19 +2291,21 @@
             const data = state.admin.settings[k + "_data"];
             const uploadIcon =
               '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>';
-            return `<div><label for="image-${k}">School ${k === "signature" ? "principal signature" : k} · PNG</label><div class="row"><img id="preview-${k}" class="image-preview" alt="${k} preview" ${data ? 'src="' + data + '"' : "hidden"}><div id="drop-${k}" class="dropzone" ${data ? "hidden" : ""}>${uploadIcon}<span>No PNG uploaded</span></div><button type="button" data-clear-image="${k}">Remove</button></div><input id="image-${k}" type="file" accept="image/png" data-image="${k}"></div>`;
+            return `<div><label for="image-${k}">School ${k === "signature" ? "principal signature" : k} · PNG</label><div class="row"><img id="preview-${k}" class="image-preview" alt="${k} preview" ${data ? 'src="' + data + '"' : "hidden"}><label id="drop-${k}" class="dropzone" for="image-${k}" data-drop-image="${k}" ${data ? "hidden" : ""}>${uploadIcon}<span>Drop a PNG or click to browse</span></label><button type="button" data-clear-image="${k}" ${data ? "" : "hidden"}>Remove</button></div><input id="image-${k}" type="file" accept="image/png" data-image="${k}"></div>`;
           })
           .join("");
         state.images = {};
       }
-      function uploadImage(input) {
-        const file = input.files[0];
+      function uploadImage(input, file = input.files[0]) {
         if (!file) return;
-        if (file.type !== "image/png" || file.size > 1500000)
+        if (file.type !== "image/png" || file.size > 1500000) {
+          input.value = "";
           return report(Error("Choose a PNG smaller than 1.5 MB."));
+        }
         const token = state.token,
           reader = new FileReader();
         reader.onload = () => {
+          input.value = "";
           if (!token || token !== state.token) return;
           const key = input.dataset.image;
           state.images[key + "_data"] = reader.result;
@@ -2187,6 +2314,13 @@
           img.hidden = false;
           const drop = $("drop-" + key);
           if (drop) drop.hidden = true;
+          $("image-uploaders").querySelector(
+            `[data-clear-image="${key}"]`,
+          ).hidden = false;
+        };
+        reader.onerror = () => {
+          input.value = "";
+          report(Error("Unable to read this image."));
         };
         reader.readAsDataURL(file);
       }
@@ -2276,23 +2410,14 @@
           if (b.dataset.lang) {
             state.lang = b.dataset.lang;
             translate();
-            goStep(2);
+            if (state.guardianApproval) { const approval = state.guardianApproval; state.guardianApproval = ''; await acceptVerification(await json('/api/parent/guardian', {method:'POST',body:{approval}})); }
+            else goStep(2);
           }
           if (b.dataset.back) goStep(Number(b.dataset.back));
           if (b.hasAttribute("data-speak")) speak();
-          if (b.dataset.searchMode) {
-            state.searchMode = b.dataset.searchMode;
-            searchEpoch++;
-            $("phone-search").hidden = state.searchMode !== "phone";
-            $("name-search").hidden = state.searchMode !== "name";
-            $("pad-2-block").hidden = state.searchMode !== "phone";
-            $("pad-2-alt").hidden = state.searchMode === "phone";
-            document
-              .querySelectorAll("[data-search-mode]")
-              .forEach((el) => el.classList.toggle("active", el === b));
+          if (b.id === "search-button") {
             $("search-results").replaceChildren();
-            $("search-status").textContent = "";
-            scheduleSearch();
+            runSearch();
           }
           if (b.dataset.adminTab) adminTab(b.dataset.adminTab);
           if (b.dataset.editStudent) editStudent(b.dataset.editStudent);
@@ -2348,75 +2473,31 @@
             schedulePreview();
           }
           if (b.dataset.clearImage) {
-            state.images[b.dataset.clearImage + "_data"] = null;
-            const img = $("preview-" + b.dataset.clearImage);
+            const key = b.dataset.clearImage;
+            state.images[key + "_data"] = null;
+            $("image-" + key).value = "";
+            const img = $("preview-" + key);
             img.removeAttribute("src");
             img.hidden = true;
-            const drop = $("drop-" + b.dataset.clearImage);
+            const drop = $("drop-" + key);
             if (drop) drop.hidden = false;
+            b.hidden = true;
           }
         } catch (e) {
           report(e);
         }
       });
-      for (const pad of document.querySelectorAll("[data-pad]"))
-        for (const key of [
-          "1",
-          "2",
-          "3",
-          "4",
-          "5",
-          "6",
-          "7",
-          "8",
-          "9",
-          "⌫",
-          "0",
-          "Clear",
-        ]) {
-          const b = document.createElement("button");
-          b.type = "button";
-          b.textContent = key;
-          b.setAttribute("aria-label", key === "⌫" ? "Backspace" : key);
-          b.addEventListener("pointerdown", (e) => e.preventDefault());
-          b.onclick = () => {
-            const input = currentNumeric;
-            if (!input || !pad.closest(".step").contains(input)) return;
-            input.value =
-              key === "Clear"
-                ? ""
-                : key === "⌫"
-                  ? input.value.slice(0, -1)
-                  : (input.value + key).slice(
-                      0,
-                      input.maxLength > 0 ? input.maxLength : 40,
-                    );
-            input.dispatchEvent(new Event("input", { bubbles: true }));
-            input.focus();
-          };
-          pad.append(b);
-        }
       document.querySelectorAll("[data-numeric]").forEach((el) => {
-        el.addEventListener("focus", () => (currentNumeric = el));
         el.addEventListener(
           "input",
           () => (el.value = el.value.replace(/\D/g, "")),
         );
       });
-      for (const id of ["parent-phone", "search-name"])
-        $(id).addEventListener("input", scheduleSearch);
-      $("search-class").onchange = () => {
-        updateDivisions();
-        scheduleSearch();
-      };
-      $("search-division").onchange = scheduleSearch;
-      $("backup-toggle").onclick = () => {
-        state.verificationMode =
-          state.verificationMode === "primary" ? "backup" : "primary";
-        $("aadhaar-last4").value = "";
-        $("birth-year").value = "";
-        updateVerification();
-      };
+      $('search-query').addEventListener('input', () => { ++searchEpoch; clearTimeout(searchTimer); $('candidate-results').replaceChildren(); searchTimer = setTimeout(runSearch,250); });
+      $('search-query').addEventListener('keydown', event => { if(event.key === 'Enter') { event.preventDefault(); runSearch(); } });
+      $('otp-button').onclick = async () => { try { await acceptVerification(await json('/api/parent/otp', {method:'POST',body:{challengeId:state.challenge,code:$('otp-code').value}})); } catch(e) { report(e,'auth-status'); } };
+      $('family-button').onclick = async () => { try { await acceptVerification(await json('/api/parent/family', {method:'POST',body:{challengeId:state.challenge,birthYear:$('birth-year').value,identifierType:$('identifier-type').value,identifier:$('family-identifier').value}})); } catch(e) { report(e,'auth-status'); } };
+      $('identifier-type').addEventListener('change', translate);
       $("guardian-toggle").onchange = updateVerification;
       $("generate-button").onclick = generate;
       $("done-button").onclick = resetParent;
@@ -2474,9 +2555,38 @@
       $("image-uploaders").addEventListener("change", (e) => {
         if (e.target.dataset.image) uploadImage(e.target);
       });
+      $("image-uploaders").addEventListener("dragover", (e) => {
+        const zone = e.target.closest(".dropzone[data-drop-image]");
+        if (!zone) return;
+        e.preventDefault();
+        zone.classList.add("dragging");
+      });
+      $("image-uploaders").addEventListener("dragleave", (e) => {
+        const zone = e.target.closest(".dropzone[data-drop-image]");
+        if (!zone || zone.contains(e.relatedTarget)) return;
+        zone.classList.remove("dragging");
+      });
+      $("image-uploaders").addEventListener("drop", (e) => {
+        const zone = e.target.closest(".dropzone[data-drop-image]");
+        if (!zone) return;
+        e.preventDefault();
+        zone.classList.remove("dragging");
+        const input = $("image-" + zone.dataset.dropImage);
+        uploadImage(input, e.dataTransfer?.files?.[0]);
+      });
       $("logs-filter").oninput = () => state.admin && renderLogs();
       $("refresh-logs").onclick = () => loadAdmin().catch((e) => report(e));
       $("password-form").onsubmit = password;
+      $("guardian-approval-form").onsubmit = async event => {
+        event.preventDefault();
+        try {
+          const result = await json('/api/admin/guardian-approval', { admin:true, method:'POST', body:formData('guardian-approval-form') });
+          event.target.elements.password.value = '';
+          $('guardian-approval-status').textContent = 'Give this one-use approval to the guardian.';
+          $('guardian-approval-qr').src = result.qr; $('guardian-approval-qr').hidden = false;
+          $('guardian-approval-link').href = result.url; $('guardian-approval-link').hidden = false;
+        } catch (e) { report(e, 'guardian-approval-status'); }
+      };
       $("backup-button").onclick = backup;
       for (const event of ["pointerdown", "keydown", "input"])
         document.addEventListener(event, () => (lastActivity = Date.now()), {
@@ -2487,22 +2597,25 @@
         if (state.view === "parent") {
           if (expiresAt) {
             const left = Math.max(0, Math.ceil((expiresAt - now) / 1000));
-            $("wipe-seconds").textContent = left;
+            const wipeSeconds = $("wipe-seconds");
+            if (wipeSeconds.textContent !== String(left))
+              wipeSeconds.textContent = left;
             if (!left) resetParent();
           } else if (state.step > 1 && now - lastActivity >= 45000)
             resetParent();
         }
         if (state.token && now - lastActivity > 900000) logout();
-        if (state.view === "parent") {
+        if (state.view === "parent" && frontUntil > 0) {
           const seconds = Math.max(0, (frontUntil - now) / 1000);
           const secEl = $("front-seconds"),
             barEl = $("front-countdown");
           if (secEl && barEl) {
-            secEl.textContent = Math.ceil(seconds);
+            const displayed = String(Math.ceil(seconds));
+            if (secEl.textContent !== displayed) secEl.textContent = displayed;
             barEl.style.transform = `scaleX(${Math.min(1, seconds / 60)})`;
           }
         }
-      }, 200);
+      }, 1000);
       setInterval(refreshFrontQr, 1000);
       window.addEventListener("afterprint", resetParent);
       window.addEventListener("pagehide", () => {
@@ -2511,8 +2624,7 @@
       });
       loadConfig()
         .then(() => {
-          const code = new URLSearchParams(location.search).get("code");
-          if (/^\d{4}$/.test(code || "")) $("campus-code").value = code;
+
           history.replaceState(null, "", location.pathname);
           if (location.pathname === "/admin") switchView("admin");
           else refreshFrontQr();

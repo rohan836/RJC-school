@@ -8,7 +8,16 @@ const QRCode = require("qrcode");
 const { parse } = require("csv-parse/sync");
 const { rateLimit } = require("express-rate-limit");
 const { openDatabase, hashPassword, checkPassword } = require("./db");
-const { esc, clean, renderCertificate, pdf, normalizeUdise } = require("./certificate");
+const {
+  esc,
+  clean,
+  renderCertificate,
+  pdf,
+  normalizeUdise,
+} = require("./certificate");
+const { rankStudents } = require("./student-search");
+const { createParentAuth } = require("./parent-auth");
+const { createOtpTransport } = require("./whatsapp");
 const dataDir = process.env.KIOSK_DATA_DIR || __dirname;
 const port = Number(process.env.PORT || 3000);
 const db = openDatabase(dataDir);
@@ -60,6 +69,27 @@ const portalHostname = () => {
 const local = (req) =>
   ["127.0.0.1", "::1", "::ffff:127.0.0.1"].includes(req.socket.remoteAddress);
 const tokens = new Map();
+const studentRefs = new Map();
+const STUDENT_REF_TTL = 15 * 60 * 1000;
+function createStudentRef(grNumber) {
+  const now = Date.now();
+  for (const [ref, entry] of studentRefs)
+    if (entry.expiresAt <= now) studentRefs.delete(ref);
+  while (studentRefs.size >= 5000)
+    studentRefs.delete(studentRefs.keys().next().value);
+  const ref = crypto.randomBytes(24).toString("base64url");
+  studentRefs.set(ref, { grNumber, expiresAt: now + STUDENT_REF_TTL });
+  return ref;
+}
+function resolveStudentRef(value) {
+  const ref = text(value, "student selection", 64);
+  const entry = studentRefs.get(ref);
+  if (!entry || entry.expiresAt <= Date.now()) {
+    studentRefs.delete(ref);
+    fail("Your student selection expired. Search for the student again.", 410);
+  }
+  return entry.grNumber;
+}
 const app = express();
 app.disable("x-powered-by");
 const allowedHosts = new Set([
@@ -89,9 +119,10 @@ const isPublicPortalAllowed = (req) => {
   if (req.method === "GET" && p === "/api/public-config") return true;
   if (
     req.method === "POST" &&
-    (p === "/api/search-student" || p === "/api/generate-document")
+    (p === "/api/search-student" || p === "/api/generate-document" || p.startsWith("/api/parent/"))
   )
     return true;
+  if (req.method === "GET" && p === "/api/parent/students") return true;
   if (req.method === "GET" && /^\/api\/documents\/[^/]+\/pdf$/.test(p))
     return true;
   if (req.method === "GET" && /^\/verify\/[^/]+$/.test(p)) return true;
@@ -170,6 +201,14 @@ function text(v, name, max = 200, required = true) {
 }
 const settings = () =>
   db.prepare("SELECT * FROM school_settings WHERE id=1").get();
+const otpTransport = createOtpTransport();
+const parentAuth = createParentAuth({ db, sendOtp: otpTransport.sendOtp, otpConfigured: otpTransport.configured });
+const parentToken = req => String(req.headers["x-parent-session"] || "");
+function requireParent(req, res, next) {
+  req.parentSession = parentAuth.getSession(parentToken(req));
+  if (!req.parentSession) return res.status(401).json({ error: "Verification required." });
+  next();
+}
 const safeSettings = () => {
   const { wifi_ssid, wifi_password, ...s } = settings();
   return s;
@@ -240,6 +279,9 @@ const wifiEscape = (s) => String(s || "").replace(/[\\;,:\"]/g, "\\$&");
 app.get("/api/health", (req, res) =>
   res.json({
     ok: true,
+    appId: "rjc-school-portal",
+    projectKey: crypto.createHash("sha256").update(path.resolve(__dirname).toLowerCase()).digest("hex"),
+    pid: process.pid,
     journalMode: db.pragma("journal_mode", { simple: true }),
     synchronous: db.pragma("synchronous", { simple: true }),
   }),
@@ -253,7 +295,7 @@ app.get("/api/campus-code", async (req, res) => {
   if (!qrCache) {
     const snapshot = { ...campus };
     const s = settings();
-    const url = `${portalUrl()}/?code=${snapshot.code}`;
+    const url = `${portalUrl()}/`;
     const wifi = s.wifi_ssid
       ? `WIFI:T:WPA;S:${wifiEscape(s.wifi_ssid)};P:${wifiEscape(s.wifi_password)};;`
       : null;
@@ -276,69 +318,61 @@ app.get("/api/campus-code", async (req, res) => {
     serverTime: Date.now(),
   });
 });
-app.get("/api/public-config", (req, res) =>
-  res.json({
-    templates: db
-      .prepare(
-        "SELECT id,title_mr,title_hi,title_en FROM document_templates WHERE is_active=1",
-      )
-      .all(),
-    classes: db
-      .prepare(
-        "SELECT DISTINCT class_name,division FROM students WHERE status='ACTIVE' ORDER BY class_name,division",
-      )
-      .all(),
-    schoolName: settings().school_name,
-    schoolSubtitle: settings().school_subtitle,
-    schoolTagline: String(settings().school_subtitle || "")
-      .split("•")[0]
-      .trim(),
-    isLocalKiosk:
-      local(req) && ["localhost", "127.0.0.1", "[::1]"].includes(req.hostname),
-    portalUrl: portalUrl(),
-  }),
-);
-app.post("/api/search-student", (req, res) => {
-  let rows = [];
-  const b = req.body;
-  if (b.mode === "phone") {
-    const phone = String(b.phone || "")
-      .replace(/\D/g, "")
-      .slice(-10);
-    if (phone.length === 10)
-      rows = db
-        .prepare(
-          "SELECT * FROM students WHERE status='ACTIVE' AND parent_phone=? LIMIT 15",
-        )
-        .all(phone);
-  } else if (b.mode === "name") {
-    const query = text(b.query || "", "name", 100, false);
-    if (query.length >= 2) {
-      const q = "%" + query.replace(/[!%_]/g, "!$&") + "%";
-      rows = db
-        .prepare(
-          "SELECT * FROM students WHERE status='ACTIVE' AND (?='' OR class_name=?) AND (?='' OR division=?) AND (full_name LIKE ? ESCAPE '!' OR father_name LIKE ? ESCAPE '!') LIMIT 15",
-        )
-        .all(
-          b.className || "",
-          b.className || "",
-          b.division || "",
-          b.division || "",
-          q,
-          q,
-        );
-    }
-  }
-  res.json({
-    students: rows.map((s) => ({
-      gr_number: s.gr_number,
-      full_name: s.full_name,
-      class_name: s.class_name,
-      division: s.division,
-      masked_phone: "******" + s.parent_phone.slice(-4),
-    })),
-  });
+app.get("/api/public-config", (req, res) => res.json({
+  schoolName: settings().school_name, schoolSubtitle: settings().school_subtitle,
+  schoolTagline: String(settings().school_subtitle || "").split("•")[0].trim(),
+  portalUrl: portalUrl(), otpConfigured: otpTransport.configured(),
+}));
+const parentRate = rateLimit({ windowMs: 900000, limit: 30, standardHeaders: true, legacyHeaders: false, message: { error: "Please wait before trying again." } });
+// Search fires while a parent types. Keep it separate from authentication attempts,
+// so autocomplete cannot exhaust the shared OTP/family-check allowance.
+const parentSearchRate = rateLimit({ windowMs: 60000, limit: 300, standardHeaders: true, legacyHeaders: false, message: { error: "Too many searches. Please wait a moment and try again." } });
+app.post("/api/parent/find", parentSearchRate, (req, res) => {
+  const query = text(req.body.query || "", "search query", 100, false);
+  const rows = query.length >= 2 ? rankStudents(db.prepare("SELECT * FROM students WHERE status='ACTIVE'").all(), query) : [];
+  res.json({ students: rows.map(row => ({ studentRef: createStudentRef(row.gr_number), label: row.full_name, class_name: row.class_name, division: row.division })) });
 });
+app.post("/api/parent/start", parentRate, async (req, res) => {
+  if (req.body.studentRef) {
+    const gr = resolveStudentRef(req.body.studentRef);
+    const row = db.prepare("SELECT parent_phone FROM students WHERE gr_number=? AND status='ACTIVE'").get(gr);
+    if (!row) fail("Selection expired. Search again.", 410);
+    return res.json(await parentAuth.start(row.parent_phone, req.body.lang, gr));
+  }
+  res.json(await parentAuth.start(req.body.phone, req.body.lang));
+});
+app.post("/api/parent/otp", parentRate, (req, res) => res.json(parentAuth.verifyOtp(req.body.challengeId, req.body.code)));
+app.post("/api/parent/family", parentRate, (req, res) => res.json(parentAuth.verifyFamily(req.body.challengeId, req.body.birthYear, req.body.identifierType, req.body.identifier)));
+app.post("/api/parent/guardian", parentRate, (req, res) => res.json(parentAuth.redeem(req.body.approval)));
+app.post("/api/parent/done", (req, res) => { parentAuth.finish(parentToken(req)); res.sendStatus(204); });
+app.get("/api/parent/students", requireParent, (req, res) => {
+  const students = [...req.parentSession.refs].map(([studentRef, gr]) => ({ studentRef, ...db.prepare("SELECT full_name,class_name,division FROM students WHERE gr_number=? AND status='ACTIVE'").get(gr) }));
+  res.json({ students, templates: db.prepare("SELECT id,title_mr,title_hi,title_en FROM document_templates WHERE is_active=1").all() });
+});
+app.post("/api/search-student", requireParent, (req, res) => {
+  const rows = [...req.parentSession.refs].map(([studentRef, gr]) => ({ studentRef, ...db.prepare("SELECT gr_number,full_name,father_name,class_name,division,parent_phone FROM students WHERE gr_number=? AND status='ACTIVE'").get(gr) }));
+  const matches = req.body.query ? rankStudents(rows, String(req.body.query).slice(0, 100)) : rows;
+  res.json({ students: matches.map(({ studentRef, full_name, class_name, division }) => ({ studentRef, full_name, class_name, division })) });
+});
+function canonicalDate(value) {
+  const raw = String(value || "").trim();
+  let year, month, day;
+  let match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(raw);
+  if (match) [, year, month, day] = match;
+  else {
+    match = /^(\d{2})\/(\d{2})\/(\d{4})$/.exec(raw);
+    if (!match) return "";
+    [, day, month, year] = match;
+  }
+  const date = new Date(Date.UTC(Number(year), Number(month) - 1, Number(day)));
+  if (
+    date.getUTCFullYear() !== Number(year) ||
+    date.getUTCMonth() + 1 !== Number(month) ||
+    date.getUTCDate() !== Number(day)
+  )
+    return "";
+  return `${year}-${month}-${day}`;
+}
 function checkFamily(b, student) {
   const now = Date.now();
   let a = db
@@ -356,18 +390,17 @@ function checkFamily(b, student) {
     a = null;
   }
   let valid;
-  if (b.isGuardian === true) {
+  if (b.verificationMode === "backup") {
+    const registeredPhone = String(student.parent_phone || "").replace(/\D/g, "");
+    const storedDob = canonicalDate(student.dob);
+    const suppliedDob = canonicalDate(b.dateOfBirth);
     valid =
-      String(b.birthYear || "") === student.birth_year &&
-      String(b.confirmGr || "") === student.gr_number &&
-      /^\d{10}$/.test(String(b.guardianPhone || ""));
-  } else if (b.verificationMode === "backup") {
-    valid =
-      String(b.confirmGr || "") === student.gr_number &&
-      /^\d{4}$/.test(String(b.aadhaarLast4 || "")) &&
-      student.aadhaar_last4 &&
-      String(b.aadhaarLast4) === student.aadhaar_last4;
+      Boolean(storedDob && suppliedDob && suppliedDob === storedDob) &&
+      /^\d{4}$/.test(String(b.registeredPhoneLast4 || "")) &&
+      String(b.registeredPhoneLast4) === registeredPhone.slice(-4);
   } else valid = String(b.birthYear || "") === student.birth_year;
+  if (b.isGuardian === true)
+    valid = valid && /^\d{10}$/.test(String(b.guardianPhone || ""));
   if (!valid) {
     const n = (a?.failures || 0) + 1;
     db.prepare(
@@ -384,31 +417,22 @@ function checkFamily(b, student) {
     student.gr_number,
   );
 }
-function issue(b, allowLocal = false, receiptId = null) {
-  for (const key of ["isGuardian", "isLocalKiosk"])
-    if (b[key] !== undefined && typeof b[key] !== "boolean")
-      fail("Invalid " + key);
-  if (
-    b.verificationMode !== undefined &&
-    !["primary", "backup"].includes(b.verificationMode)
-  )
-    fail("Invalid verification method.");
-  const isLocal = b.isLocalKiosk === true && allowLocal;
-  if (
-    !isLocal &&
-    (Date.now() >= campus.expiresAt ||
-      String(b.campusCode || "") !== campus.code)
-  )
+function issue(b, session, sessionToken) {
+  if (!session || session.serial) fail("Verification required.", 401);
+  if (Date.now() >= campus.expiresAt || String(b.campusCode || "") !== campus.code)
     fail("Campus code is invalid or expired. Check the school monitor.", 403);
-  const student = db
-    .prepare("SELECT * FROM students WHERE gr_number=? AND status='ACTIVE'")
-    .get(text(b.grNumber, "GR number"));
-  if (!student) fail("Student record not found.", 404);
-  const tpl = db
-    .prepare("SELECT * FROM document_templates WHERE id=? AND is_active=1")
-    .get(Number(b.templateId) || 0);
+  const gr = session.refs.get(String(b.studentRef || ""));
+  if (!gr) fail("Verification required.", 403);
+  const student = db.prepare("SELECT * FROM students WHERE gr_number=? AND status='ACTIVE'").get(gr);
+  if (!student) fail("Verification required.", 403);
+  const tpl = db.prepare("SELECT * FROM document_templates WHERE id=? AND is_active=1").get(Number(b.templateId) || 0);
   if (!tpl) fail("Document template is unavailable.", 404);
-  checkFamily(b, student);
+  let guardianPhone = "";
+  if (session.method === "staff") guardianPhone = session.guardianPhone;
+  else if (b.isGuardian === true) {
+    if (session.method !== "otp" || !/^\d{10}$/.test(String(b.guardianPhone || ""))) fail("Guardian approval is required.", 403);
+    guardianPhone = String(b.guardianPhone);
+  }
   const year = new Intl.DateTimeFormat("en", {
     year: "numeric",
     timeZone: "Asia/Kolkata",
@@ -472,18 +496,14 @@ function issue(b, allowLocal = false, receiptId = null) {
       student.gr_number,
       student.full_name,
       cert.docTitle,
-      b.isGuardian ? b.guardianPhone : student.parent_phone,
-      b.isGuardian ? 1 : 0,
+      guardianPhone || session.phone,
+      guardianPhone ? 1 : 0,
       new Date().toISOString(),
       JSON.stringify(cert),
       crypto.createHash("sha256").update(downloadToken).digest("hex"),
     );
-    if (receiptId)
-      db.prepare("UPDATE webhook_receipts SET serial_no=? WHERE id=?").run(
-        serialNo,
-        receiptId,
-      );
   })();
+  parentAuth.issued(sessionToken, serialNo, downloadToken);
   rotate();
   return { ...cert, downloadToken };
 }
@@ -496,39 +516,15 @@ async function decorate(cert) {
     }),
   };
 }
-app.post("/api/generate-document", async (req, res) =>
-  res.json(
-    await decorate(
-      issue(
-        req.body,
-        local(req) &&
-          ["localhost", "127.0.0.1", "[::1]"].includes(req.hostname),
-      ),
-    ),
-  ),
+app.post("/api/generate-document", requireParent, async (req, res) =>
+  res.json(await decorate(issue(req.body, req.parentSession, parentToken(req))))
 );
-app.get("/api/documents/:serial/pdf", async (req, res) => {
-  const row = db
-    .prepare("SELECT * FROM issued_logs WHERE serial_no=?")
-    .get(req.params.serial);
-  const hash = crypto
-    .createHash("sha256")
-    .update(String(req.headers["x-document-token"] || ""))
-    .digest("hex");
-  if (
-    !row?.download_hash ||
-    !crypto.timingSafeEqual(
-      Buffer.from(hash),
-      Buffer.from(row.download_hash),
-    ) ||
-    Date.now() - Date.parse(row.issued_at) > 300000
-  )
-    fail("Document download has expired. Generate a new certificate.", 403);
+app.get("/api/documents/:serial/pdf", requireParent, async (req, res) => {
+  if (!parentAuth.canDownload(parentToken(req), req.params.serial, req.headers["x-document-token"])) fail("Document download has expired.", 403);
+  const row = db.prepare("SELECT certificate_json FROM issued_logs WHERE serial_no=?").get(req.params.serial);
+  if (!row?.certificate_json) fail("Document download has expired.", 403);
   const c = await decorate(JSON.parse(row.certificate_json));
-  res
-    .set("Content-Disposition", `attachment; filename="${row.serial_no}.pdf"`)
-    .type("pdf")
-    .send(await pdf(c.certificateHtml));
+  res.set("Content-Disposition", `attachment; filename="${req.params.serial}.pdf"`).type("pdf").send(await pdf(c.certificateHtml));
 });
 app.get("/verify/:serial", async (req, res) => {
   const log = db
@@ -564,6 +560,14 @@ app.post(
   },
 );
 app.use("/api/admin", requireAdmin);
+app.post("/api/admin/guardian-approval", async (req, res) => {
+  if (!local(req)) fail("Approval is available only on the school counter PC.", 403);
+  const admin = db.prepare("SELECT password_hash FROM admin_users WHERE username=?").get("admin");
+  if (!admin || !checkPassword(String(req.body.password || ""), admin.password_hash)) fail("Invalid administrator credentials.", 401);
+  const approval = parentAuth.approve(req.body.grNumber, req.body.guardianPhone);
+  const url = `${portalUrl()}/?guardian=${encodeURIComponent(approval)}`;
+  res.json({ url, qr: await qr(url), expiresIn: 600 });
+});
 app.post("/api/admin/logout", (req, res) => {
   tokens.delete(req.headers["x-admin-token"]);
   res.json({ ok: true });
@@ -775,8 +779,7 @@ app.post("/api/admin/settings", (req, res) => {
         k === "wifi_password" ? 128 : 300,
         k === "school_name",
       );
-  if (req.body.udise_no !== undefined)
-    s.udise_no = normalizeUdise(s.udise_no);
+  if (req.body.udise_no !== undefined) s.udise_no = normalizeUdise(s.udise_no);
   if (req.body.public_url !== undefined) {
     const raw = text(
       req.body.public_url || "",
@@ -838,9 +841,11 @@ app.post("/api/admin/backup", async (req, res) => {
   res.json({ ok: true, filename });
 });
 const { createWhatsApp } = require("./whatsapp");
-const wa = createWhatsApp({ db, issue, decorate, pdf, settings, fail });
+const wa = createWhatsApp({ db, issue: () => fail("Use the verified parent portal.", 403), decorate, pdf, settings, fail });
 app.get("/webhook", wa.verify);
-app.post("/webhook", wa.receive);
+// The former conversational issuance flow predates parent sessions. It is
+// disabled; outbound authentication templates use the OTP transport above.
+app.post("/webhook", (req, res) => res.sendStatus(410));
 app.get(["/", "/admin"], (req, res) =>
   res.sendFile(path.join(__dirname, "public", "index.html")),
 );

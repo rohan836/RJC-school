@@ -345,4 +345,25 @@ function createWhatsApp({ db, issue, decorate, pdf, fail }, transport) {
     sessionCount: () => sessions.size,
   };
 }
-module.exports = { createWhatsApp };
+function createOtpTransport({ env = process.env, fetchImpl = fetch, transport } = {}) {
+  const configured = () => Boolean(env.WHATSAPP_TOKEN && env.PHONE_NUMBER_ID && env.WHATSAPP_AUTH_TEMPLATE);
+  async function sendOtp(number, code, lang = 'en') {
+    if (!configured()) throw new Error('WhatsApp authentication is not configured');
+    const language = ({ mr: env.WHATSAPP_AUTH_LANGUAGE_MR || 'mr', hi: env.WHATSAPP_AUTH_LANGUAGE_HI || 'hi', en: env.WHATSAPP_AUTH_LANGUAGE_EN || 'en_US' })[lang] || 'en_US';
+    const payload = { messaging_product: 'whatsapp', to: '91' + number, type: 'template', template: {
+      name: env.WHATSAPP_AUTH_TEMPLATE, language: { code: language }, components: [
+        { type: 'body', parameters: [{ type: 'text', text: code }] },
+        { type: 'button', sub_type: 'url', index: '0', parameters: [{ type: 'text', text: code }] },
+      ],
+    } };
+    if (transport) return transport(payload);
+    const response = await fetchImpl(`https://graph.facebook.com/${env.WHATSAPP_API_VERSION || 'v25.0'}/${env.PHONE_NUMBER_ID}/messages`, {
+      method: 'POST', headers: { Authorization: `Bearer ${env.WHATSAPP_TOKEN}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload), signal: AbortSignal.timeout(15000),
+    });
+    if (!response.ok) throw new Error('WhatsApp delivery failed');
+    return response.json();
+  }
+  return { configured, sendOtp };
+}
+module.exports = { createWhatsApp, createOtpTransport };

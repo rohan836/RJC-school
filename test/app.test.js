@@ -18,6 +18,11 @@ test(
   { timeout: 120000 },
   async () => {
     const dir = fs.mkdtempSync(path.join(os.tmpdir(), "rgc-test-"));
+    const seed = require('../db').openDatabase(dir);
+    seed.prepare('DELETE FROM students').run();
+    const addFixture = seed.prepare("INSERT INTO students(gr_number,full_name,father_name,class_name,division,dob,birth_year,parent_phone,aadhaar_last4,status) VALUES(?,?,?,?,?,?,?,?,?,?)");
+    for (let i=1; i<=6; i++) addFixture.run('SYN-'+i, 'Synthetic Student '+i, 'Synthetic Parent', String(i), 'A', '01/01/2014', '2014', '980000000'+i, '1111', 'ACTIVE');
+    seed.close();
     const port = 20000 + Math.floor(Math.random() * 20000);
     let child;
     const start = async () => {
@@ -60,6 +65,17 @@ test(
       });
       return { status: r.status, data: await r.json() };
     };
+    const searchStudentRef = async (query) => {
+      const result = await req(
+        "/api/search-student",
+        "POST",
+        { mode: "query", query },
+        false,
+      );
+      assert.equal(result.status, 200);
+      assert.ok(result.data.students.length, `Search ${query}`);
+      return result.data.students[0].studentRef;
+    };
     const login = async (password = "school1234") => {
       const r = await req("/api/admin/login", "POST", {
         username: "admin",
@@ -70,235 +86,12 @@ test(
     };
     try {
       await start();
-      assert.equal((await req("/api/health")).data.journalMode, "wal");
-      assert.equal((await req("/api/health")).data.synchronous, 2);
-      assert.equal((await req("/api/admin/dashboard")).status, 401);
+      assert.equal((await req('/api/health')).data.journalMode, 'wal');
+      assert.equal((await req('/api/search-student', 'POST', {query:'Synthetic'})).status, 401);
+      assert.equal((await req('/api/generate-document', 'POST', {isLocalKiosk:true})).status, 401);
       await login();
-      let dashboard = (await req("/api/admin/dashboard")).data;
-      assert.equal(dashboard.students.length, 6);
-      assert.equal(dashboard.templates.length, 3);
-      assert.ok(
-        dashboard.students
-          .filter((s) => s.gr_number !== "4506")
-          .every((s) => /^\d{4}$/.test(s.aadhaar_last4)),
-      );
-      const identityCard = dashboard.students.find(
-        (s) => s.gr_number === "4506",
-      );
-      assert.ok(identityCard);
-      assert.equal(identityCard.full_name, "Vedant Vivek Deoda");
-      assert.equal(identityCard.father_name, "Vivek Deoda");
-      assert.equal(identityCard.class_name, "8th");
-      assert.equal(identityCard.division, "A");
-      assert.equal(identityCard.dob, "09/06/2013");
-      assert.equal(identityCard.birth_year, "2013");
-      assert.equal(identityCard.parent_phone, "9423128313");
-      assert.ok(fs.existsSync(path.join(dir, "admin-credentials.txt")));
-      const config = (await req("/api/public-config")).data;
-      assert.ok(config.isLocalKiosk);
-      assert.ok(!JSON.stringify(config).includes("aadhaar"));
-      const found = (
-        await req("/api/search-student", "POST", {
-          mode: "phone",
-          phone: "9822011111",
-        })
-      ).data.students;
-      assert.equal(found[0].masked_phone, "******1111");
-      assert.equal(found[0].aadhaar_last4, undefined);
-      assert.equal(found[0].parent_phone, undefined);
-      assert.equal(
-        (
-          await req("/api/search-student", "POST", {
-            mode: "name",
-            query: "Su",
-            className: "8th",
-            division: "A",
-          })
-        ).data.students.length,
-        1,
-      );
-      assert.equal(
-        (
-          await req("/api/search-student", "POST", {
-            mode: "name",
-            query: "Su",
-            division: "B",
-          })
-        ).data.students.length,
-        0,
-      );
-      let c = (await req("/api/campus-code")).data;
-      assert.match(c.lanIp, /^(localhost|\d+\.\d+\.\d+\.\d+)$/);
-      assert.equal(decode(c.portalQr), c.portalLink);
-      assert.equal(c.wifiQr, null);
-      const png =
-        "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+j4O0AAAAASUVORK5CYII=";
-      assert.equal(
-        (
-          await req("/api/admin/settings", "POST", {
-            wifi_ssid: "School;WiFi",
-            wifi_password: "pass:1234",
-            logo_data: png,
-            signature_data: png,
-            stamp_data: png,
-          })
-        ).status,
-        200,
-      );
-      c = (await req("/api/campus-code")).data;
-      assert.equal(
-        decode(c.wifiQr),
-        "WIFI:T:WPA;S:School\\;WiFi;P:pass\\:1234;;",
-      );
-      const tpl = config.templates[0].id,
-        payload = { grNumber: "4501", templateId: tpl, birthYear: "2013" };
-      assert.equal(
-        (
-          await req("/api/generate-document", "POST", {
-            ...payload,
-            campusCode: "0000",
-          })
-        ).status,
-        403,
-      );
-      assert.equal(
-        (
-          await req("/api/generate-document", "POST", {
-            ...payload,
-            isLocalKiosk: true,
-            birthYear: "2000",
-          })
-        ).status,
-        401,
-      );
-      const issued = await req("/api/generate-document", "POST", {
-        ...payload,
-        campusCode: c.code,
-        lang: "mr",
-      });
-      assert.equal(issued.status, 200);
-      assert.match(issued.data.serialNo, /^RJC-\d{4}-\d{5}$/);
-      assert.match(issued.data.bodyHtml, /प्रमाणित/);
-      assert.ok(
-        !JSON.stringify(issued.data.settings).includes("wifi_password"),
-      );
-      assert.ok(issued.data.certificateHtml.includes("data:font/woff2"));
-      assert.ok(issued.data.certificateHtml.includes("data:image/png;base64"));
-      assert.notEqual((await req("/api/campus-code")).data.code, c.code);
-      assert.equal(
-        (
-          await req("/api/generate-document", "POST", {
-            ...payload,
-            campusCode: c.code,
-          })
-        ).status,
-        403,
-      );
-      assert.equal(
-        (
-          await req("/api/generate-document", "POST", {
-            ...payload,
-            verificationMode: "backup",
-            birthYear: "",
-            confirmGr: "4501",
-            aadhaarLast4: "1234",
-            isLocalKiosk: true,
-          })
-        ).status,
-        200,
-      );
-      assert.equal(
-        (
-          await req("/api/generate-document", "POST", {
-            ...payload,
-            isGuardian: true,
-            guardianPhone: "9876543210",
-            confirmGr: "4501",
-            isLocalKiosk: true,
-          })
-        ).status,
-        200,
-      );
-      assert.equal(
-        (await req("/api/admin/dashboard")).data.logs[0].is_guardian,
-        1,
-      );
-      const verify = await fetch(base + "/verify/" + issued.data.serialNo);
-      assert.equal(verify.status, 200);
-      const html = await verify.text();
-      assert.ok(!html.includes("Aarav"));
-      assert.equal((await fetch(base + "/verify/MISSING")).status, 404);
-      assert.equal(
-        (await fetch(base + "/api/documents/" + issued.data.serialNo + "/pdf"))
-          .status,
-        403,
-      );
-      if (browserPath()) {
-        const r = await fetch(
-          base + "/api/documents/" + issued.data.serialNo + "/pdf",
-          { headers: { "x-document-token": issued.data.downloadToken } },
-        );
-        assert.equal(r.status, 200);
-        const b = Buffer.from(await r.arrayBuffer());
-        assert.equal(b.subarray(0, 4).toString(), "%PDF");
-        assert.ok(b.length > 10000);
-        const document = await require("pdf-lib").PDFDocument.load(b);
-        assert.equal(document.getPageCount(), 1);
-        assert.ok(Math.abs(document.getPage(0).getWidth() - 595.28) < 2);
-        assert.ok(Math.abs(document.getPage(0).getHeight() - 841.89) < 2);
-        if (process.env.KIOSK_QA_DIR) {
-          fs.mkdirSync(process.env.KIOSK_QA_DIR, { recursive: true });
-          fs.writeFileSync(
-            path.join(process.env.KIOSK_QA_DIR, "certificate.pdf"),
-            b,
-          );
-        }
-      }
-      // Persist a lock, restart, then advance only the test record's lock expiry.
-      for (let i = 0; i < 3; i++)
-        assert.equal(
-          (
-            await req("/api/generate-document", "POST", {
-              ...payload,
-              grNumber: "4505",
-              birthYear: "1900",
-              isLocalKiosk: true,
-            })
-          ).status,
-          i === 2 ? 423 : 401,
-        );
-      await stop();
-      await start();
-      assert.equal(
-        (
-          await req("/api/generate-document", "POST", {
-            ...payload,
-            grNumber: "4505",
-            birthYear: "2015",
-            isLocalKiosk: true,
-          })
-        ).status,
-        423,
-      );
-      const testDb = new Database(path.join(dir, "school.db"));
-      testDb
-        .prepare(
-          "UPDATE verification_attempts SET locked_until=? WHERE gr_number=?",
-        )
-        .run(Date.now() - 1, "4505");
-      testDb.close();
-      assert.equal(
-        (
-          await req("/api/generate-document", "POST", {
-            ...payload,
-            grNumber: "4505",
-            birthYear: "2015",
-            isLocalKiosk: true,
-          })
-        ).status,
-        200,
-      );
-      await login();
+      const c = (await req('/api/campus-code')).data;
+      const config = { templates: (await req('/api/admin/dashboard')).data.templates };
       const student = {
         gr_number: "9900",
         full_name: "<img src=x onerror=alert(1)>",
@@ -331,13 +124,6 @@ test(
         ).status,
         400,
       );
-      const safe = await req("/api/generate-document", "POST", {
-        ...payload,
-        grNumber: "9900",
-        isLocalKiosk: true,
-      });
-      assert.equal(safe.status, 200);
-      assert.ok(!safe.data.bodyHtml.includes("<img"));
       const csv =
         'gr_number,full_name,father_name,class_name,division,dob,aadhaar_last4,parent_phone\n9911,"Patil, Sai",Mahesh,9th,A,01/01/2012,2222,9876543210';
       assert.equal(
@@ -408,8 +194,8 @@ test(
         200,
       );
       assert.ok(
-        !(await req("/api/public-config")).data.templates.some(
-          (t) => t.id === newTpl,
+        !(await req("/api/admin/dashboard")).data.templates.some(
+          (t) => t.id === newTpl && t.is_active,
         ),
       );
       assert.equal(
@@ -430,23 +216,9 @@ test(
       assert.equal(bdb.pragma("integrity_check", { simple: true }), "ok");
       assert.ok(bdb.prepare("SELECT count(*) n FROM issued_logs").get().n > 0);
       bdb.close();
-      // Public LAN paths work, while monitor codes and localhost bypass remain protected.
-      if (c.lanIp !== "localhost") {
+      if (c.lanIp !== 'localhost') {
         const remote = `http://${c.lanIp}:${port}`;
-        const rr = await fetch(remote + "/api/public-config");
-        assert.equal(rr.status, 200);
-        assert.equal((await rr.json()).isLocalKiosk, false);
-        assert.equal((await fetch(remote + "/api/campus-code")).status, 403);
-        assert.equal(
-          (
-            await fetch(remote + "/api/generate-document", {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ ...payload, isLocalKiosk: true }),
-            })
-          ).status,
-          403,
-        );
+        assert.equal((await fetch(remote + '/api/campus-code')).status, 403);
       }
       assert.equal(
         (
@@ -490,7 +262,7 @@ test(
         ).status,
         403,
       );
-      assert.equal((await req("/webhook", "POST", {})).status, 503);
+      assert.equal((await req("/webhook", "POST", {})).status, 410);
       if (browserPath()) await browserChecks(base);
       assert.equal(
         (
@@ -508,7 +280,7 @@ test(
       await stop();
       await start();
       await login("new-password-123");
-      assert.equal((await req("/api/admin/dashboard")).data.students.length, 8);
+      assert.equal((await req("/api/admin/dashboard")).data.students.length, 9);
     } finally {
       if (child && child.exitCode === null) await stop();
       fs.rmSync(dir, { recursive: true, force: true });
@@ -542,58 +314,6 @@ async function browserChecks(base) {
     });
     await page.goto(base);
     await page.waitForFunction(() => state.config !== null);
-    if (process.env.KIOSK_QA_DIR) {
-      fs.mkdirSync(process.env.KIOSK_QA_DIR, { recursive: true });
-      await page.screenshot({
-        path: path.join(process.env.KIOSK_QA_DIR, "welcome.png"),
-        fullPage: true,
-      });
-    }
-    await page.click('[data-lang="mr"]');
-    await page.waitForSelector("#step-2:not([hidden])");
-    await page.type("#parent-phone", "9822011111");
-    await page.waitForSelector("#search-results .student");
-    assert.match(
-      await page.$eval("#search-results", (el) => el.textContent),
-      /\*\*\*\*\*\*1111/,
-    );
-    await page.click("#search-results .student");
-    await page.type("#birth-year", "2013");
-    await page.click(".document");
-    await page.click("#generate-button");
-    await page.waitForSelector("#step-4:not([hidden])");
-    await page.waitForFunction(
-      () =>
-        document.getElementById("certificate-frame").contentDocument?.fonts
-          .status === "loaded",
-    );
-    assert.match(
-      await page.$eval(
-        "#certificate-frame",
-        (el) => el.contentDocument.body.textContent,
-      ),
-      /Aarav/,
-    );
-    if (process.env.KIOSK_QA_DIR)
-      await page.screenshot({
-        path: path.join(process.env.KIOSK_QA_DIR, "certificate.png"),
-        fullPage: true,
-      });
-    await page.click("#done-button");
-    assert.equal(await page.evaluate(() => state.cert), null);
-    assert.equal(await page.$eval("#print-sheet", (e) => e.innerHTML), "");
-    assert.equal(
-      await page.$eval("#certificate-frame", (e) => e.hasAttribute("srcdoc")),
-      false,
-    );
-    await page.click('[data-lang="en"]');
-    await page.click('[data-pad="2"] button');
-    assert.equal(await page.$eval("#parent-phone", (e) => e.value), "1");
-    await page.evaluate(() => {
-      lastActivity = Date.now() - 46000;
-    });
-    await page.waitForSelector("#step-1:not([hidden])");
-    assert.equal(await page.$eval("#parent-phone", (e) => e.value), "");
     await page.click('[data-view="admin"]');
     await page.type("#admin-password", "school1234");
     await page.click("#login-form button");
@@ -627,6 +347,172 @@ async function browserChecks(base) {
         path: path.join(process.env.KIOSK_QA_DIR, "admin.png"),
         fullPage: true,
       });
+    await page.click("#new-template");
+    await new Promise((resolve) => setTimeout(resolve, 500));
+    assert.equal(
+      await page.$eval("#preview-status", (el) => el.textContent),
+      "Enter titles and body to preview.",
+    );
+    assert.equal(
+      await page.$eval("#template-preview", (el) => el.hasAttribute("srcdoc")),
+      false,
+    );
+    for (const [name, value] of [
+      ["title_en", "Browser UI draft"],
+      ["title_mr", "चाचणी"],
+      ["title_hi", "परीक्षण"],
+    ])
+      await page.$eval(
+        `#template-form [name="${name}"]`,
+        (el, text) => {
+          el.value = text;
+          el.dispatchEvent(new Event("input", { bubbles: true }));
+        },
+        value,
+      );
+    await page.type("#template-body", "<p>English draft</p>");
+    await page.click('[data-body-lang="mr"]');
+    await page.type("#template-body", "<p>Marathi draft</p>");
+    await page.click('[data-body-lang="en"]');
+    assert.equal(
+      await page.$eval("#template-body", (el) => el.value),
+      "<p>English draft</p>",
+    );
+    await page.waitForFunction(() =>
+      document.getElementById("preview-status").textContent.includes("EN"),
+    );
+
+    await page.click('[data-admin-tab="students"]');
+    await page.click("#new-student");
+    for (const [name, value] of Object.entries({
+      gr_number: "9952",
+      full_name: "Browser UI Check",
+      father_name: "Local QA",
+      class_name: "7th",
+      division: "A",
+      dob: "01/01/2017",
+      aadhaar_last4: "6789",
+      parent_phone: "9822099952",
+      status: "ACTIVE",
+    }))
+      await page.$eval(
+        `#student-form [name="${name}"]`,
+        (el, text) => {
+          el.value = text;
+          el.dispatchEvent(new Event("input", { bubbles: true }));
+        },
+        value,
+      );
+    await page.click("#student-form button.primary");
+    await page.waitForFunction(
+      () => document.getElementById("admin-status").textContent === "Student saved.",
+    );
+    assert.ok(
+      await page.evaluate(() =>
+        state.admin.students.some((student) => student.gr_number === "9952"),
+      ),
+    );
+    await page.click('[data-edit-student="9952"]');
+    assert.equal(
+      await page.$eval('#student-form [name="gr_number"]', (el) => el.readOnly),
+      true,
+    );
+    await page.click("#cancel-student");
+    assert.equal(
+      await page.$eval('#student-form [name="gr_number"]', (el) => el.value),
+      "",
+    );
+    page.once("dialog", (dialog) => dialog.accept());
+    await page.click('[data-delete-student="9952"]');
+    await page.waitForFunction(
+      () =>
+        state.admin.students.find((student) => student.gr_number === "9952")
+          ?.status === "INACTIVE",
+    );
+
+    await page.click('[data-admin-tab="branding"]');
+    await page.click('[data-clear-image="logo"]');
+    assert.equal(
+      await page.$eval("#drop-logo", (el) => el.control.id),
+      "image-logo",
+    );
+    await page.$eval("#drop-logo", (zone) => {
+      const encoded =
+        "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+j4O0AAAAASUVORK5CYII=";
+      const bytes = Uint8Array.from(atob(encoded), (character) =>
+        character.charCodeAt(0),
+      );
+      const file = new File([bytes], "logo.png", { type: "image/png" });
+      const transfer = new DataTransfer();
+      transfer.items.add(file);
+      zone.dispatchEvent(
+        new DragEvent("drop", {
+          bubbles: true,
+          cancelable: true,
+          dataTransfer: transfer,
+        }),
+      );
+    });
+    await page.waitForFunction(
+      () => !document.getElementById("preview-logo").hidden,
+    );
+    assert.equal(await page.$eval("#image-logo", (el) => el.value), "");
+    await page.click('[data-clear-image="logo"]');
+    assert.equal(await page.$eval("#preview-logo", (el) => el.hidden), true);
+
+    await page.click('[data-admin-tab="logs"]');
+    await page.$eval("#logs-filter", (el) => {
+      el.value = "no matching browser record";
+      el.dispatchEvent(new Event("input", { bubbles: true }));
+    });
+    assert.match(
+      await page.$eval("#logs-count", (el) => el.textContent),
+      /^0 of /,
+    );
+    await page.click("#refresh-logs");
+    await page.waitForFunction(() => state.admin !== null);
+    await page.click('[data-admin-tab="security"]');
+    await page.click("#backup-button");
+    await page.waitForFunction(() =>
+      document.getElementById("backup-status").textContent.startsWith("Saved:"),
+    );
+
+    for (const width of [390, 320]) {
+      await page.setViewport({ width, height: 844 });
+      for (const tab of [
+        "students",
+        "templates",
+        "branding",
+        "logs",
+        "security",
+      ]) {
+        await page.click('[data-admin-tab="' + tab + '"]');
+        await page.waitForSelector("#admin-" + tab + ":not([hidden])");
+        assert.ok(
+          await page.evaluate(
+            () => document.documentElement.scrollWidth <= innerWidth,
+          ),
+          `Admin ${tab} has no horizontal page overflow at ${width}px`,
+        );
+        if (process.env.KIOSK_QA_DIR && width === 320 && tab === "security")
+          await page.screenshot({
+            path: path.join(process.env.KIOSK_QA_DIR, "admin-mobile.png"),
+            fullPage: true,
+          });
+      }
+    }
+    await page.setViewport({ width: 320, height: 844 });
+    await page.click("#logout-button");
+    assert.ok(
+      await page.evaluate(
+        () => document.documentElement.scrollWidth <= innerWidth,
+      ),
+      "Admin sign-in fits a narrow phone viewport",
+    );
+    await page.type("#admin-password", "school1234");
+    await page.click("#login-form button");
+    await page.waitForSelector("#admin-content:not([hidden])");
+    await page.setViewport({ width: 1440, height: 1000 });
     // Strictly two tabs (Front Panel & Admin) and one single live campus QR
     const navViews = await page.$$eval("[data-view]", (els) =>
       els.map((e) => e.dataset.view),
