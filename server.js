@@ -68,6 +68,10 @@ const portalHostname = () => {
 };
 const local = (req) =>
   ["127.0.0.1", "::1", "::ffff:127.0.0.1"].includes(req.socket.remoteAddress);
+const isHostedPreviewHost = (hostname) =>
+  /\.run\.app$/i.test(String(hostname || ""));
+const canAccessLocalCounter = (req) =>
+  local(req) || isHostedPreviewHost(req.hostname);
 const tokens = new Map();
 const studentRefs = new Map();
 const STUDENT_REF_TTL = 15 * 60 * 1000;
@@ -92,6 +96,7 @@ function resolveStudentRef(value) {
 }
 const app = express();
 app.disable("x-powered-by");
+app.set("trust proxy", 1);
 const allowedHosts = new Set([
   "localhost",
   "127.0.0.1",
@@ -99,6 +104,10 @@ const allowedHosts = new Set([
   lanIp,
   ...interfaces.map((i) => i.address),
 ]);
+for (const envUrl of [process.env.APP_URL, process.env.SHARED_APP_URL]) {
+  const normalized = normalizePortalUrl(envUrl);
+  if (normalized) allowedHosts.add(new URL(normalized).hostname);
+}
 if (process.env.PUBLIC_WEBHOOK_URL) {
   try {
     allowedHosts.add(new URL(process.env.PUBLIC_WEBHOOK_URL).hostname);
@@ -147,21 +156,27 @@ app.use((req, res, next) => {
       return res.status(403).json({
         error: "This link provides access to the parent portal only.",
       });
-  } else if (!allowedHosts.has(req.hostname))
+  } else if (
+    !allowedHosts.has(req.hostname) &&
+    !isHostedPreviewHost(req.hostname)
+  )
     return res.status(403).json({ error: "Invalid host" });
+  const forwardedHost = req.headers["x-forwarded-host"];
   if (
     req.headers.origin &&
     req.headers.origin !== `http://${req.headers.host}` &&
-    req.headers.origin !== `https://${req.headers.host}`
+    req.headers.origin !== `https://${req.headers.host}` &&
+    (!forwardedHost ||
+      (req.headers.origin !== `http://${forwardedHost}` &&
+        req.headers.origin !== `https://${forwardedHost}`))
   )
     return res.status(403).json({ error: "Cross-origin requests are denied" });
   res.set({
     "Cache-Control": "no-store",
     "X-Content-Type-Options": "nosniff",
-    "X-Frame-Options": "SAMEORIGIN",
     "Referrer-Policy": "no-referrer",
     "Content-Security-Policy":
-      "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self' data:; frame-src 'self' about:; connect-src 'self'; frame-ancestors 'self'; base-uri 'none'; form-action 'self'",
+      "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self' data:; frame-src 'self' about:; connect-src 'self'; base-uri 'none'; form-action 'self'",
   });
   next();
 });
@@ -287,7 +302,7 @@ app.get("/api/health", (req, res) =>
   }),
 );
 app.get("/api/campus-code", async (req, res) => {
-  if (!local(req))
+  if (!canAccessLocalCounter(req))
     return res
       .status(403)
       .json({ error: "Campus code is shown on the school monitor only." });
@@ -346,7 +361,10 @@ app.post("/api/parent/family", parentRate, (req, res) => res.json(parentAuth.ver
 app.post("/api/parent/guardian", parentRate, (req, res) => res.json(parentAuth.redeem(req.body.approval)));
 app.post("/api/parent/done", (req, res) => { parentAuth.finish(parentToken(req)); res.sendStatus(204); });
 app.get("/api/parent/students", requireParent, (req, res) => {
-  const students = [...req.parentSession.refs].map(([studentRef, gr]) => ({ studentRef, ...db.prepare("SELECT full_name,class_name,division FROM students WHERE gr_number=? AND status='ACTIVE'").get(gr) }));
+  const students = [...req.parentSession.refs].map(([studentRef, gr]) => ({
+    studentRef,
+    ...db.prepare("SELECT gr_number,full_name,father_name,mother_name,class_name,division,dob,roll_no,academic_year,blood_group,house,apaar_id,parent_phone,emergency_phone,bus_route,address,remarks,photo_data FROM students WHERE gr_number=? AND status='ACTIVE'").get(gr),
+  }));
   res.json({ students, templates: db.prepare("SELECT id,title_mr,title_hi,title_en FROM document_templates WHERE is_active=1").all() });
 });
 app.post("/api/search-student", requireParent, (req, res) => {
@@ -462,9 +480,16 @@ function issue(b, session, sessionToken) {
   const vals = {
     student_name: student.full_name,
     father_name: student.father_name,
+    mother_name: student.mother_name || "",
     class_name: student.class_name,
     division: student.division,
     gr_number: student.gr_number,
+    roll_no: student.roll_no || "",
+    academic_year: student.academic_year || "",
+    blood_group: student.blood_group || "",
+    house: student.house || "",
+    apaar_id: student.apaar_id || "",
+    address: student.address || "",
     dob: student.dob,
     issue_date: issuedAt,
   };
@@ -532,11 +557,27 @@ app.get("/verify/:serial", async (req, res) => {
       "SELECT serial_no,doc_title,issued_at FROM issued_logs WHERE serial_no=?",
     )
     .get(req.params.serial);
+  const issuedDisplay = log
+    ? (() => {
+        const dt = new Date(log.issued_at);
+        return Number.isNaN(dt.getTime())
+          ? log.issued_at
+          : dt.toLocaleString("en-IN", {
+              timeZone: "Asia/Kolkata",
+              day: "2-digit",
+              month: "short",
+              year: "numeric",
+              hour: "numeric",
+              minute: "2-digit",
+              hour12: true,
+            });
+      })()
+    : "";
   res
     .status(log ? 200 : 404)
     .type("html")
     .send(
-      `<!doctype html><html><meta charset="utf-8"><meta name="viewport" content="width=device-width"><title>RJC · Verify certificate</title><style>body{font:18px system-ui;background:#f2f2f7;padding:10vh 6vw;color:#17202b}main{background:white;border-radius:24px;max-width:600px;padding:36px;margin:auto}p{overflow-wrap:anywhere}</style><main><h1>${log ? "✓ School record found" : "Record not found"}</h1>${log ? `<p>${esc(log.doc_title)}</p><p>Reference: ${esc(log.serial_no)}</p><p>Issued: ${esc(log.issued_at)}</p><small>Verify identity and the printed details with the school office. This page confirms the reference exists; it does not authenticate altered printed content.</small>` : "<p>Check the reference number or contact the school office.</p>"}</main></html>`,
+      `<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>RJC · Verify certificate</title><style>*{box-sizing:border-box}body{margin:0;min-height:100dvh;font:15px/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:#f3f2ee;color:#141414;padding:8vh 5vw}.sheet{max-width:640px;margin:auto;background:#faf9f6;border:1px solid #c8c7c0;border-top:4px solid #141414;padding:32px}.eyebrow{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:#5f5f59;margin:0 0 10px}h1{font-weight:400;font-size:28px;letter-spacing:-.02em;margin:0 0 20px;padding-bottom:16px;border-bottom:1px solid #c8c7c0}.meta{display:grid;grid-template-columns:1fr;gap:14px;margin:0 0 20px}.lbl{display:block;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:#5f5f59;margin-bottom:3px}.val{display:block;font-size:17px;font-weight:600;overflow-wrap:anywhere}.note{margin:0;padding-top:16px;border-top:1px solid #c8c7c0;font-size:13px;color:#5f5f59}</style><main class="sheet"><p class="eyebrow">RJC · DOCUMENT VERIFICATION</p><h1>${log ? "School record found" : "Record not found"}</h1>${log ? `<div class="meta"><div><span class="lbl">Document</span><span class="val">${esc(log.doc_title)}</span></div><div><span class="lbl">Reference number</span><span class="val">${esc(log.serial_no)}</span></div><div><span class="lbl">Issued on</span><span class="val">${esc(issuedDisplay)}</span></div></div><p class="note">Verify identity and printed details with the school office. This page confirms the reference exists in school records; it does not verify altered printed content.</p>` : '<p class="note">Check the reference number printed on the certificate or contact the school office.</p>'}</main></html>`,
     );
 });
 app.post(
@@ -561,7 +602,7 @@ app.post(
 );
 app.use("/api/admin", requireAdmin);
 app.post("/api/admin/guardian-approval", async (req, res) => {
-  if (!local(req)) fail("Approval is available only on the school counter PC.", 403);
+  if (!canAccessLocalCounter(req)) fail("Approval is available only on the school counter PC.", 403);
   const admin = db.prepare("SELECT password_hash FROM admin_users WHERE username=?").get("admin");
   if (!admin || !checkPassword(String(req.body.password || ""), admin.password_hash)) fail("Invalid administrator credentials.", 401);
   const approval = parentAuth.approve(req.body.grNumber, req.body.guardianPhone);
@@ -585,6 +626,43 @@ app.get("/api/admin/dashboard", (req, res) =>
       .all(),
   }),
 );
+const csvCell = (value) => {
+  const s = String(value ?? "");
+  const safe = /^[=+\-@\t\r]/.test(s) ? "'" + s : s;
+  return `"${safe.replace(/"/g, '""')}"`;
+};
+app.get("/api/admin/logs.csv", (req, res) => {
+  const q = String(req.query.q || "").trim().toLocaleLowerCase();
+  const rows = db
+    .prepare(
+      "SELECT serial_no,gr_number,student_name,doc_title,verified_phone,is_guardian,issued_at FROM issued_logs ORDER BY issued_at DESC",
+    )
+    .all()
+    .filter((r) =>
+      !q ||
+      [r.serial_no, r.gr_number, r.student_name, r.doc_title, r.verified_phone, r.issued_at].some(
+        (v) => String(v ?? "").toLocaleLowerCase().includes(q),
+      ),
+    );
+  const header = "serial_no,gr_number,student_name,doc_title,verified_phone,is_guardian,issued_at";
+  const lines = rows.map((r) =>
+    [
+      r.serial_no,
+      r.gr_number,
+      r.student_name,
+      r.doc_title,
+      r.verified_phone,
+      r.is_guardian ? "Yes" : "No",
+      r.issued_at,
+    ]
+      .map(csvCell)
+      .join(","),
+  );
+  res
+    .set("Content-Disposition", 'attachment; filename="issued-logs.csv"')
+    .type("text/csv; charset=utf-8")
+    .send("\uFEFF" + [header, ...lines].join("\r\n") + "\r\n");
+});
 app.post("/api/admin/change-password", (req, res) => {
   const old = text(req.body.currentPassword, "current password", 256),
     password = text(req.body.newPassword, "new password", 256);
@@ -607,6 +685,36 @@ app.post("/api/admin/change-password", (req, res) => {
   tokens.clear();
   res.json({ ok: true });
 });
+function studentPhoto(value) {
+  if (value == null || value === "") return "";
+  if (
+    typeof value !== "string" ||
+    value.length > 2100000 ||
+    !/^data:image\/(png|jpeg|webp);base64,[A-Za-z0-9+/=]+$/.test(value)
+  )
+    fail("Upload a PNG, JPG, or WebP photo smaller than 1.5 MB.");
+  const [, mime, b64] = /^data:image\/(png|jpeg|webp);base64,(.+)$/.exec(value);
+  const bytes = Buffer.from(b64, "base64");
+  const isPng =
+    mime === "png" &&
+    bytes.length >= 24 &&
+    bytes.subarray(0, 8).toString("hex") === "89504e470d0a1a0a" &&
+    bytes.readUInt32BE(16) <= 6000 &&
+    bytes.readUInt32BE(20) <= 6000;
+  const isJpeg =
+    mime === "jpeg" &&
+    bytes.length >= 4 &&
+    bytes[0] === 0xff &&
+    bytes[1] === 0xd8 &&
+    bytes[2] === 0xff;
+  const isWebp =
+    mime === "webp" &&
+    bytes.length >= 16 &&
+    bytes.subarray(0, 4).toString("ascii") === "RIFF" &&
+    bytes.subarray(8, 12).toString("ascii") === "WEBP";
+  if (!isPng && !isJpeg && !isWebp) fail("Invalid or oversized student photo.");
+  return value;
+}
 function validateStudent(b) {
   const s = {};
   for (const k of [
@@ -619,6 +727,24 @@ function validateStudent(b) {
   ])
     s[k] = text(b[k], k);
   s.father_name = text(b.father_name || "", "father name", 200, false);
+  s.mother_name = text(b.mother_name || "", "mother name", 200, false);
+  s.roll_no = text(b.roll_no || "", "roll number", 40, false);
+  s.academic_year = text(b.academic_year || "", "academic year", 40, false);
+  s.blood_group = text(b.blood_group || "", "blood group", 20, false);
+  s.house = text(b.house || "", "house", 60, false);
+  s.apaar_id = text(b.apaar_id || "", "APAAR ID", 64, false);
+  s.emergency_phone = text(
+    b.emergency_phone || "",
+    "emergency mobile",
+    20,
+    false,
+  );
+  if (s.emergency_phone && !/^\d{10}$/.test(s.emergency_phone))
+    fail("Emergency mobile must contain 10 digits.");
+  s.bus_route = text(b.bus_route || "", "transport route", 120, false);
+  s.address = text(b.address || "", "address", 300, false);
+  s.remarks = text(b.remarks || "", "remarks", 200, false);
+  s.photo_data = studentPhoto(b.photo_data);
   s.aadhaar_last4 = text(b.aadhaar_last4 || "", "Aadhaar last four", 4, false);
   if (s.aadhaar_last4 && !/^\d{4}$/.test(s.aadhaar_last4))
     fail("Store only the last four Aadhaar digits.");
@@ -640,10 +766,11 @@ function validateStudent(b) {
   return s;
 }
 const upsert = db.prepare(
-  "INSERT INTO students(gr_number,full_name,father_name,class_name,division,dob,birth_year,parent_phone,aadhaar_last4,status) VALUES(@gr_number,@full_name,@father_name,@class_name,@division,@dob,@birth_year,@parent_phone,@aadhaar_last4,@status) ON CONFLICT(gr_number) DO UPDATE SET full_name=excluded.full_name,father_name=excluded.father_name,class_name=excluded.class_name,division=excluded.division,dob=excluded.dob,birth_year=excluded.birth_year,parent_phone=excluded.parent_phone,aadhaar_last4=excluded.aadhaar_last4,status=excluded.status",
+  "INSERT INTO students(gr_number,full_name,father_name,mother_name,class_name,division,dob,birth_year,parent_phone,aadhaar_last4,roll_no,academic_year,blood_group,house,apaar_id,emergency_phone,bus_route,address,remarks,photo_data,status) VALUES(@gr_number,@full_name,@father_name,@mother_name,@class_name,@division,@dob,@birth_year,@parent_phone,@aadhaar_last4,@roll_no,@academic_year,@blood_group,@house,@apaar_id,@emergency_phone,@bus_route,@address,@remarks,@photo_data,@status) ON CONFLICT(gr_number) DO UPDATE SET full_name=excluded.full_name,father_name=excluded.father_name,mother_name=excluded.mother_name,class_name=excluded.class_name,division=excluded.division,dob=excluded.dob,birth_year=excluded.birth_year,parent_phone=excluded.parent_phone,aadhaar_last4=excluded.aadhaar_last4,roll_no=excluded.roll_no,academic_year=excluded.academic_year,blood_group=excluded.blood_group,house=excluded.house,apaar_id=excluded.apaar_id,emergency_phone=excluded.emergency_phone,bus_route=excluded.bus_route,address=excluded.address,remarks=excluded.remarks,photo_data=CASE WHEN excluded.photo_data='' AND @preserve_photo=1 THEN students.photo_data ELSE excluded.photo_data END,status=excluded.status",
 );
 app.post("/api/admin/students", (req, res) => {
-  upsert.run(validateStudent(req.body));
+  const preserve_photo = req.body.photo_data === undefined ? 1 : 0;
+  upsert.run({ ...validateStudent(req.body), preserve_photo });
   res.json({ ok: true });
 });
 app.delete("/api/admin/students/:gr", (req, res) => {
@@ -675,7 +802,7 @@ app.post("/api/admin/students/bulk", (req, res) => {
     }
   });
   db.transaction(() => {
-    for (const r of validated) upsert.run(r);
+    for (const r of validated) upsert.run({ ...r, preserve_photo: r.photo_data ? 0 : 1 });
   })();
   res.json({ ok: true, count: rows.length });
 });

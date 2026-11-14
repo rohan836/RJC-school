@@ -8,13 +8,23 @@ The project lives at **C:\RJC**. On this PC, `Start_Server_Silent.vbs` starts th
 
 For a **USB plug-and-play copy** (for a PC without Node.js): double-click `tools/Export_To_USB.bat` on this PC and enter the USB drive letter. It creates `<USB>:\RJC_Portable\` with the app, `node_modules`, a matching portable `portable-node\node.exe` (same Node build, so the native better-sqlite3 module works), a clean `school.db` snapshot produced with SQLite's online backup API, and `admin-credentials.txt` if present. Plug the USB stick into any Windows PC and double-click `RJC_Portable\Start_RJC.bat` — no installation required. `portable-node/` and `*.db` are gitignored and never pushed to GitHub. The same helper is noted in **Admin → Security & Backup**.
 
-## Start on this PC
-1. Install Node.js 22 or 24 LTS and Chrome or Edge.
-2. Run `npm ci` once while online. All application assets, QR generation, fonts and PDF rendering then work without internet.
-3. Run `npm start` and open http://localhost:3000. For full-screen kiosk printing, double-click `Start_RJC.bat`. Close an existing server before launching a new one.
-4. Sign in through **Admin** or http://localhost:3000/admin using the username/password in `admin-credentials.txt`. Fresh databases use `admin / school1234`; an existing password is preserved. Change it under Security & Backup before entering real records. The updated password is stored only as a scrypt hash.
+## Set up on any computer (from GitHub)
 
-The server detects a LAN IPv4 address and prints the phone portal URL on startup. Parents must connect to the **same school Wi-Fi**. If Windows asks, permit Node.js on the school's private network. Do not expose the whole portal to the public internet. Router client isolation or a firewall can block access between devices. With multiple network adapters, set `LAN_IP` in `.env` to the address your phones can reach. Restart after changing networks or configuration. A phone's localhost refers to the phone, not this PC.
+1. Install **Node.js 22 LTS** or newer (plus Chrome or Edge for full Devanagari PDF rendering; a built-in PDF generator works as a fallback if neither is installed).
+2. Clone the repository and run the one-step setup:
+   ```bash
+   git clone <your-repo-url>
+   cd RJC-school
+   npm run setup
+   ```
+   `npm run setup` installs dependencies, creates `.env` from `.env.example`, initializes `school.db` and `admin-credentials.txt`, and checks PDF readiness.
+3. Launch the portal:
+   - **Windows 11 / 10**: Double-click `Start_RJC.bat` (auto-runs setup on first launch if needed).
+   - **macOS**: Double-click `Start_RJC.command` (or run `./start.sh` in Terminal).
+   - **Linux / Terminal**: Run `./start.sh` or `npm start` and open `http://localhost:3000`.
+4. Sign in through **Admin** or `http://localhost:3000/admin` using the username/password in `admin-credentials.txt`. Fresh databases use `admin / school1234`; an existing password is preserved. Change it under **Security & Backup** before entering real records. The updated password is stored only as a scrypt hash.
+
+The server detects a LAN IPv4 address and prints the phone portal URL on startup. Parents must connect to the **same school Wi-Fi**. If your OS firewall asks, permit Node.js on the school's private network. Do not expose the whole portal to the public internet. Router client isolation or a firewall can block access between devices. With multiple network adapters, set `LAN_IP` in `.env` to the address your phones can reach. Restart after changing networks or configuration. A phone's localhost refers to the phone, not this PC.
 
 ## Test records
 

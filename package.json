@@ -4,6 +4,10 @@
   "description": "Offline school document kiosk and administration",
   "main": "server.js",
   "scripts": {
+    "setup": "node setup.js",
+    "dev": "node server.js",
+    "build": "node --check server.js && node --check db.js && node --check certificate.js && node --check parent-auth.js && node --check student-search.js && node --check whatsapp.js && node --check setup.js && node --check tools/launch.js",
+    "lint": "node --check server.js && node --check db.js && node --check certificate.js && node --check parent-auth.js && node --check student-search.js && node --check whatsapp.js && node --check setup.js && node --check tools/launch.js",
     "test": "node --test test/*.test.js",
     "start": "node server.js",
     "check": "node --check server.js && node --check db.js && node --check certificate.js && node --check whatsapp.js && npm test"
@@ -14,11 +18,12 @@
   "type": "commonjs",
   "dependencies": {
     "@fontsource/noto-sans-devanagari": "^5.3.0",
-    "better-sqlite3": "^13.0.3",
+    "better-sqlite3": "^12.11.1",
     "csv-parse": "^7.0.3",
     "dotenv": "^18.0.10",
     "express": "^5.3.0",
     "express-rate-limit": "^8.7.4",
+    "pdf-lib": "^1.17.1",
     "puppeteer-core": "^25.17.0",
     "qrcode": "^1.5.4",
     "sanitize-html": "^2.18.2"
@@ -29,7 +34,6 @@
   },
   "devDependencies": {
     "jsqr": "^1.4.0",
-    "pdf-lib": "^1.17.1",
     "pngjs": "^7.0.0",
     "prettier": "^3.10.1"
   }

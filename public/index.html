@@ -7,6 +7,15 @@
       content="width=device-width,initial-scale=1,viewport-fit=cover"
     />
     <title>RJC · School Document Portal</title>
+    <meta
+      name="description"
+      content="School document kiosk and administration portal for R. J. Chaware Convent."
+    />
+    <meta property="og:title" content="RJC · School Document Portal" />
+    <meta
+      property="og:description"
+      content="School document kiosk and administration portal for R. J. Chaware Convent."
+    />
     <style>
       @font-face {
         font-family: Noto;
@@ -18,148 +27,179 @@
         unicode-range: U+0000-00FF;
       }
       :root {
-        --canvas: #f8f4ee;
-        --dune: #efe9de;
-        --dune-deep: #e4ddcc;
-        --taupe: #c5b49d;
-        --umber: #443a35;
-        --ink: #252525;
-        --forest: #1d3b2a;
-        --success: #2a5a3c;
-        --danger: #8f2d28;
-        --danger-tint: #f5e6e4;
-        --hairline: rgba(68, 58, 53, 0.14);
-        --ring: rgba(29, 59, 42, 0.18);
-        --ease: cubic-bezier(0.22, 1, 0.36, 1);
-        --serif: Georgia, "Times New Roman", "Noto Sans Devanagari", serif;
+        --paper: #f3f2ee;
+        --paper-field: #faf9f6;
+        --paper-tint: #eae9e3;
+        --ink: #141414;
+        --muted: #5f5f59;
+        --subtle: #888780;
+        --rule: #c8c7c0;
+        --rule-strong: #141414;
+        --accent: #d96b27;
+        --danger: #a32620;
+        --danger-tint: #f5e9e8;
         --sans:
-          system-ui, -apple-system, "Segoe UI", "Noto Sans Devanagari",
-          sans-serif;
+          -apple-system, BlinkMacSystemFont, "Helvetica Neue", "Segoe UI",
+          "Noto", "Noto Sans Devanagari", sans-serif;
+        --mono:
+          "SF Mono", ui-monospace, Menlo, Consolas, "Liberation Mono",
+          "Noto", "Noto Sans Devanagari", monospace;
+        --outer-gap: clamp(16px, 1.5vw, 24px);
       }
-      * {
+      *,
+      *::before,
+      *::after {
         box-sizing: border-box;
+        transition: none !important;
+        animation: none !important;
       }
       ::selection {
-        background: var(--ring);
+        background: #141414;
+        color: #f3f2ee;
+      }
+      html {
+        -webkit-text-size-adjust: 100%;
       }
       body {
         margin: 0;
-        background: var(--canvas);
+        min-height: 100dvh;
+        display: flex;
+        flex-direction: column;
+        background: var(--paper);
         color: var(--ink);
-        font: 17px var(--sans);
+        font: 15px/1.55 var(--sans);
         font-variant-numeric: tabular-nums;
-        letter-spacing: 0.01em;
+        letter-spacing: 0.005em;
+        -webkit-font-smoothing: antialiased;
       }
       button,
       input,
       select,
       textarea {
         font: inherit;
+        border-radius: 0;
       }
       button {
         cursor: pointer;
-        border: 1px solid var(--hairline);
-        border-radius: 999px;
-        background: var(--dune);
-        color: var(--umber);
-        font-weight: 600;
-        letter-spacing: 0.01em;
-        padding: 15px 26px;
-        min-height: 60px;
-        transition:
-          transform 0.18s var(--ease),
-          background 0.18s var(--ease),
-          border-color 0.18s var(--ease),
-          box-shadow 0.18s var(--ease);
+        border: 1px solid var(--rule-strong);
+        border-radius: 0;
+        background: var(--paper);
+        color: var(--ink);
+        font-family: var(--mono);
+        font-size: 13.5px;
+        font-weight: 500;
+        letter-spacing: 0.02em;
+        padding: 12px 20px;
+        min-height: 46px;
+        box-shadow: none;
       }
       button:hover {
-        background: #e9e2d4;
+        background: var(--paper-tint);
       }
       button:active {
-        transform: scale(0.97);
+        transform: none;
       }
       button:disabled {
-        opacity: 0.45;
-        cursor: wait;
+        opacity: 0.4;
+        cursor: not-allowed;
       }
       .primary {
-        background: var(--forest);
-        color: #f8f4ee;
-        border-color: var(--forest);
+        background: var(--ink);
+        color: var(--paper);
+        border-color: var(--ink);
       }
       .primary:hover {
-        background: #284a37;
-        border-color: #284a37;
+        background: #2b2b2b;
+        border-color: #2b2b2b;
+        color: var(--paper);
       }
       .danger {
         background: var(--danger-tint);
         color: var(--danger);
-        border-color: rgba(143, 45, 40, 0.28);
+        border-color: var(--danger);
+      }
+      .danger:hover {
+        background: #ecd7d5;
       }
       .quiet {
         background: transparent;
-        border-color: transparent;
-        color: var(--umber);
+        border: 1px solid transparent;
+        color: var(--muted);
+        padding-left: 0;
+        padding-right: 12px;
+        min-height: 40px;
       }
       .quiet:hover {
-        background: var(--dune);
+        background: transparent;
+        color: var(--ink);
+        text-decoration: underline;
+        text-underline-offset: 4px;
       }
       .quiet.full {
         text-align: left;
         padding-left: 0;
         padding-right: 0;
       }
+      button:focus:not(:focus-visible),
+      a:focus:not(:focus-visible) {
+        outline: none;
+      }
       button:focus-visible,
       input:focus-visible,
       select:focus-visible,
       textarea:focus-visible,
       a:focus-visible {
-        outline: 2px solid var(--forest);
-        outline-offset: 3px;
+        outline: 2px solid var(--ink);
+        outline-offset: 2px;
       }
       input,
       select,
       textarea {
         width: 100%;
-        border: 1px solid var(--taupe);
-        border-radius: 14px;
-        background: var(--canvas);
+        border: 1px solid var(--subtle);
+        border-radius: 0;
+        background: var(--paper-field);
         font-variant-numeric: tabular-nums;
         color: var(--ink);
-        font-size: 17px;
-        padding: 16px 18px;
-        min-height: 60px;
-        transition:
-          border-color 0.16s var(--ease),
-          box-shadow 0.16s var(--ease);
+        font-size: 15px;
+        padding: 12px 14px;
+        min-height: 46px;
       }
       input:focus,
       select:focus,
       textarea:focus {
-        border-color: var(--forest);
-        box-shadow: 0 0 0 3px var(--ring);
-        outline: none;
+        background: #ffffff;
+        border-color: var(--ink);
+        box-shadow: none;
+        outline: 1px solid var(--ink);
+        outline-offset: 0;
       }
       textarea {
         resize: vertical;
-        line-height: 1.6;
+        line-height: 1.55;
+        font-family: var(--mono);
+        font-size: 13.5px;
       }
       input[type="checkbox"] {
-        width: 22px;
-        min-height: 22px;
-        height: 22px;
-        accent-color: var(--forest);
+        width: 18px;
+        min-height: 18px;
+        height: 18px;
+        accent-color: var(--ink);
       }
       input[type="file"] {
-        font-size: 15px;
+        font-family: var(--mono);
+        font-size: 13px;
+        padding: 9px 10px;
       }
       label {
         display: block;
-        font-size: 14px;
-        font-weight: 650;
-        letter-spacing: 0.03em;
-        color: var(--umber);
-        margin: 20px 0 10px;
+        font-family: var(--mono);
+        font-size: 12px;
+        font-weight: 500;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+        color: var(--muted);
+        margin: 16px 0 6px;
       }
       h1,
       h2,
@@ -168,171 +208,172 @@
         margin-top: 0;
       }
       h1 {
-        font-family: var(--serif);
-        font-weight: 500;
-        font-size: clamp(34px, 3.2vw, 42px);
-        letter-spacing: -0.02em;
-        line-height: 1.15;
-        margin-bottom: 12px;
+        font-family: var(--sans);
+        font-weight: 300;
+        font-size: clamp(30px, 3vw, 42px);
+        letter-spacing: -0.025em;
+        line-height: 1.12;
+        margin-bottom: 10px;
         color: var(--ink);
+        text-wrap: balance;
       }
       h2 {
-        font-family: var(--serif);
-        font-weight: 500;
-        font-size: 26px;
-        letter-spacing: -0.01em;
+        font-family: var(--sans);
+        font-weight: 400;
+        font-size: 20px;
+        letter-spacing: -0.015em;
         color: var(--ink);
       }
       h3 {
-        font-size: 19px;
+        font-size: 16px;
+        font-weight: 500;
       }
       p {
-        line-height: 1.75;
+        line-height: 1.6;
       }
       .muted {
-        color: var(--umber);
-        opacity: 0.85;
+        color: var(--muted);
       }
       .small {
-        font-size: 15px;
+        font-size: 13.5px;
       }
       .eyebrow {
-        color: var(--umber);
-        opacity: 0.8;
+        font-family: var(--mono);
+        color: var(--muted);
         text-transform: uppercase;
-        font-size: 12px;
-        font-weight: 700;
-        letter-spacing: 2px;
-        margin-bottom: 14px;
+        font-size: 11px;
+        font-weight: 500;
+        letter-spacing: 0.12em;
+        margin-bottom: 8px;
       }
+
+      /* Architectural Swiss Top Header (solid paper, heavy top rule, thin divider) */
       .top {
-        padding: 18px 0;
-        background: rgba(248, 244, 238, 0.85);
-        border-bottom: 1px solid var(--hairline);
-        backdrop-filter: blur(18px);
+        position: sticky;
+        top: 0;
+        z-index: 40;
+        padding: 12px var(--outer-gap);
+        background: var(--paper);
+        border-top: 4px solid var(--ink);
+        border-bottom: 1px solid var(--rule);
       }
       .top-inner {
-        width: 94%;
-        max-width: 1380px;
-        margin: auto;
+        width: 100%;
+        max-width: none;
+        margin: 0;
         display: flex;
         align-items: center;
         justify-content: space-between;
-        gap: 20px;
+        gap: 24px;
       }
       .brand {
         display: flex;
         align-items: center;
-        gap: 16px;
+        gap: 14px;
         min-width: 0;
       }
       .mark {
-        width: 58px;
-        height: 58px;
+        width: 36px;
+        height: 36px;
         flex: 0 0 auto;
         display: grid;
         place-items: center;
-        background: var(--forest);
-        border-radius: 18px;
-        color: #f8f4ee;
-        font-family: var(--serif);
-        font-size: 16px;
+        background: transparent;
+        border: 1.5px solid var(--ink);
+        border-radius: 0;
+        color: var(--ink);
+        font-family: var(--mono);
+        font-size: 12px;
         font-weight: 600;
-        letter-spacing: 3px;
+        letter-spacing: 0.08em;
       }
       .brand strong {
-        font-family: var(--serif);
+        font-family: var(--mono);
         font-weight: 500;
-        font-size: 20px;
+        font-size: 14px;
         display: block;
-        letter-spacing: -0.01em;
+        letter-spacing: 0.06em;
+        color: var(--ink);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
       }
-      .brand small {
-        display: block;
-        font-size: 13.5px;
-        color: var(--umber);
-        line-height: 1.4;
-      }
+
+      /* Flat Geometric View Switcher */
       .nav {
-        display: flex;
-        background: var(--dune);
-        padding: 5px;
-        border-radius: 999px;
-        gap: 4px;
-        border: 1px solid var(--hairline);
+        display: inline-flex;
+        background: var(--paper);
+        padding: 0;
+        border-radius: 0;
+        gap: 0;
+        border: 1px solid var(--ink);
         flex: 0 0 auto;
       }
       .nav button {
-        background: transparent;
+        background: var(--paper);
         border: 0;
-        min-height: 46px;
-        padding: 11px 22px;
-        font-size: 15px;
-        border-radius: 999px;
-        color: var(--umber);
+        border-right: 1px solid var(--ink);
+        min-height: 36px;
+        padding: 7px 18px;
+        font-family: var(--mono);
+        font-size: 12.5px;
+        font-weight: 500;
+        letter-spacing: 0.05em;
+        text-transform: uppercase;
+        border-radius: 0;
+        color: var(--ink);
+        white-space: nowrap;
+        flex-shrink: 0;
+      }
+      .nav button:last-child {
+        border-right: 0;
       }
       .nav button:hover {
-        background: transparent;
-        color: var(--ink);
+        background: var(--paper-tint);
       }
       .nav .active {
-        background: var(--forest);
-        color: #f8f4ee;
-        box-shadow: none;
+        background: var(--ink);
+        color: var(--paper);
       }
       .nav .active:hover {
-        background: var(--forest);
-        color: #f8f4ee;
+        background: var(--ink);
+        color: var(--paper);
       }
+
       main {
-        width: 94%;
-        max-width: 1380px;
-        padding: 34px 0 80px;
-        margin: auto;
+        width: calc(100% - (var(--outer-gap) * 2));
+        max-width: none;
+        padding: 0;
+        margin: var(--outer-gap);
+        flex: 1 1 auto;
+        min-height: 0;
       }
       .wide {
-        max-width: 1380px;
+        max-width: none;
       }
       .card {
-        background: var(--dune);
-        border: 1px solid var(--hairline);
-        border-radius: 26px;
-        padding: 34px 36px;
+        background: var(--paper);
+        border: 1px solid var(--rule);
+        border-radius: 0;
+        padding: 28px 30px;
         box-shadow: none;
       }
-      @media (min-width: 861px) {
-        .card {
-          padding: 40px 44px;
-        }
-        html {
-          scrollbar-gutter: stable;
-        }
-      }
       .stepbar {
-        display: flex;
-        gap: 10px;
-        margin-bottom: 28px;
+        display: grid;
+        grid-template-columns: repeat(6, minmax(0, 1fr));
+        gap: 8px;
+        margin-bottom: 24px;
       }
       .stepbar span {
-        height: 3px;
-        background: var(--dune-deep);
-        flex: 1;
-        border-radius: 3px;
-        transition: background 0.35s var(--ease);
+        height: 2px;
+        background: var(--rule);
+        border-radius: 0;
       }
       .stepbar .on {
-        background: var(--forest);
+        background: var(--ink);
       }
       .step {
-        animation: enter 0.16s ease-out;
-      }
-      @keyframes enter {
-        from {
-          opacity: 0;
-        }
-        to {
-          opacity: 1;
-        }
+        border-radius: 0;
       }
       [hidden] {
         display: none !important;
@@ -346,131 +387,156 @@
       .admin-heading {
         display: grid;
         grid-template-columns: minmax(0, 1fr) auto;
-        align-items: start;
+        align-items: center;
         gap: 20px;
+        padding: 18px clamp(26px, 3vw, 48px) 6px;
+        border-bottom: 0;
       }
       .admin-heading-actions {
         display: flex;
         align-items: center;
         justify-content: flex-end;
         flex-wrap: wrap;
-        gap: 12px;
+        gap: 8px;
       }
       .grid2,
       .layout {
         display: grid;
         grid-template-columns: repeat(2, minmax(0, 1fr));
-        gap: 36px;
+        gap: 20px;
         align-items: start;
       }
       .layout-wide {
         grid-template-columns: minmax(0, 1.45fr) minmax(0, 1fr);
       }
-      /* Two-column desktop split: form on the left, keypad / preview on the right. */
       .split-2 {
         display: grid;
         grid-template-columns: minmax(0, 1.08fr) minmax(0, 0.92fr);
-        gap: 44px;
+        gap: 24px;
         align-items: start;
       }
       .split-2.preview-split {
-        grid-template-columns: minmax(0, 1.32fr) minmax(0, 0.68fr);
+        grid-template-columns: minmax(0, 1.55fr) minmax(260px, 0.75fr);
       }
       .split-side {
-        background: var(--dune-deep);
-        border: 1px solid var(--hairline);
-        border-radius: 24px;
-        padding: 28px 30px 32px;
+        background: var(--paper);
+        border: 1px solid var(--rule);
+        border-radius: 0;
+        padding: 24px;
+        min-width: 0;
       }
       .split-side > .eyebrow {
-        text-align: center;
+        text-align: left;
       }
       .full {
         width: 100%;
       }
+      .inst-line {
+        font-family: var(--mono);
+        font-size: 12.5px;
+        color: var(--muted);
+        margin: 0 0 18px;
+        padding-bottom: 16px;
+        border-bottom: 1px solid var(--rule);
+        line-height: 1.5;
+      }
+
+      /* Thin-bordered Architectural Language Rows */
       .lang {
         display: flex;
         align-items: center;
         justify-content: space-between;
         width: 100%;
         text-align: left;
-        background: var(--canvas);
+        background: var(--paper);
         color: var(--ink);
-        border: 1px solid var(--hairline);
-        padding: 24px 28px;
-        margin-top: 16px;
-        border-radius: 24px;
-        min-height: 104px;
-        gap: 18px;
-        transition:
-          transform 0.22s var(--ease),
-          border-color 0.22s var(--ease),
-          box-shadow 0.22s var(--ease);
+        border: 1px solid var(--rule);
+        padding: 14px 18px;
+        margin-top: 10px;
+        border-radius: 0;
+        min-height: 70px;
+        gap: 16px;
+        font-family: var(--sans);
       }
       .lang:hover {
-        transform: translateY(-2px);
-        border-color: var(--taupe);
-        box-shadow: 0 14px 30px rgba(37, 37, 37, 0.09);
-        background: var(--canvas);
+        background: var(--paper-tint);
+        border-color: var(--ink);
       }
       .lang strong {
-        font-family: var(--serif);
+        font-family: var(--sans);
         font-weight: 500;
-        font-size: 25px;
+        font-size: 19px;
         letter-spacing: -0.01em;
         color: var(--ink);
         display: block;
       }
       .lang small {
         display: block;
-        color: var(--umber);
-        margin-top: 6px;
-        font-size: 14px;
+        font-family: var(--mono);
+        color: var(--muted);
+        margin-top: 2px;
+        font-size: 12.5px;
+        font-weight: 400;
       }
       .lang .symbol {
-        width: 56px;
-        height: 56px;
-        background: var(--dune-deep);
-        border: 1px solid var(--hairline);
-        border-radius: 50%;
+        width: 38px;
+        height: 38px;
+        background: transparent;
+        border: 1px solid var(--rule);
+        border-radius: 0;
         display: grid;
         place-items: center;
-        color: var(--umber);
+        color: var(--accent);
         flex: 0 0 auto;
       }
+      .lang:hover .symbol {
+        border-color: var(--ink);
+      }
       .lang .arrow {
-        color: var(--taupe);
-        font-size: 24px;
-        transition: transform 0.22s var(--ease);
+        font-family: var(--mono);
+        color: var(--muted);
+        font-size: 16px;
       }
       .lang:hover .arrow {
-        transform: translateX(4px);
-        color: var(--forest);
+        color: var(--ink);
       }
       .listen {
-        font-size: 15px;
-        min-height: 48px;
-        padding: 12px 22px;
-        background: var(--dune-deep);
-        color: var(--umber);
-        border: 1px solid var(--hairline);
+        font-family: var(--mono);
+        font-size: 12px;
+        min-height: 34px;
+        padding: 6px 12px;
+        border-radius: 0;
+        background: var(--paper);
+        color: var(--ink);
+        border: 1px solid var(--rule);
         white-space: nowrap;
+        flex-shrink: 0;
+      }
+      .listen:hover {
+        background: var(--paper-tint);
+        border-color: var(--ink);
+      }
+      .listen-mark {
+        color: var(--accent);
+        margin-right: 4px;
       }
       .status {
-        min-height: 26px;
-        font-size: 16px;
+        min-height: 20px;
+        font-family: var(--mono);
+        font-size: 13px;
+        font-weight: 500;
         color: var(--danger);
-        margin: 18px 0;
+        margin: 12px 0;
         overflow-wrap: anywhere;
       }
       .notice {
-        padding: 18px 20px;
-        border-radius: 16px;
-        background: #f3ead9;
-        color: #6d4c1e;
-        border: 1px solid #e0d2b8;
-        font-size: 15px;
-        line-height: 1.7;
+        padding: 12px 14px;
+        border-radius: 0;
+        background: var(--paper-field);
+        color: var(--muted);
+        border: 1px solid var(--rule);
+        font-size: 13.5px;
+        line-height: 1.55;
       }
       .student {
         width: 100%;
@@ -478,233 +544,734 @@
         justify-content: space-between;
         align-items: center;
         text-align: left;
-        border: 1px solid var(--hairline);
-        background: var(--canvas);
+        border: 1px solid var(--rule);
+        background: var(--paper);
         color: var(--ink);
-        margin-top: 14px;
-        padding: 20px 24px;
-        border-radius: 18px;
+        margin-top: 8px;
+        padding: 13px 16px;
+        border-radius: 0;
         gap: 12px;
         flex-wrap: wrap;
+        font-family: var(--sans);
         font-variant-numeric: tabular-nums;
-        font-size: 17px;
-        transition:
-          border-color 0.18s var(--ease),
-          transform 0.18s var(--ease);
+        font-size: 15.5px;
       }
       .student:hover {
-        border-color: var(--taupe);
-        transform: translateY(-1px);
-        background: var(--canvas);
+        border-color: var(--ink);
+        background: var(--paper-tint);
       }
       .student small {
         display: block;
-        color: var(--umber);
+        font-family: var(--mono);
+        color: var(--muted);
         font-weight: 400;
-        margin-top: 6px;
-        font-size: 14.5px;
-      }
-      .badge {
-        background: var(--dune-deep);
-        color: var(--umber);
-        border: 1px solid var(--hairline);
-        border-radius: 999px;
-        padding: 8px 16px;
-        font-size: 13.5px;
-        letter-spacing: 0.03em;
-        white-space: nowrap;
+        margin-top: 2px;
+        font-size: 12.5px;
       }
       .selected {
-        padding: 20px 24px;
-        background: var(--dune-deep);
-        border: 1px solid var(--hairline);
-        border-radius: 18px;
-        margin-bottom: 22px;
+        padding: 12px 16px;
+        background: var(--paper-field);
+        border: 1px solid var(--ink);
+        border-radius: 0;
+        margin-bottom: 16px;
+        font-family: var(--mono);
         font-variant-numeric: tabular-nums;
-        font-size: 17px;
+        font-size: 14px;
+        font-weight: 500;
+        color: var(--ink);
       }
       .check {
         display: flex;
         align-items: center;
-        gap: 12px;
-        line-height: 1.6;
-        font-size: 16px;
+        gap: 10px;
+        line-height: 1.5;
+        font-family: var(--sans);
+        text-transform: none;
+        letter-spacing: 0;
+        font-size: 14.5px;
+        color: var(--ink);
       }
       .document {
         width: 100%;
         text-align: left;
-        margin: 10px 0;
-        border: 1px solid var(--hairline);
-        background: var(--canvas);
+        margin: 8px 0;
+        border: 1px solid var(--rule);
+        background: var(--paper);
         color: var(--ink);
-        padding: 22px 24px;
-        border-radius: 18px;
-        min-height: 76px;
-        font-size: 19px;
-        transition:
-          border-color 0.18s var(--ease),
-          background 0.18s var(--ease);
+        padding: 14px 18px;
+        border-radius: 0;
+        min-height: 54px;
+        font-family: var(--sans);
+        font-size: 16px;
+        font-weight: 500;
       }
       .document:hover {
-        border-color: var(--taupe);
+        background: var(--paper-tint);
+        border-color: var(--ink);
       }
       .chosen {
-        border-color: var(--forest);
-        background: rgba(29, 59, 42, 0.09);
-        color: var(--forest);
+        border-color: var(--ink);
+        background: var(--ink);
+        color: var(--paper);
+      }
+      .chosen:hover {
+        background: #2b2b2b;
+        color: var(--paper);
       }
       .actions {
         display: flex;
-        gap: 16px;
+        gap: 12px;
         flex-wrap: wrap;
       }
       .action-stack {
         display: grid;
         grid-template-columns: minmax(0, 1fr);
-        gap: 16px;
+        gap: 10px;
         min-width: 0;
       }
       .action-stack button {
         width: 100%;
         min-width: 0;
-        min-height: 80px;
-        font-size: 18px;
+        min-height: 48px;
+        font-size: 13.5px;
         white-space: normal;
-      }
-      .split-side {
-        min-width: 0;
+        border-radius: 0;
       }
       #pdf-button {
-        background: var(--ink);
+        background: var(--paper);
         border-color: var(--ink);
-        color: var(--canvas);
+        color: var(--ink);
       }
       #pdf-button:hover {
-        background: #3a3a3a;
-        border-color: #3a3a3a;
+        background: var(--paper-tint);
       }
       #whatsapp-button {
-        background: var(--dune-deep);
-        border-color: var(--hairline);
+        background: var(--paper);
+        border-color: var(--rule);
         color: var(--ink);
+      }
+      #whatsapp-button:hover {
+        border-color: var(--ink);
+        background: var(--paper-tint);
       }
       .frame {
         width: 100%;
-        height: 940px;
-        border: 1px solid var(--hairline);
-        border-radius: 18px;
+        height: 760px;
+        border: 1px solid var(--rule);
+        border-radius: 0;
         background: #ffffff;
       }
       .preview-wrap {
-        background: var(--dune-deep);
-        border: 1px solid var(--hairline);
-        border-radius: 22px;
-        padding: 20px;
-        margin: 24px 0;
+        background: var(--paper-tint);
+        border: 1px solid var(--rule);
+        border-radius: 0;
+        padding: 12px;
+        margin: 14px 0;
       }
       .step-front {
         max-width: none;
       }
       .front-split {
         display: grid;
-        grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr);
-        gap: 44px;
-        align-items: center;
-      }
-      .front-split:has(.front-qr[hidden]) {
         grid-template-columns: minmax(0, 1fr);
+        gap: 0;
       }
-      body.phone .front-split {
-        grid-template-columns: minmax(0, 1fr);
-      }
+
+      /* Left QR Spec Column (same paper sheet, bordered geometrically, zero dark window block) */
       .front-qr {
-        text-align: center;
-        border-left: 1px solid var(--hairline);
-        padding-left: 44px;
+        text-align: left;
+        background: var(--paper);
+        color: var(--ink);
+        border: 0;
+        border-right: 1px solid var(--rule);
+        border-radius: 0;
+        padding: clamp(28px, 3vw, 44px) clamp(28px, 3.2vw, 52px);
       }
       .front-qr .eyebrow {
-        margin-bottom: 0;
-        text-align: center;
+        color: var(--muted);
+        margin-bottom: 14px;
+        padding-bottom: 0;
+        border-bottom: 0;
+        width: 100%;
+        text-align: left;
       }
       .qr-frame {
         background: #ffffff;
-        border: 1px solid var(--hairline);
-        border-radius: 26px;
-        padding: 24px;
+        border: 1px solid var(--ink);
+        border-radius: 0;
+        padding: 12px;
         width: max-content;
-        margin: 16px auto 0;
+        margin: 18px auto;
+        box-shadow: none;
       }
       .qr-frame img {
-        width: 260px;
-        height: 260px;
+        width: 204px;
+        height: 204px;
         display: block;
+        border-radius: 0;
       }
       .front-qr .code {
-        color: var(--forest);
-        font-size: clamp(54px, 5vw, 86px);
-        margin: 20px 0 6px;
-      }
-      .front-qr .bar {
-        margin-top: 12px;
-        margin-bottom: 8px;
-      }
-      .qr-help {
-        font-size: 15px;
-        color: var(--umber);
-        margin: 14px 0 0;
-        line-height: 1.6;
-      }
-      .privacy-line {
-        text-align: left;
-        margin-top: 24px;
-      }
-      .code {
-        font-family: var(--serif);
-        font-size: clamp(72px, 8vw, 120px);
-        font-weight: 500;
-        letter-spacing: 0.16em;
+        width: 100%;
+        color: var(--ink);
+        font-family: var(--mono);
+        font-size: clamp(46px, 4.4vw, 64px);
+        font-weight: 300;
+        letter-spacing: 0.14em;
+        padding-left: 0.14em;
+        margin: 10px 0 14px;
         line-height: 1.05;
-        color: var(--forest);
-        margin: 18px 0 4px;
         text-align: center;
         font-variant-numeric: tabular-nums;
-        padding-left: 0.16em;
       }
       .hero-meta {
         display: flex;
         justify-content: space-between;
         gap: 12px;
-        font-size: 12.5px;
-        letter-spacing: 0.12em;
+        font-family: var(--mono);
+        font-size: 11.5px;
+        letter-spacing: 0.08em;
         text-transform: uppercase;
-        color: var(--umber);
-        opacity: 0.9;
+        color: var(--muted);
+        width: 100%;
+        padding-top: 12px;
+        border-top: 1px solid var(--rule);
       }
       .hero-meta strong {
         font-variant-numeric: tabular-nums;
+        color: var(--ink);
       }
       .bar {
-        height: 8px;
+        height: 3px;
         overflow: hidden;
-        border-radius: 4px;
-        background: var(--dune-deep);
-        margin-top: 18px;
+        border-radius: 0;
+        background: var(--rule);
+        margin: 8px 0 14px;
+        width: 100%;
       }
       .bar div {
         height: 100%;
-        background: var(--forest);
+        background: var(--ink);
         transform-origin: left;
-        transition: transform 1s linear;
+        border-radius: 0;
       }
-      .tabs,
-      .subnav {
+      .qr-help {
+        font-family: var(--mono);
+        font-size: 12px;
+        color: var(--muted);
+        margin: 4px 0 0;
+        line-height: 1.55;
+        width: 100%;
+      }
+      .privacy-line {
+        text-align: left;
+        margin-top: 18px;
+        padding-top: 12px;
+        border-top: 1px solid var(--rule);
+        font-family: var(--mono);
+        font-size: 12px;
+      }
+
+      /* Parent Workspace Grid Sheet (flat paper, zero window elevation) */
+      #parent-view.parent-workspace {
+        margin: var(--outer-gap);
+        padding: 0;
+        gap: 0;
+        display: grid;
+        grid-template-columns: minmax(310px, 0.34fr) minmax(0, 0.66fr);
+        align-items: stretch;
+        background: var(--paper);
+        border: 1px solid var(--rule);
+        border-radius: 0;
+        box-shadow: none;
+        min-height: 0;
+        flex: 1 1 auto;
+      }
+      #parent-view > .front-qr {
         display: flex;
-        gap: 4px;
-        overflow: auto;
-        margin: 24px 0;
-        border-bottom: 1px solid var(--hairline);
+        flex-direction: column;
+        align-items: flex-start;
+        justify-content: center;
+      }
+      #parent-view:has(> .front-qr[hidden]),
+      body.phone #parent-view {
+        grid-template-columns: minmax(0, 1fr);
+      }
+      body.phone .front-qr {
+        display: none !important;
+      }
+      #parent-view .parent-wizard {
+        padding: clamp(28px, 3vw, 44px) clamp(32px, 4vw, 68px);
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        min-width: 0;
+        min-height: 100%;
+      }
+      #parent-view .parent-wizard > .step {
+        border: 0;
+        border-radius: 0;
+        padding: 0;
+        background: transparent;
+        box-shadow: none;
+      }
+      #parent-view
+        .parent-wizard
+        > :is(#step-2, #step-3, #step-4, #step-5):not([hidden]) {
+        display: flex;
+        flex-direction: column;
+        flex: 1 0 auto;
+        min-width: 0;
+      }
+      #parent-view :is(#step-2, #step-3, #step-4, #step-5) > .quiet {
+        align-self: flex-start;
+      }
+      #parent-view :is(#search-button, #family-button, #generate-button) {
+        flex: 0 0 auto;
+        width: 100%;
+        min-height: 48px;
+        margin: auto 0 0;
+      }
+      #parent-view :is(#phone-status, #auth-status):empty {
+        display: none;
+      }
+      #parent-view #candidate-results {
+        padding-bottom: 16px;
+      }
+      #parent-view #candidate-results:empty {
+        padding-bottom: 0;
+      }
+      #parent-view #candidate-results .student {
+        min-height: 46px;
+        padding: 11px 14px;
+        margin-top: 8px;
+      }
+      .empty-state {
+        display: grid;
+        grid-template-columns: auto minmax(0, 1fr);
+        gap: 20px;
+        align-items: center;
+        padding: 22px 0;
+        margin: 14px 0 4px;
+        border-top: 1px solid var(--rule);
+        border-bottom: 1px solid var(--rule);
+      }
+      .empty-state-art {
+        width: 68px;
+        height: 68px;
+        display: grid;
+        place-items: center;
+        color: var(--ink);
+        flex: 0 0 auto;
+      }
+      .empty-state-art svg {
+        display: block;
+        width: 100%;
+        height: 100%;
+      }
+      .empty-state-body {
+        min-width: 0;
+      }
+      .empty-state-query {
+        font-family: var(--mono);
+        font-size: 11.5px;
+        letter-spacing: 0.04em;
+        color: var(--muted);
+        margin: 0 0 4px;
+        overflow-wrap: anywhere;
+      }
+      .empty-state-title {
+        font-family: var(--sans);
+        font-size: 18px;
+        font-weight: 600;
+        letter-spacing: -0.015em;
+        color: var(--ink);
+        margin: 0 0 6px;
+      }
+      .empty-state-desc {
+        font-size: 14px;
+        line-height: 1.5;
+        color: var(--muted);
+        margin: 0;
+        max-width: 60ch;
+      }
+      .empty-state-actions {
+        margin-top: 14px;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+      }
+      .empty-state-actions button {
+        min-height: 38px;
+        padding: 7px 16px;
+        font-size: 12.5px;
+      }
+      .table-empty-cell {
+        padding: 32px 24px !important;
+        white-space: normal !important;
+        text-align: center;
+        background: var(--paper-field) !important;
+      }
+      tbody tr:hover .table-empty-cell {
+        background: var(--paper-field) !important;
+      }
+      .table-empty-state {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 8px;
+        max-width: 440px;
+        margin: 0 auto;
+      }
+      .table-empty-state .empty-state-art {
+        width: 52px;
+        height: 52px;
+        margin-bottom: 4px;
+      }
+      .table-empty-state .empty-state-desc {
+        font-size: 13.5px;
+      }
+      .table-empty-state .empty-state-actions {
+        margin-top: 8px;
+        justify-content: center;
+      }
+      @media (max-width: 640px) {
+        .empty-state {
+          grid-template-columns: minmax(0, 1fr);
+          gap: 12px;
+          padding: 18px 0;
+        }
+        .empty-state-art {
+          width: 56px;
+          height: 56px;
+        }
+      }
+      #parent-view #step-2 #search-query {
+        display: block;
+        width: 100%;
+        margin: 6px 0 10px;
+      }
+      #parent-view #step-2 #search-privacy {
+        margin: 4px 0 0;
+        line-height: 1.5;
+      }
+      #parent-view #step-3 > p[data-parent-text="neutral"] {
+        max-width: 68ch;
+        margin: 6px 0 16px;
+        line-height: 1.55;
+        color: var(--muted);
+      }
+      #parent-view #step-3 #otp-area {
+        padding-bottom: 16px;
+        margin-bottom: 16px;
+        border-bottom: 1px solid var(--rule);
+      }
+      #parent-view #step-3 #otp-area label {
+        margin-top: 0;
+      }
+      #parent-view #step-3 .verify-fields {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 14px;
+        margin: 0 0 16px;
+        align-items: end;
+      }
+      #parent-view #step-3 .verify-fields label {
+        margin: 0 0 6px;
+      }
+      #parent-view #step-3 h2 {
+        margin: 12px 0 8px;
+        font-size: 19px;
+      }
+      #parent-view #step-3 .notice {
+        margin: 8px 0 14px;
+      }
+      #parent-view #step-3 #auth-status {
+        margin: 0 0 12px;
+      }
+      #parent-view #step-4 > h1 {
+        padding-bottom: 16px;
+        margin-bottom: 0;
+        border-bottom: 1px solid var(--rule);
+      }
+      .id-card-list {
+        display: flex;
+        flex-direction: column;
+        flex: 1 0 auto;
+        gap: 36px;
+        margin-top: 28px;
+      }
+      .id-card {
+        display: flex;
+        flex-direction: column;
+        flex: 1 0 auto;
+        border: 0;
+        background: transparent;
+        padding: 0;
+      }
+      .id-card + .id-card {
+        padding-top: 32px;
+        border-top: 1px solid var(--rule);
+      }
+      .id-card-main {
+        display: grid;
+        grid-template-columns: 240px minmax(0, 1fr);
+        gap: 36px;
+        align-items: start;
+        width: 100%;
+      }
+      .id-photo-slot {
+        width: 240px;
+      }
+      .id-photo-img {
+        display: block;
+        width: 240px;
+        height: 300px;
+        object-fit: cover;
+        border: 0;
+        border-radius: 0;
+      }
+      .id-photo-empty {
+        width: 240px;
+        height: 300px;
+        border: 1px solid var(--rule);
+        border-radius: 0;
+        background: transparent;
+      }
+      .id-body {
+        min-width: 0;
+        display: flex;
+        flex-direction: column;
+      }
+      .id-head {
+        padding-bottom: 16px;
+        margin-bottom: 20px;
+        border-bottom: 1px solid var(--rule);
+      }
+      .id-eyebrow {
+        font-family: var(--mono);
+        font-size: 12px;
+        font-weight: 500;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        color: var(--muted);
+        margin: 0 0 8px;
+      }
+      .id-name {
+        font-family: var(--sans);
+        font-size: clamp(32px, 3.5vw, 44px);
+        font-weight: 700;
+        letter-spacing: -0.03em;
+        line-height: 1.06;
+        color: var(--ink);
+        margin: 0 0 8px;
+        overflow-wrap: anywhere;
+      }
+      .id-sub {
+        font-family: var(--sans);
+        font-size: clamp(18px, 1.7vw, 21px);
+        font-weight: 500;
+        color: var(--ink);
+        margin: 0;
+      }
+      .id-grid {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 18px 24px;
+        margin: 0;
+      }
+      @media (max-width: 1100px) {
+        .id-grid {
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+      }
+      .id-field {
+        min-width: 0;
+      }
+      .id-field-wide {
+        grid-column: 1 / -1;
+      }
+      .id-label {
+        display: block;
+        font-family: var(--mono);
+        font-size: 11px;
+        font-weight: 500;
+        letter-spacing: 0.09em;
+        text-transform: uppercase;
+        color: var(--muted);
+        margin: 0 0 5px;
+      }
+      .id-val {
+        display: block;
+        font-size: clamp(18px, 1.65vw, 22px);
+        font-weight: 600;
+        color: var(--ink);
+        line-height: 1.25;
+        overflow-wrap: anywhere;
+        font-variant-numeric: tabular-nums;
+      }
+      .id-field-wide .id-val {
+        font-size: clamp(17px, 1.5vw, 20px);
+        font-weight: 500;
+        line-height: 1.38;
+      }
+      .id-actions {
+        margin-top: auto;
+        padding-top: 24px;
+        width: 100%;
+      }
+      .id-choose-btn {
+        width: 100%;
+        min-height: 52px;
+        font-size: 14px;
+      }
+      .student-photo-row {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        margin: 4px 0 8px;
+      }
+      .student-photo-thumb {
+        width: 56px;
+        height: 70px;
+        object-fit: cover;
+        border: 0;
+        flex: 0 0 auto;
+        display: block;
+      }
+      .student-photo-placeholder {
+        width: 56px;
+        height: 70px;
+        border: 1px solid var(--rule);
+        flex: 0 0 auto;
+      }
+      .student-photo-controls {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        flex-wrap: wrap;
+        min-width: 0;
+      }
+      #student-photo-input {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        opacity: 0;
+        pointer-events: none;
+      }
+      .student-card-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 0 12px;
+      }
+      .student-card-grid .span-full {
+        grid-column: 1 / -1;
+      }
+      #parent-view #step-6:not([hidden]) {
+        display: flex;
+        flex: 1 0 auto;
+        flex-direction: column;
+      }
+      #parent-view #step-6 > .row {
+        flex: 0 0 auto;
+        align-items: center;
+        gap: 16px;
+        padding-bottom: 10px;
+        border-bottom: 1px solid var(--rule);
+      }
+      #parent-view #step-6 .preview-split {
+        flex: 1 0 auto;
+        min-width: 0;
+        grid-template-columns: minmax(0, 1.7fr) minmax(280px, 0.9fr);
+        gap: 28px;
+        align-items: stretch;
+        margin-top: 18px;
+      }
+      #parent-view #step-6 .split-main {
+        display: flex;
+        flex-direction: column;
+        min-width: 0;
+      }
+      #parent-view #step-6 .preview-wrap {
+        display: flex;
+        flex: 1 1 auto;
+        min-width: 0;
+        padding: 0;
+        margin: 0;
+        background: transparent;
+        border: 0;
+        border-radius: 0;
+      }
+      #parent-view #step-6 .frame {
+        display: block;
+        width: 100%;
+        height: min(62dvh, 640px);
+        min-height: 400px;
+        border: 1px solid var(--rule);
+        border-radius: 0;
+        background: #fff;
+      }
+      #parent-view #step-6 .split-side {
+        display: flex;
+        flex-direction: column;
+        min-width: 0;
+        padding: 4px 0 4px 28px;
+        border: 0;
+        border-left: 1px solid var(--rule);
+        border-radius: 0;
+        background: transparent;
+      }
+      #parent-view #step-6 .split-side > h1 {
+        margin: 0 0 6px;
+        font-size: 26px;
+      }
+      #parent-view #step-6 .split-side > p {
+        margin: 0;
+        line-height: 1.55;
+      }
+      #parent-view #step-6 .action-stack {
+        gap: 10px;
+        margin-top: 20px !important;
+      }
+      #parent-view #step-6 .split-side > .row {
+        flex: 0 0 auto;
+        margin: auto 0 0 !important;
+        padding-top: 14px;
+        border-top: 1px solid var(--rule);
+        align-items: center;
+      }
+      #parent-view #step-6 #done-button {
+        min-height: 40px;
+        padding: 8px 20px;
+      }
+      #parent-view #step-6 #document-status:empty {
+        display: none;
+      }
+
+      /* Tabs & Tables */
+      .tabs {
+        display: flex;
+        gap: 0;
+        overflow-x: auto;
+        margin: 4px 0 0;
+        padding: 0 clamp(26px, 3vw, 48px);
+        border-bottom: 1px solid var(--rule);
         white-space: nowrap;
         scrollbar-width: none;
+      }
+      .subnav {
+        display: flex;
+        gap: 0;
+        overflow-x: auto;
+        margin: 8px 0 10px;
+        border-bottom: 1px solid var(--rule);
+        white-space: nowrap;
+        scrollbar-width: none;
+      }
+      @media (min-width: 640px) {
+        .tabs {
+          flex-wrap: wrap;
+          overflow-x: visible;
+        }
       }
       .tabs::-webkit-scrollbar,
       .subnav::-webkit-scrollbar {
@@ -712,16 +1279,32 @@
       }
       .tabs button,
       .subnav button {
-        font-size: 15px;
+        font-family: var(--mono);
+        font-size: 13px;
+        font-weight: 500;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
         background: transparent;
-        color: var(--umber);
+        color: var(--muted);
         border: 0;
         border-radius: 0;
-        min-height: 52px;
-        padding: 14px 22px;
-        letter-spacing: 0.02em;
+        min-height: 42px;
+        padding: 9px 20px;
         border-bottom: 2px solid transparent;
         margin-bottom: -1px;
+        white-space: nowrap;
+        flex-shrink: 0;
+      }
+      .tabs button:first-child {
+        padding-left: 0;
+      }
+      .subnav button {
+        min-height: 36px;
+        padding: 7px 14px;
+        font-size: 12px;
+      }
+      .subnav button:first-child {
+        padding-left: 0;
       }
       .tabs button:hover,
       .subnav button:hover {
@@ -730,581 +1313,1079 @@
       }
       .tabs .active,
       .subnav .active {
-        color: var(--forest);
+        color: var(--ink);
         background: transparent;
-        border-bottom-color: var(--forest);
-        font-weight: 650;
-      }
-      .tabs .active:hover,
-      .subnav .active:hover {
-        color: var(--forest);
-        background: transparent;
+        border-bottom-color: var(--ink);
+        font-weight: 600;
       }
       .table-wrap {
         overflow: auto;
-        max-height: 760px;
-        border: 1px solid var(--hairline);
-        border-radius: 18px;
-        background: var(--canvas);
+        flex: 1 1 200px;
+        max-height: clamp(220px, calc(100dvh - 375px), 680px);
+        border: 1px solid var(--rule);
+        border-radius: 0;
+        background: var(--paper-field);
+        margin-top: 12px;
       }
       table {
         width: 100%;
         border-collapse: collapse;
-        font-size: 15px;
+        font-size: 14.5px;
         font-variant-numeric: tabular-nums;
       }
       th {
         text-align: left;
-        font-size: 12px;
+        font-family: var(--mono);
+        font-size: 11.5px;
+        font-weight: 600;
         text-transform: uppercase;
-        letter-spacing: 0.09em;
-        color: var(--umber);
-        background: var(--dune-deep);
-        border-bottom: 1px solid var(--hairline);
+        letter-spacing: 0.07em;
+        color: var(--muted);
+        background: var(--paper-tint);
+        border-bottom: 1px solid var(--rule);
         position: sticky;
         top: 0;
+        z-index: 2;
       }
       td,
       th {
-        padding: 16px 18px;
-        border-bottom: 1px solid var(--hairline);
+        padding: 11px 14px;
+        border-bottom: 1px solid var(--rule);
         white-space: nowrap;
+        vertical-align: middle;
+      }
+      td strong {
+        font-weight: 600;
+        font-size: 15px;
       }
       tbody tr:last-child td {
         border-bottom: 0;
       }
       tbody tr:hover td {
-        background: rgba(196, 180, 157, 0.14);
+        background: var(--paper-tint);
       }
       td button,
       .student button {
-        font-size: 13.5px;
-        min-height: 40px;
-        padding: 9px 18px;
-        margin: 2px;
-        border-radius: 999px;
+        font-size: 12px;
+        min-height: 34px;
+        padding: 6px 14px;
+        margin: 2px 4px 2px 0;
+        border-radius: 0;
       }
       .placeholders {
         display: flex;
         gap: 6px;
         flex-wrap: wrap;
-        margin: 12px 0;
+        margin: 8px 0 6px;
       }
       .placeholders button {
-        font-size: 12.5px;
-        letter-spacing: 0.02em;
-        min-height: 38px;
-        padding: 8px 14px;
-        border-radius: 999px;
-        background: var(--dune-deep);
-        color: var(--umber);
-        border: 1px solid var(--hairline);
+        font-family: var(--mono);
+        font-size: 11.5px;
+        min-height: 30px;
+        padding: 4px 10px;
+        border-radius: 0;
+        background: var(--paper-field);
+        color: var(--ink);
+        border: 1px solid var(--rule);
+      }
+      .placeholders button:hover {
+        border-color: var(--ink);
+        background: var(--paper-tint);
+      }
+
+      /* Custom Swiss File Inputs (never expose native OS file boxes) */
+      .sr-only-input {
+        position: absolute !important;
+        width: 1px !important;
+        height: 1px !important;
+        padding: 0 !important;
+        margin: -1px !important;
+        overflow: hidden !important;
+        clip: rect(0, 0, 0, 0) !important;
+        white-space: nowrap !important;
+        border: 0 !important;
+        opacity: 0 !important;
+        pointer-events: none !important;
+      }
+      .paper-file-bar {
+        display: grid;
+        grid-template-columns: auto minmax(0, 1fr) auto;
+        align-items: center;
+        gap: 12px;
+        padding: 4px 0 2px;
+        border: 0;
+        background: transparent;
+        margin-top: 2px;
+      }
+      .paper-file-name {
+        font-family: var(--mono);
+        font-size: 12px;
+        color: var(--muted);
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+      .image-uploaders-stack {
+        display: flex;
+        flex-direction: column;
+        gap: 0;
+        flex: 1 1 auto;
+      }
+      .image-slot {
+        display: grid;
+        grid-template-columns: 136px minmax(0, 1fr);
+        gap: 18px;
+        align-items: center;
+        padding: 16px 0;
+        border: 0;
+        border-bottom: 1px solid var(--rule);
+        background: transparent;
+      }
+      .image-slot:first-child {
+        padding-top: 4px;
+      }
+      .image-slot:last-child {
+        border-bottom: 0;
+        padding-bottom: 0;
+      }
+      .image-slot-meta {
+        min-width: 0;
+      }
+      .image-slot-title {
+        font-family: var(--sans);
+        font-size: 16px;
+        font-weight: 600;
+        color: var(--ink);
+        margin: 0 0 2px;
+      }
+      .image-slot-hint {
+        font-family: var(--mono);
+        font-size: 11.5px;
+        color: var(--muted);
+        margin: 0 0 10px;
+      }
+      .image-slot-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
       }
       .image-preview {
-        height: 130px;
-        max-width: 220px;
+        width: 140px;
+        height: 92px;
         object-fit: contain;
-        background: var(--canvas);
-        border: 1px solid var(--hairline);
-        border-radius: 12px;
+        background: #ffffff;
+        border: 1px solid var(--rule);
+        border-radius: 0;
         padding: 6px;
+        display: block;
       }
       .dropzone {
-        width: 220px;
-        height: 130px;
+        width: 140px;
+        height: 92px;
+        margin: 0 !important;
         display: flex;
         flex-direction: column;
         align-items: center;
         justify-content: center;
         gap: 6px;
-        border: 1.5px dashed var(--taupe);
-        border-radius: 12px;
-        color: var(--umber);
-        font-size: 13px;
-        letter-spacing: 0.04em;
-        background: var(--canvas);
+        padding: 8px;
+        text-align: center;
+        border: 1px dashed var(--subtle);
+        border-radius: 0;
+        color: var(--muted);
+        font-family: var(--mono);
+        font-size: 11px;
+        text-transform: none;
+        letter-spacing: 0;
+        background: #ffffff;
         cursor: pointer;
-        transition:
-          border-color 0.16s var(--ease),
-          background 0.16s var(--ease);
       }
       .dropzone:hover,
       .dropzone.dragging {
-        border-color: var(--forest);
-        background: #f3f0e8;
+        border-color: var(--ink);
+        background: var(--paper-tint);
+        color: var(--ink);
       }
       .dropzone svg {
-        color: var(--taupe);
-      }
-      #image-uploaders .row {
-        justify-content: flex-start;
-        gap: 16px;
+        color: var(--muted);
       }
       .footer {
         text-align: center;
-        color: var(--umber);
-        opacity: 0.7;
-        font-size: 13px;
-        letter-spacing: 0.04em;
-        margin-top: 32px;
+        color: var(--muted);
+        font-family: var(--mono);
+        font-size: 12px;
+        margin-top: 20px;
       }
       .icon {
-        background: var(--dune-deep);
-        border: 1px solid var(--hairline);
-        border-radius: 22px;
-        width: 76px;
-        height: 76px;
+        background: transparent;
+        border: 1px solid var(--ink);
+        border-radius: 0;
+        width: 42px;
+        height: 42px;
         display: grid;
         place-items: center;
-        color: var(--umber);
-        font-size: 32px;
-        margin: 12px 0 26px;
+        color: var(--ink);
+        font-family: var(--mono);
+        font-size: 18px;
+        margin: 0 0 12px;
+        flex: 0 0 auto;
       }
       .break {
         overflow-wrap: anywhere;
       }
       #preview-status {
         min-height: 1.5em;
+        margin-top: 10px;
+        font-family: var(--mono);
+        font-size: 12.5px;
       }
       #print-sheet {
         display: none;
       }
-      @media (max-width: 860px) {
+
+      /* Admin Paper Sheet & Architectural Split Panes (zero nested card boxes) */
+      #admin-view {
+        background: var(--paper);
+        margin: var(--outer-gap);
+        padding: 0;
+        border: 1px solid var(--rule);
+        border-radius: 0;
+        box-shadow: none;
+        display: flex;
+        flex-direction: column;
+        flex: 1 1 auto;
+        min-height: 0;
+      }
+      #admin-content {
+        display: flex;
+        flex-direction: column;
+        flex: 1 1 auto;
+        min-height: 0;
+      }
+      #admin-panels,
+      .admin-section {
+        display: flex;
+        flex-direction: column;
+        flex: 1 1 auto;
+        min-height: 0;
+      }
+      #admin-view h1 {
+        font-size: clamp(24px, 2.2vw, 30px);
+        font-weight: 500;
+        margin: 0;
+      }
+      #admin-login {
+        background: var(--paper);
+        border: 1px solid var(--rule);
+        border-radius: 0;
+        box-shadow: none;
+        padding: 32px;
+        margin: auto;
+      }
+      #admin-status {
+        margin: 0;
+        padding: 10px clamp(26px, 3vw, 48px) 0;
+      }
+      #admin-status:empty {
+        display: none;
+      }
+      #admin-content .card {
+        background: transparent;
+        border: 0;
+        border-radius: 0;
+        padding: clamp(20px, 2vw, 30px) clamp(26px, 3vw, 48px);
+        min-width: 0;
+        display: flex;
+        flex-direction: column;
+      }
+      .card-head {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 16px;
+        padding-bottom: 0;
+        margin-bottom: 14px;
+        border-bottom: 0;
+      }
+      .card-head h2 {
+        font-family: var(--sans);
+        font-size: 20px;
+        font-weight: 600;
+        letter-spacing: -0.015em;
+        margin: 0 0 2px;
+        color: var(--ink);
+      }
+      .card-sub {
+        font-size: 13.5px;
+        color: var(--muted);
+        margin: 0;
+        line-height: 1.45;
+      }
+      .card-head-actions {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        flex-wrap: wrap;
+        flex-shrink: 0;
+      }
+      #admin-panels label {
+        margin: 9px 0 4px;
+        font-size: 11px;
+        font-weight: 600;
+        letter-spacing: 0.06em;
+        color: var(--muted);
+      }
+      #admin-panels .field-title {
+        display: block;
+      }
+      #admin-panels input:not([type="checkbox"]),
+      #admin-panels select,
+      #admin-panels .select-trigger {
+        min-height: 40px;
+        height: auto;
+        padding: 8px 12px;
+        font-size: 14.5px;
+      }
+      #admin-panels button {
+        min-height: 40px;
+        padding: 8px 16px;
+        font-size: 12.5px;
+      }
+      #admin-panels td button,
+      #admin-panels .placeholders button {
+        min-height: 30px;
+        padding: 4px 10px;
+        font-size: 11.5px;
+      }
+      #admin-panels .subnav button {
+        min-height: 36px;
+        padding: 7px 14px;
+        font-size: 12px;
+      }
+      #admin-panels textarea {
+        min-height: 108px;
+        padding: 10px 12px;
+        font-size: 13.5px;
+        line-height: 1.5;
+      }
+      #admin-panels textarea.branding-textarea {
+        font-family: var(--sans);
+        font-size: 14.5px;
+        min-height: 66px;
+        line-height: 1.45;
+        resize: vertical;
+      }
+      #admin-panels .grid2 {
+        gap: 14px;
+      }
+      #student-form-tabs {
+        margin: 0 0 10px;
+      }
+      .student-form-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 0 16px;
+      }
+      .student-form-grid .span-full {
+        grid-column: 1 / -1;
+      }
+      .student-form-actions {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
+        gap: 10px;
+        align-items: center;
+        margin-top: auto;
+        padding-top: 18px;
+      }
+      .student-form-actions .quiet {
+        padding: 8px 16px;
+        border: 1px solid var(--rule);
+        color: var(--ink);
+      }
+      .student-form-actions .quiet:hover {
+        background: var(--paper-tint);
+        text-decoration: none;
+      }
+      .template-strip {
+        display: flex;
+        flex-wrap: nowrap;
+        overflow-x: auto;
+        scrollbar-width: none;
+        gap: 0;
+        border-bottom: 1px solid var(--rule);
+        margin-bottom: 8px;
+      }
+      .template-strip::-webkit-scrollbar {
+        display: none;
+      }
+      #admin-panels .template-tab {
+        display: inline-flex;
+        align-items: baseline;
+        gap: 6px;
+        background: transparent;
+        color: var(--muted);
+        border: 0;
+        border-bottom: 2px solid transparent;
+        margin-bottom: -1px;
+        min-height: 36px;
+        padding: 6px 12px;
+        font-family: var(--sans);
+        font-size: 13.5px;
+        font-weight: 500;
+        letter-spacing: 0;
+        text-transform: none;
+        white-space: nowrap;
+        flex-shrink: 0;
+      }
+      #admin-panels .template-tab:first-child {
+        padding-left: 0;
+      }
+      #admin-panels .template-tab:hover {
+        background: transparent;
+        color: var(--ink);
+      }
+      #admin-panels .template-tab.is-editing {
+        color: var(--ink);
+        font-weight: 600;
+        border-bottom-color: var(--ink);
+      }
+      .template-tab-state {
+        font-family: var(--mono);
+        font-size: 10.5px;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        color: var(--muted);
+      }
+      .template-titles {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 0 14px;
+      }
+      #template-form {
+        display: flex;
+        flex-direction: column;
+        flex: 1 1 auto;
+      }
+      #admin-templates .template-submit-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+        margin-top: auto;
+        padding-top: 12px;
+      }
+      #admin-templates .template-submit-row .check {
+        margin: 0;
+        white-space: nowrap;
+      }
+      #admin-templates .template-submit-row .primary {
+        min-width: 180px;
+      }
+      #admin-templates .frame {
+        width: 100%;
+        flex: 1 1 auto;
+        height: auto;
+        min-height: 360px;
+        border: 1px solid var(--rule);
+        background: #ffffff;
+      }
+      #admin-branding .branding-shell {
+        flex: 1 1 auto;
+        padding: 0 !important;
+      }
+      #admin-branding .branding-pane {
+        padding: clamp(20px, 2vw, 30px) clamp(26px, 3vw, 48px);
+        display: flex;
+        flex-direction: column;
+        min-width: 0;
+      }
+      #admin-branding .branding-save-row {
+        margin-top: auto;
+        padding-top: 18px;
+      }
+      #admin-logs .card {
+        flex: 1 1 auto;
+      }
+      .logs-filter-row {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
+        gap: 16px;
+        align-items: end;
+      }
+      .logs-filter-row label {
+        margin-top: 0;
+      }
+      #logs-count {
+        font-family: var(--mono);
+        font-size: 12px;
+        margin: 0;
+        padding-bottom: 10px;
+        white-space: nowrap;
+      }
+      @media screen and (max-width: 1180px) {
+        #admin-logs td,
+        #admin-logs th {
+          padding: 10px 9px;
+          font-size: 13.5px;
+        }
+      }
+      .branding-note {
+        font-size: 13px;
+        color: var(--muted);
+        margin: 8px 0 0;
+        line-height: 1.45;
+      }
+      .branding-url {
+        display: inline-block;
+        font-family: var(--mono);
+        font-size: 12px;
+        color: var(--ink);
+        overflow-wrap: anywhere;
+      }
+      .security-grid {
+        flex: 1 1 auto;
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        grid-template-rows: repeat(2, minmax(0, 1fr));
+        gap: 0;
+        align-items: stretch;
+      }
+      .security-card {
+        display: flex;
+        flex-direction: column;
+      }
+      .security-card .card-submit {
+        margin-top: auto;
+        padding-top: 14px;
+      }
+      #admin-security .security-card:nth-child(odd) {
+        border-right: 1px solid var(--rule);
+      }
+      #admin-security .security-card:nth-child(-n + 2) {
+        border-bottom: 1px solid var(--rule);
+      }
+      #admin-security .status:empty,
+      #admin-security #backup-status:empty,
+      #admin-security .guardian-qr-box:not(:has(> :not([hidden]))) {
+        display: none;
+      }
+      .usb-steps {
+        margin: 2px 0 10px;
+        padding-left: 20px;
+        font-size: 14px;
+        line-height: 1.55;
+      }
+      .usb-steps li + li {
+        margin-top: 6px;
+      }
+      .usb-steps code,
+      #admin-security code {
+        font-family: var(--mono);
+        font-size: 12.5px;
+        background: var(--paper-tint);
+        padding: 2px 6px;
+        border: 1px solid var(--rule);
+        overflow-wrap: anywhere;
+      }
+      .guardian-qr-box {
+        margin-top: 10px;
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+      }
+      #guardian-approval-qr {
+        max-width: 150px;
+        border: 1px solid var(--rule);
+        background: #ffffff;
+        padding: 6px;
+      }
+
+      /* Desktop wide shell (>= 861px keeps .top-inner and main edges flush at var(--outer-gap)) */
+      @media screen and (min-width: 861px) {
+        #admin-students .layout,
+        #admin-templates .layout,
+        #admin-branding .layout {
+          flex: 1 1 auto;
+          gap: 0;
+          align-items: stretch;
+          min-height: 0;
+        }
+        #admin-students .layout {
+          grid-template-columns: minmax(0, 1.3fr) minmax(420px, 0.95fr);
+        }
+        #admin-templates .layout {
+          grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr);
+        }
+        #admin-branding .layout {
+          grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr);
+        }
+        #admin-students .layout > :first-child,
+        #admin-templates .layout > :first-child,
+        #admin-branding .layout > :first-child {
+          border-right: 1px solid var(--rule);
+        }
+      }
+
+      @media screen and (min-width: 861px) and (max-height: 920px) {
+        .admin-heading {
+          padding-top: 14px;
+          padding-bottom: 4px;
+        }
+        #admin-content .card,
+        #admin-branding .branding-pane {
+          padding-top: 16px;
+          padding-bottom: 18px;
+        }
+        .card-head {
+          margin-bottom: 10px;
+        }
+        #admin-panels label {
+          margin: 7px 0 3px;
+        }
+        #admin-panels textarea {
+          min-height: 88px;
+          padding: 8px 10px;
+        }
+        #admin-templates .template-submit-row {
+          padding-top: 10px;
+        }
+        #admin-templates .frame {
+          min-height: 330px;
+        }
+      }
+
+      @media screen and (min-width: 861px) and (max-height: 820px) {
         .top {
-          padding: 14px 0;
+          padding-top: 9px;
+          padding-bottom: 9px;
+        }
+        .admin-heading {
+          padding-top: 10px;
+          padding-bottom: 2px;
+        }
+        .tabs {
+          margin-top: 0;
+        }
+        .tabs button {
+          min-height: 36px;
+          padding-top: 6px;
+          padding-bottom: 6px;
+        }
+        #admin-content .card,
+        #admin-branding .branding-pane {
+          padding-top: 12px;
+          padding-bottom: 12px;
+        }
+        .card-head {
+          margin-bottom: 6px;
+        }
+        .card-sub {
+          font-size: 13px;
+        }
+        #student-form-tabs {
+          margin: 0 0 6px;
+        }
+        .table-wrap {
+          margin-top: 8px;
+          max-height: clamp(180px, calc(100dvh - 385px), 440px);
+        }
+        #admin-students td,
+        #admin-students th {
+          padding: 8px 12px;
+        }
+        .student-form-actions {
+          padding-top: 10px;
+        }
+        .template-strip {
+          margin-bottom: 4px;
+        }
+        #admin-panels .template-tab {
+          min-height: 32px;
+          padding: 4px 10px;
+        }
+        #admin-panels label {
+          margin: 5px 0 2px;
+        }
+        #admin-panels input:not([type="checkbox"]),
+        #admin-panels select,
+        #admin-panels .select-trigger {
+          min-height: 34px;
+          padding: 5px 10px;
+          font-size: 14px;
+        }
+        #admin-panels button {
+          min-height: 34px;
+          padding: 5px 12px;
+        }
+        #admin-panels .subnav {
+          margin: 4px 0 6px;
+        }
+        #admin-panels .subnav button {
+          min-height: 32px;
+          padding: 4px 12px;
+        }
+        #admin-panels textarea {
+          min-height: 68px;
+          padding: 6px 10px;
+          font-size: 13px;
+          line-height: 1.4;
+        }
+        .placeholders {
+          margin: 5px 0 2px;
+          gap: 5px;
+        }
+        #admin-panels .placeholders button {
+          min-height: 26px;
+          padding: 2px 8px;
+        }
+        #admin-templates .template-submit-row {
+          padding-top: 8px;
+        }
+        #admin-templates .frame {
+          min-height: 290px;
+        }
+        .image-slot {
+          padding: 10px 0;
+        }
+        .image-preview,
+        .dropzone {
+          height: 76px;
+        }
+      }
+
+      /* Portrait monitors & tablets (vertical rotation) */
+      @media screen and (max-width: 1120px),
+        screen and (max-width: 1200px) and (orientation: portrait) {
+        #parent-view.parent-workspace {
+          display: block;
+          min-height: 0;
+        }
+        #parent-view > .front-qr {
+          border-right: 0;
+          border-bottom: 1px solid var(--rule);
+          padding: 24px 28px;
+          align-items: center;
+          text-align: center;
+        }
+        #parent-view > .front-qr .eyebrow {
+          text-align: center;
+        }
+        #parent-view #step-6 .preview-split {
+          grid-template-columns: minmax(0, 1fr);
+        }
+        #parent-view #step-6 .split-side {
+          border-left: 0;
+          border-top: 1px solid var(--rule);
+          padding: 20px 0 0;
+        }
+        #parent-view #step-6 .frame {
+          height: min(64dvh, 660px);
+        }
+        #admin-students .layout,
+        #admin-templates .layout,
+        #admin-branding .layout,
+        .security-grid {
+          grid-template-columns: minmax(0, 1fr);
+          grid-template-rows: auto;
+        }
+        #admin-students .layout > :first-child,
+        #admin-templates .layout > :first-child,
+        #admin-branding .layout > :first-child,
+        #admin-security .security-card:nth-child(odd) {
+          border-right: 0;
+          border-bottom: 1px solid var(--rule);
+        }
+        #admin-security .security-card:last-child {
+          border-bottom: 0;
+        }
+        .template-titles {
+          grid-template-columns: minmax(0, 1fr);
+        }
+        #admin-templates .frame {
+          height: min(64dvh, 680px);
+        }
+      }
+
+      @media screen and (min-width: 861px) and (max-height: 800px) {
+        #parent-view #qr-live {
+          width: 164px;
+          height: 164px;
+        }
+        #parent-view .front-qr .code {
+          font-size: 46px;
+        }
+        #parent-view .qr-frame {
+          margin: 12px auto;
+        }
+      }
+
+      @media (max-width: 860px) {
+        :root {
+          --outer-gap: 12px;
+        }
+        .top {
+          padding: 10px var(--outer-gap);
         }
         .top-inner {
-          align-items: stretch;
-          flex-direction: column;
           gap: 12px;
         }
-        .nav {
-          width: 100%;
-          overflow: auto;
+        .brand strong {
+          font-size: 13px;
         }
         .nav button {
-          flex: 1;
+          padding: 6px 12px;
+          font-size: 11.5px;
+          min-height: 34px;
         }
-        .card {
-          padding: 24px 22px;
+        #parent-view .parent-wizard {
+          padding: 22px 20px;
+        }
+        .admin-heading {
+          padding: 16px 18px 4px;
+          grid-template-columns: minmax(0, 1fr);
+          gap: 10px;
+        }
+        .tabs {
+          padding: 0 18px;
+        }
+        .admin-heading-actions {
+          justify-content: flex-start;
         }
         .layout,
         .layout-wide,
         .grid2,
         .split-2,
-        .split-2.preview-split {
+        .split-2.preview-split,
+        .logs-filter-row,
+        #parent-view #step-3 .verify-fields,
+        #parent-view #step-6 .preview-split {
           grid-template-columns: minmax(0, 1fr);
-          gap: 20px;
+          gap: 14px;
         }
-        .front-split {
-          grid-template-columns: minmax(0, 1fr);
-          gap: 0;
+        #parent-view :is(#search-button, #family-button, #generate-button) {
+          margin-top: 16px;
         }
-        .admin-heading {
-          grid-template-columns: minmax(0, 1fr);
-          gap: 8px;
+        #parent-view #step-6 .frame {
+          height: min(64dvh, 560px);
+          min-height: 340px;
         }
-        .admin-heading-actions {
-          justify-content: flex-start;
-        }
-        .front-qr {
-          border-left: 0;
-          border-top: 1px solid var(--hairline);
-          padding: 24px 0 0;
-          margin-top: 20px;
-        }
-        .split-side {
-          padding: 22px 18px 26px;
-        }
-        main {
-          padding-top: 22px;
-        }
-        .frame {
-          height: 620px;
+        #admin-content .card,
+        #admin-branding .branding-pane {
+          padding: 18px;
         }
         .qr-frame img {
-          width: 220px;
-          height: 220px;
-        }
-        .code {
-          letter-spacing: 0.1em;
-          padding-left: 0.1em;
+          width: 184px;
+          height: 184px;
         }
       }
-      html {
-        -webkit-text-size-adjust: 100%;
-      }
-      body {
-        -webkit-tap-highlight-color: transparent;
-      }
-      /* Phone mode: the campus QR panel belongs to the school screen only */
-      body.phone .front-qr {
-        display: none !important;
-      }
-      input,
-      select,
-      textarea {
-        font-size: 16px;
-      }
-      @supports (padding: max(0px)) {
-        main {
-          padding-left: max(20px, env(safe-area-inset-left));
-          padding-right: max(20px, env(safe-area-inset-right));
-          padding-bottom: max(70px, calc(env(safe-area-inset-bottom) + 24px));
+      @media (max-width: 720px) {
+        .template-titles,
+        .student-form-grid {
+          grid-template-columns: minmax(0, 1fr);
+        }
+        .paper-file-bar {
+          grid-template-columns: minmax(0, 1fr);
+        }
+        .image-slot {
+          grid-template-columns: minmax(0, 1fr);
+        }
+        .image-preview,
+        .dropzone {
+          width: 100%;
+          max-width: 240px;
+          height: 96px;
+        }
+        .card-head {
+          flex-direction: column;
         }
       }
       @media (max-width: 560px) {
-        main {
-          padding: 16px 14px 56px;
-        }
-        .card {
-          padding: 20px 18px;
-          border-radius: 20px;
-        }
-        .grid2 {
-          grid-template-columns: minmax(0, 1fr);
-        }
         h1 {
-          font-size: clamp(26px, 7.6vw, 32px);
-        }
-        .brand small {
-          display: none;
-        }
-        .nav button {
-          padding: 9px 12px;
-          font-size: 12px;
-        }
-        .actions .primary,
-        .actions #pdf-button,
-        .actions #whatsapp-button {
-          width: 100%;
-        }
-        .frame {
-          height: 68vh;
+          font-size: clamp(24px, 7vw, 30px);
         }
         .front-copy > .row,
         .step > .row,
         .admin-login > .row,
-        #admin-students .card > .row,
-        #admin-logs .card > .row,
         .split-side > .row {
           flex-wrap: wrap;
         }
-        #image-uploaders .row {
-          flex-wrap: wrap;
-        }
-        #image-uploaders .image-preview,
-        #image-uploaders .dropzone {
-          flex: 0 1 220px;
-          max-width: 100%;
-        }
-      }
-      @media (orientation: landscape) and (max-height: 540px) {
-        .top {
-          padding-top: 10px;
-          padding-bottom: 10px;
-        }
-        .stepbar {
-          margin-bottom: 12px;
-        }
-        main {
-          padding-top: 14px;
-        }
-        .frame {
-          height: 80vh;
-        }
-      }
-      /* Shared desktop shell; keep physical certificate dimensions in print CSS. */
-      @media screen and (min-width: 861px) {
-        .top-inner,
-        main,
-        main.wide {
-          width: calc(100% - 64px);
-          max-width: 1800px;
-        }
-        main {
-          padding-left: 0;
-          padding-right: 0;
-        }
-        #admin-content .card {
-          padding: 28px 30px;
-        }
-        #admin-panels .layout {
-          gap: 24px;
-        }
-        #admin-students .layout {
-          grid-template-columns: minmax(0, 1.4fr) minmax(380px, 1fr);
-        }
-        #admin-templates .layout {
-          grid-template-columns: minmax(0, 1fr) minmax(0, 1.05fr);
-        }
-        #admin-templates .frame {
-          height: min(84vh, 1020px);
-          min-height: 580px;
-        }
-        #admin-branding .layout {
-          grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
-        }
-        #admin-security > .layout {
-          grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-        }
-        #admin-content label,
-        #admin-content .tabs button {
-          font-size: 16px;
-        }
-        #admin-panels input,
-        #admin-panels select,
-        #admin-panels textarea {
-          font-size: 17px;
-        }
-        #admin-panels .grid2 {
+        .id-card-main {
+          grid-template-columns: minmax(0, 1fr);
           gap: 20px;
         }
-      }
-      @media screen and (min-width: 861px) and (max-width: 1100px) {
-        #admin-students .layout,
-        #admin-templates .layout {
+        .id-photo-slot,
+        .id-photo-img,
+        .id-photo-empty {
+          width: 176px;
+          height: 220px;
+        }
+        .id-name {
+          font-size: clamp(28px, 8vw, 34px);
+        }
+        .id-grid {
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+          gap: 16px 20px;
+        }
+        .id-val {
+          font-size: 18px;
+        }
+        .id-field-wide .id-val {
+          font-size: 16px;
+        }
+        .id-choose-btn,
+        .student-form-actions {
+          grid-template-columns: minmax(0, 1fr);
+          width: 100%;
+        }
+        .student-card-grid {
           grid-template-columns: minmax(0, 1fr);
         }
       }
-      @media screen and (min-width: 1101px) {
-        .top { padding: 6px 0; }
-        .mark { width: 42px; height: 42px; border-radius: 12px; }
-        #admin-view { padding-top: 8px; padding-bottom: 4px; }
-        #admin-view .eyebrow { margin-bottom: 4px; }
-        #admin-view h1 { font-size: 28px; margin: 0; }
-        #admin-view h2 { font-size: 20px; margin: 0 0 8px; }
-        #admin-view p { margin: 6px 0; }
-        #admin-view .tabs { margin: 8px 0 12px; }
-        #admin-status:empty { display: none; }
-        #admin-view .tabs button { min-height: 38px; padding: 7px 16px; }
-        #admin-content .card { padding: 10px 18px; border-radius: 16px; }
-        #admin-panels button { min-height: 36px; padding: 7px 15px; }
-        #admin-panels input:not([type="checkbox"]), #admin-panels select { min-height: 36px; height: 36px; padding: 6px 10px; }
-        #admin-panels label { margin-top: 7px; font-size: 14px; }
-        #admin-panels .grid2 { gap: 8px 14px; }
-        #admin-panels td, #admin-panels th { padding: 7px 10px; }
-        #admin-students .table-wrap { max-height: 240px; }
-        #student-form { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 14px; align-content: start; }
-        #student-form h2, #student-form .grid2 { grid-column: 1 / -1; }
-        #student-form .grid2 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
-        #student-form button { margin-top: 10px !important; }
-        #admin-templates .frame { min-height: 0; height: min(46vh, 480px); }
-        #templates-list { display: flex; gap: 6px; overflow-x: auto; }
-        #templates-list > * { flex: 1 0 200px; }
-        #template-form { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0 10px; }
-        #template-form .subnav, #template-form textarea, #template-form .placeholders, #template-form .grid2, #template-form .check, #template-form button.primary, #template-form > label[for="template-body"] { grid-column: 1 / -1; }
-        #template-form textarea { height: 100px; min-height: 100px; }
-        #image-uploaders { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
-        #image-uploaders .row { flex-wrap: wrap; }
-        #image-uploaders .dropzone, #image-uploaders .image-preview { width: 100%; min-height: 70px; height: 70px; }
-        #admin-security { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
-        #admin-security[hidden] { display: none; }
-        #admin-security > .layout { display: contents; }
-        #admin-security > section.card { grid-column: 1 / -1; margin-top: 0 !important; }
-        #templates-list .student { padding: 8px; margin-top: 4px; display: block; font-size: 14px; }
-        #templates-list .student small { margin: 0; }
-        #templates-list .student button { min-height: 30px; padding: 4px 8px; }
-        #template-form label { margin: 4px 0; }
-        #template-form .subnav { margin: 4px 0; }
-        #template-form .subnav button { min-height: 32px; padding: 5px 12px; }
-        #template-form .check { margin: 4px 0; }
-        #template-form .placeholders { margin: 4px 0; gap: 4px; }
-        #template-form .placeholders button { min-height: 28px; padding: 4px 8px; }
-        #template-form textarea { height: 64px; min-height: 64px; }
-        #admin-security { grid-template-columns: repeat(3, minmax(0, 1fr)); }
-        #admin-security > section.card { grid-column: auto; }
-        #admin-security .icon { width: 42px; height: 42px; margin: 4px 0 8px; font-size: 22px; }
-        #admin-security p, #admin-security ol { font-size: 14px; line-height: 1.35; }
+      a {
+        color: var(--ink);
+        text-underline-offset: 3px;
       }
-
-      /* The counter code stays visible while the wizard changes steps. */
-      .parent-workspace { display:grid; grid-template-columns:minmax(280px, .38fr) minmax(0, .62fr); gap:28px; align-items:start; }
-      .parent-wizard { min-width:0; }
-      .parent-workspace > .front-qr { position:sticky; top:18px; border:1px solid var(--hairline); padding:28px; }
-      .parent-wizard .front-split { display:block; }
-      .parent-workspace:has(> .front-qr[hidden]), body.phone .parent-workspace { grid-template-columns:minmax(0,1fr); }
-      @media screen and (max-width:860px) {
-        .parent-workspace { display:block; }
-        .parent-workspace > .front-qr { position:static; margin-bottom:20px; }
+      table a {
+        font-family: var(--mono);
+        font-size: 12.5px;
       }
-
-
-      /* One paper surface for the counter: scan left, changing steps right. */
-      #parent-view.parent-workspace {
-        margin: 18px auto; padding: 24px; gap: 0;
-        grid-template-columns: minmax(270px, .34fr) minmax(0, .66fr);
-        align-items: stretch; background: #fffdf9;
-        border: 1px solid var(--hairline); border-radius: 8px;
-        min-height: calc(100dvh - 118px);
+      .paper-select {
+        position: relative;
+        width: 100%;
       }
-      #parent-view > .front-qr {
-        position: static; top: auto; margin: 0; padding: 24px;
-        border: 0; border-right: 1px solid var(--hairline);
-        border-radius: 0; background: transparent; box-shadow: none;
-        display: flex; flex-direction: column; align-items: center; justify-content: center;
+      .paper-select select {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        opacity: 0;
+        pointer-events: none;
+        margin: 0;
       }
-      #parent-view .parent-wizard { padding: 8px 32px; align-self: stretch; }
-      #parent-view .parent-wizard {
-        display: flex; flex-direction: column; justify-content: center;
-        min-width: 0; min-height: 100%;
+      .select-trigger {
+        width: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        text-align: left;
+        border: 1px solid var(--subtle);
+        border-radius: 0;
+        background: var(--paper-field);
+        color: var(--ink);
+        font-family: var(--sans);
+        font-size: 15px;
+        font-weight: 400;
+        letter-spacing: 0;
+        padding: 10px 14px;
+        min-height: 46px;
+        box-shadow: none;
       }
-      #parent-view .parent-wizard > .step {
-        border: 0; border-radius: 0; padding: 0; background: transparent; box-shadow: none;
+      .select-trigger:hover {
+        background: #ffffff;
+        border-color: var(--ink);
       }
-      #parent-view .parent-wizard > :is(#step-2, #step-3, #step-4, #step-5):not([hidden]) {
-        display: flex; flex-direction: column; flex: 1 0 auto; min-width: 0;
+      .select-trigger[aria-expanded="true"] {
+        background: #ffffff;
+        border-color: var(--ink);
+        outline: 1px solid var(--ink);
+        outline-offset: 0;
       }
-      #parent-view :is(#step-2, #step-3, #step-5) > .quiet { align-self: flex-start; }
-      #parent-view :is(#search-button, #family-button, #generate-button) {
-        flex: 0 0 auto; width: 100%; min-height: 54px; margin: auto 0 0;
+      .select-trigger-label {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
       }
-      #parent-view :is(#phone-status, #auth-status):empty { display: none; }
-      #parent-view #candidate-results { padding-bottom: 20px; }
-      #parent-view #candidate-results .student { min-height: 48px; padding: 10px 16px; margin-top: 8px; }
-      #parent-view .stepbar { gap: 14px; margin: 0 0 26px; }
-      #parent-view .stepbar span { min-width: 0; }
-      #parent-view #step-2 #search-query { display: block; width: 100%; margin: 12px 0 14px; }
-      #parent-view #step-2 #search-button { display: block; margin: auto 0 0; }
-      #parent-view #step-2 #search-privacy { margin: 10px 0 0; line-height: 1.5; }
-      #parent-view #step-3 > p[data-parent-text="neutral"] {
-        max-width: 72ch; margin: 8px 0 22px; line-height: 1.6; color: var(--umber);
+      .select-caret {
+        font-family: var(--mono);
+        font-size: 12px;
+        color: var(--muted);
+        flex: 0 0 auto;
       }
-      #parent-view #step-3 #otp-area {
-        padding-bottom: 20px; margin-bottom: 22px; border-bottom: 1px solid var(--hairline);
+      .select-menu {
+        position: absolute;
+        top: 100%;
+        left: 0;
+        right: 0;
+        z-index: 60;
+        margin-top: -1px;
+        max-height: 220px;
+        overflow-y: auto;
+        background: var(--paper-field);
+        border: 1px solid var(--ink);
+        border-radius: 0;
+        box-shadow: none;
       }
-      #parent-view #step-3 #otp-area label { margin-top: 0; }
-      #parent-view #step-3 .verify-fields {
-        display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px;
-        margin: 0 0 18px;
+      .select-option {
+        width: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+        text-align: left;
+        border: 0;
+        border-bottom: 1px solid var(--rule);
+        border-radius: 0;
+        background: var(--paper-field);
+        color: var(--ink);
+        font-family: var(--sans);
+        font-size: 14.5px;
+        font-weight: 400;
+        letter-spacing: 0;
+        padding: 10px 14px;
+        min-height: 42px;
       }
-      #parent-view #step-3 .verify-fields label { margin: 0 0 8px; }
-      #parent-view #step-3 #otp-area input,
-      #parent-view #step-3 #birth-year,
-      #parent-view #step-3 #identifier-type,
-      #parent-view #step-3 #family-identifier {
-        display: block; width: 100%; margin: 0;
+      .select-option:last-child {
+        border-bottom: 0;
       }
-      #parent-view #step-3 h2 { margin: 20px 0 10px; font-size: 25px; }
-      #parent-view #step-3 .notice {
-        padding: 2px 0 2px 14px; margin: 10px 0 18px; border: 0;
-        border-left: 2px solid var(--dune-deep); border-radius: 0;
-        background: transparent; color: var(--umber); line-height: 1.6;
+      .select-option:hover {
+        background: var(--paper-tint);
       }
-      #parent-view #step-3 #auth-status { margin: 0 0 12px; }
-      /* Certificate-ready step: preview and actions share one aligned paper surface. */
-      #parent-view #step-6:not([hidden]) { display: flex; flex: 1 0 auto; flex-direction: column; }
-      #parent-view #step-6 > .row { flex: 0 0 auto; align-items: center; gap: 16px; }
-      #parent-view #step-6 .preview-split {
-        flex: 1 0 auto; min-width: 0;
-        grid-template-columns: minmax(0, 1.8fr) minmax(280px, .85fr);
-        gap: clamp(20px, 2.5vw, 40px); align-items: stretch;
+      .select-option[aria-selected="true"] {
+        background: var(--ink);
+        color: var(--paper);
       }
-      #parent-view #step-6 .split-main { display: flex; flex-direction: column; min-width: 0; }
-      #parent-view #step-6 .preview-wrap {
-        display: flex; min-width: 0; padding: 0; margin: 12px 0 0;
-        border: 0; border-radius: 0; background: transparent;
+      .select-option[aria-selected="true"] .select-mark {
+        color: var(--accent);
       }
-      #parent-view #step-6 .frame {
-        display: block; width: 100%; height: min(62dvh, 650px); min-height: 420px;
-        border: 1px solid var(--hairline); border-radius: 4px; background: #fff;
+      .select-mark {
+        font-family: var(--mono);
+        font-size: 11px;
+        color: transparent;
       }
-      #parent-view #step-6 .split-side {
-        display: flex; flex-direction: column; min-width: 0;
-        padding: 12px 0 0 24px; border: 0; border-left: 1px solid var(--hairline);
-        border-radius: 0; background: transparent;
+      .paper-modal-backdrop {
+        position: fixed;
+        inset: 0;
+        z-index: 100;
+        background: rgba(20, 20, 20, 0.42);
+        display: grid;
+        place-items: center;
+        padding: 20px;
       }
-      #parent-view #step-6 .split-side > h1 { margin: 0 0 8px; }
-      #parent-view #step-6 .split-side > p { margin: 0; line-height: 1.55; }
-      #parent-view #step-6 .action-stack { gap: 12px; margin-top: 24px !important; }
-      #parent-view #step-6 .action-stack button {
-        min-height: 56px; height: auto; padding: 12px 16px; font-size: 16px;
+      .paper-modal {
+        width: 100%;
+        max-width: 440px;
+        background: var(--paper);
+        border: 1px solid var(--ink);
+        border-top: 4px solid var(--ink);
+        border-radius: 0;
+        padding: 24px 26px;
+        box-shadow: none;
       }
-      #parent-view #step-6 .split-side > .row {
-        flex: 0 0 auto; margin: auto 0 0 !important; padding-top: 18px;
-        border-top: 1px solid var(--hairline); align-items: center;
+      .paper-modal h2 {
+        margin: 0 0 8px;
+        font-size: 20px;
       }
-      #parent-view #step-6 #done-button { min-height: 48px; padding: 10px 24px; }
-      #parent-view #step-6 #document-status:empty { display: none; }
-      #parent-view .front-copy > .icon { display: none; }
-      #parent-view h1 { font-size: clamp(28px, 2.3vw, 36px); margin: 12px 0; }
-      #parent-view .lang {
-        min-height: 76px; padding: 12px 10px; margin-top: 8px;
-        border: 0; border-bottom: 1px solid var(--hairline); border-radius: 0;
-        background: transparent; box-shadow: none;
+      .paper-modal p {
+        margin: 0 0 20px;
+        color: var(--muted);
+        font-size: 14.5px;
       }
-      #parent-view .lang:hover { background: var(--canvas); }
-      #parent-view .lang .symbol { width: 42px; height: 42px; }
-      #parent-view .lang strong { font-size: 24px; }
-      #parent-view .privacy-line { margin: 18px 0 0; }
-      #parent-view .qr-frame { padding: 12px; border: 1px solid var(--hairline); border-radius: 4px; margin: 20px 0; }
-      #parent-view #qr-live { width: 220px; height: 220px; max-width: 100%; }
-      #parent-view .front-qr .code { font-size: 64px; margin: 4px 0 12px; }
-      #parent-view .front-qr .hero-meta, #parent-view .front-qr .bar { width: 100%; }
-      #parent-view .qr-help { max-width: 36ch; margin-bottom: 0; }
-      #parent-view:has(> .front-qr[hidden]), body.phone #parent-view { grid-template-columns: minmax(0, 1fr); }
-      @media screen and (min-width: 861px) and (max-height: 800px) {
-        #parent-view #qr-live { width: 170px; height: 170px; }
-        #parent-view .front-qr .code { font-size: 52px; }
-        #parent-view .qr-frame { margin: 12px 0; }
-      }
-      @media screen and (max-width: 860px) {
-        #parent-view.parent-workspace { min-height: 0; padding: 18px; margin: 14px auto; }
-        #parent-view > .front-qr { padding: 12px 0 22px; border-right: 0; border-bottom: 1px solid var(--hairline); margin-bottom: 20px; }
-        #parent-view .parent-wizard { padding: 0; }
-        #parent-view :is(#search-button, #family-button, #generate-button) { margin-top: 20px; }
-        #parent-view #step-2 #search-button { margin-top: 20px; }
-        #parent-view #step-3 .verify-fields { grid-template-columns: minmax(0, 1fr); gap: 14px; }
-        #parent-view .stepbar { gap: 8px; margin-bottom: 20px; }
-        #parent-view h1 { font-size: 28px; }
-        #parent-view .lang strong { font-size: 22px; }
-        #parent-view #step-6 .preview-split { grid-template-columns: minmax(0, 1fr); gap: 20px; }
-        #parent-view #step-6 .frame { height: min(68dvh, 620px); min-height: 360px; }
-        #parent-view #step-6 .split-side { padding: 20px 0 0; border-left: 0; border-top: 1px solid var(--hairline); }
-        #parent-view #step-6 .split-side > .row { margin-top: 20px !important; }
-      }
-
-
-      /* Single paper administration surface: sections are content, not windows. */
-      #admin-view { background: #fffdf9; margin: 18px auto; padding: 18px 24px; border: 0; border-radius: 0; box-shadow: none; }
-      #admin-view .card, #admin-content .card {
-        background: transparent; border: 0; border-radius: 0; box-shadow: none;
-        padding: 10px 12px;
-      }
-      #admin-view .table-wrap { border: 0; border-radius: 0; }
-      #admin-view th { background: #f4f0e8; }
-      #admin-view td, #admin-view th { border-bottom: 1px solid #e7e1d7; }
-      #admin-view .student { background: transparent; border: 0; border-bottom: 1px solid #e7e1d7; border-radius: 0; box-shadow: none; }
-      #admin-view input:not([type="checkbox"]), #admin-view select, #admin-view textarea {
-        border: 0; border-bottom: 1px solid #bdb3a3; border-radius: 0;
-        background: #f8f6f1; box-shadow: none;
-      }
-      #admin-view .tabs { border-bottom: 1px solid var(--hairline); }
-      #admin-view .tabs button { border-radius: 0; box-shadow: none; }
-      #admin-view .dropzone, #admin-view .image-preview { border: 0; border-radius: 0; background: #f4f0e8; }
-      #admin-view .frame { border: 0; border-radius: 0; background: white; }
-      #admin-view .icon { border: 0; border-radius: 0; background: transparent; }
-      @media screen and (max-width: 860px) {
-        #admin-view { margin: 12px auto; padding: 12px; }
-        #admin-view .card, #admin-content .card { padding: 10px 0; }
-      }
-
-      @media screen and (min-width:1101px) {
-        #admin-view { margin: 0 auto; padding: 8px 16px 4px; }
-        #admin-view .card, #admin-content .card { padding: 6px 8px; }
-      }
-      @media screen and (min-width:1101px) {
-        #admin-security { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 18px; }
-        #admin-security code { overflow-wrap:anywhere; }
-        #admin-security > section.card p, #admin-security > section.card ol { font-size:13px; line-height:1.25; }
-      }
-      @media (prefers-reduced-motion: reduce) {
-        *,
-        *::before,
-        *::after {
-          animation: none !important;
-          transition: none !important;
-        }
+      .paper-modal-actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: 10px;
       }
       @page {
         size: A4;
@@ -1334,10 +2415,7 @@
       <div class="top-inner">
         <div class="brand">
           <div class="mark">RJC</div>
-          <div>
-            <strong id="brand-name">R. J. CHAWARE CONVENT</strong
-            ><small id="brand-sub">Jain Minority Institute</small>
-          </div>
+          <strong id="brand-name">R. J. CHAWARE CONVENT</strong>
         </div>
         <nav class="nav" aria-label="Portal views">
           <button data-view="parent" class="active">Front Panel</button
@@ -1377,73 +2455,31 @@
         <div class="front-split">
           <div class="front-copy">
             <div class="row">
-              <div class="eyebrow">RJC · WELCOME</div>
-              <button class="listen" data-speak>🔊 ऐका / सुनें</button>
+              <div class="eyebrow">SCHOOL DOCUMENT PORTAL</div>
+              <button class="listen" data-speak><span class="listen-mark" aria-hidden="true">▸</span>ऐका / सुनें</button>
             </div>
-            <div class="icon">▤</div>
             <h1 data-t="welcome">School documents, made simple.</h1>
+            <p class="inst-line" id="brand-sub">Jain Minority Institute</p>
             <p class="muted" data-t="languageHelp">
               Choose your language to get started.
             </p>
             <button class="lang" data-lang="mr">
               <span class="row"
-                ><span class="symbol"
-                  ><svg
-                    width="22"
-                    height="22"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="#443A35"
-                    stroke-width="1.5"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    aria-hidden="true"
-                  >
-                    <path
-                      d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 6 8.38 8.38 0 0 1-3.8-.9L3 21l1.1-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 6-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"
-                    /></svg></span
+                ><span class="symbol" aria-hidden="true">01</span
                 ><span
                   ><strong>मराठी</strong><small>मराठीत पुढे चला</small></span
                 ></span
               ><span class="arrow" aria-hidden="true">&rarr;</span></button
             ><button class="lang" data-lang="hi">
               <span class="row"
-                ><span class="symbol"
-                  ><svg
-                    width="22"
-                    height="22"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="#443A35"
-                    stroke-width="1.5"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    aria-hidden="true"
-                  >
-                    <path
-                      d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 6 8.38 8.38 0 0 1-3.8-.9L3 21l1.1-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 6-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"
-                    /></svg></span
+                ><span class="symbol" aria-hidden="true">02</span
                 ><span
                   ><strong>हिंदी</strong><small>हिंदी में आगे बढ़ें</small></span
                 ></span
               ><span class="arrow" aria-hidden="true">&rarr;</span></button
             ><button class="lang" data-lang="en">
               <span class="row"
-                ><span class="symbol"
-                  ><svg
-                    width="22"
-                    height="22"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="#443A35"
-                    stroke-width="1.5"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    aria-hidden="true"
-                  >
-                    <path
-                      d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 6 8.38 8.38 0 0 1-3.8-.9L3 21l1.1-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 6-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"
-                    /></svg></span
+                ><span class="symbol" aria-hidden="true">03</span
                 ><span
                   ><strong>English</strong
                   ><small>Continue in English</small></span
@@ -1460,33 +2496,34 @@
       <section class="card step" id="step-2" hidden>
         <button class="quiet" data-back="1" data-t="back">← Back</button>
         <h1 data-t="find">Find your student</h1>
-        <label for="search-query" data-t="searchAll">Name, mobile number, GR number or class</label>
-        <input id="search-query" type="search" maxlength="100" autocomplete="off" enterkeyhint="search" placeholder="Name, mobile number, GR number or class">
-        <p class="small muted" id="search-privacy">Select the matching student to continue. Contact details and records remain protected until verification.</p>
+        <label for="search-query" data-t="searchAll">Name, mobile number, GR number, or class</label>
+        <input id="search-query" type="search" maxlength="100" autocomplete="off" enterkeyhint="search" placeholder="Name, mobile number, GR number, or class">
+        <p class="small muted" id="search-privacy" data-t="searchPrivacy">Select your student to continue. Personal details stay hidden until verified.</p>
         <p id="phone-status" class="status" role="status"></p><div id="candidate-results"></div>
         <button class="primary full" id="search-button" data-t="findStudent">Find student</button>
       </section>
       <section class="card step" id="step-3" hidden>
         <button class="quiet" data-back="2" data-t="back">← Back</button>
         <h1 data-parent-text="verify">Verify your details</h1>
-        <p data-parent-text="neutral">If the number is registered and WhatsApp is available, a code may arrive. If it does not arrive, use the family check.</p>
+        <p data-parent-text="neutral">If WhatsApp is active on the registered number, a verification code may arrive. Otherwise, verify using student details below.</p>
         <div id="otp-area"><label for="otp-code" data-parent-text="otp">WhatsApp verification code</label><input id="otp-code" inputmode="numeric" maxlength="6" data-numeric autocomplete="one-time-code"><button id="otp-button" class="primary full" data-parent-text="verifyButton">Verify</button></div>
-        <h2 data-parent-text="family">Family Secret Check</h2>
-        <p class="notice" data-parent-text="familyHelp">This checks knowledge, not control of the registered phone. It authorizes only the child whose details are checked. A guardian needs the parent's WhatsApp verification or staff approval.</p>
+        <h2 data-parent-text="family">Verify with student details</h2>
+        <p class="notice" data-parent-text="familyHelp">Enter your child’s birth year and GR number or last 4 Aadhaar digits. Visiting guardians need parent OTP or school office approval.</p>
         <div class="verify-fields">
-          <div><label for="birth-year" data-parent-text="birth">Child’s birth year</label><input id="birth-year" inputmode="numeric" maxlength="4" data-numeric></div>
-          <div><label for="identifier-type" data-parent-text="identifier">Choose a family detail</label><select id="identifier-type"><option value="gr">GR number</option><option value="backup">Backup ID last four</option></select></div>
-          <div><label for="family-identifier" data-parent-text="identifierValue">GR number or backup ID last four</label><input id="family-identifier" autocomplete="off" maxlength="64"></div>
+          <div><label for="birth-year" data-parent-text="birth">Birth year (YYYY)</label><input id="birth-year" inputmode="numeric" maxlength="4" data-numeric></div>
+          <div><label for="identifier-type" data-parent-text="identifier">Verify using</label><select id="identifier-type"><option value="gr">GR number</option><option value="backup">Aadhaar (last 4 digits)</option></select></div>
+          <div><label for="family-identifier">GR number</label><input id="family-identifier" autocomplete="off" maxlength="64"></div>
         </div>
         <p id="auth-status" role="alert" class="status"></p><button id="family-button" class="primary full" data-parent-text="verifyButton">Verify</button>
       </section>
       <section class="card step" id="step-4" hidden>
-        <h1 data-parent-text="students">Choose a student</h1><div id="search-results"></div><p id="search-status" role="status"></p>
+        <button class="quiet" data-back="3" data-t="back">← Back</button>
+        <h1 data-parent-text="students">Choose a student</h1><div id="search-results" class="id-card-list"></div><p id="search-status" role="status"></p>
       </section>
       <section class="card step" id="step-5" hidden>
         <button class="quiet" data-back="4" data-t="back">← Back</button><h1 data-parent-text="document">Choose a document</h1>
         <div class="selected" id="selected-student"></div><div id="document-list"></div>
-        <label for="campus-code" data-t="campus">Live campus code</label><input id="campus-code" inputmode="numeric" maxlength="4" autocomplete="off" data-numeric><p class="small muted" data-t="campusHelp">Read the code on the school screen.</p>
+        <label for="campus-code" data-t="campus">Live campus code</label><input id="campus-code" inputmode="numeric" maxlength="4" autocomplete="off" data-numeric><p class="small muted" data-t="campusHelp">Read the code on the school screen. It changes every 60 seconds.</p>
         <label class="check" id="guardian-option"><input type="checkbox" id="guardian-toggle"><span data-t="guardian">I am a visiting guardian</span></label>
         <div id="guardian-field" hidden><label for="guardian-phone" data-t="guardianMobile">Guardian mobile number</label><input id="guardian-phone" inputmode="numeric" maxlength="10" data-numeric></div>
         <p class="status" id="verify-status" role="alert"></p><button class="primary full" id="generate-button" data-t="generate">Generate certificate</button>
@@ -1494,7 +2531,7 @@
       <section class="card step" id="step-6" hidden>
         <div class="row">
           <span class="eyebrow" data-t="ready">YOUR DOCUMENT IS READY</span
-          ><button class="listen" data-speak>🔊 ऐका / सुनें</button>
+          ><button class="listen" data-speak><span class="listen-mark" aria-hidden="true">▸</span>ऐका / सुनें</button>
         </div>
         <div class="split-2 preview-split">
           <div class="split-main">
@@ -1542,7 +2579,7 @@
       >
         <div class="row">
           <p class="eyebrow">SCHOOL OFFICE</p>
-          <button class="listen" data-speak>🔊 ऐका / सुनें</button>
+          <button class="listen" data-speak><span class="listen-mark" aria-hidden="true">▸</span>ऐका / सुनें</button>
         </div>
         <h1>Admin sign in</h1>
         <p class="muted">Manage students, certificates, and school settings.</p>
@@ -1574,22 +2611,33 @@
             <h1>Administration</h1>
           </div>
           <div class="admin-heading-actions">
-            <button class="listen" data-speak>🔊 ऐका / सुनें</button
+            <button class="listen" data-speak><span class="listen-mark" aria-hidden="true">▸</span>ऐका / सुनें</button
             ><button id="logout-button">Lock admin</button>
           </div>
         </div>
         <nav class="tabs" aria-label="Admin sections">
           <button data-admin-tab="students" class="active">
-            Students Manager</button
-          ><button data-admin-tab="templates">Templates Builder</button
-          ><button data-admin-tab="branding">Branding & Portal</button
+            Students</button
+          ><button data-admin-tab="templates">Templates</button
+          ><button data-admin-tab="branding">Branding &amp; Portal</button
           ><button data-admin-tab="logs">Issued Logs</button
-          ><button data-admin-tab="security">Security & Backup</button>
+          ><button data-admin-tab="security">Security &amp; Backup</button>
         </nav>
         <p id="admin-status" class="status" role="status"></p>
         <div id="admin-panels"></div>
       </div>
     </main>
+    <div id="confirm-backdrop" class="paper-modal-backdrop" hidden>
+      <div class="paper-modal" role="dialog" aria-modal="true" aria-labelledby="confirm-title" aria-describedby="confirm-message">
+        <p class="eyebrow">CONFIRM ACTION</p>
+        <h2 id="confirm-title">Please confirm</h2>
+        <p id="confirm-message"></p>
+        <div class="paper-modal-actions">
+          <button type="button" id="confirm-cancel">Cancel</button>
+          <button type="button" class="primary" id="confirm-ok">Confirm</button>
+        </div>
+      </div>
+    </div>
     <div id="print-sheet"></div>
     <script>
       const $ = (id) => document.getElementById(id),
@@ -1620,6 +2668,8 @@
         bodyLang: "en",
         bodies: { en: "", mr: "", hi: "" },
         images: {},
+        studentPhoto: "",
+        verifiedStudents: [],
         epoch: 0,
         generating: false,
       };
@@ -1631,17 +2681,16 @@
         searchEpoch = 0,
         previewEpoch = 0,
         frontLoading = false;
-      const field = (name, label, type = "text", required = false) =>
-        `<label>${label}<input name="${name}" type="${type}" ${required ? "required" : ""} autocomplete="off"></label>`;
+      const field = (name, label, type = "text", required = false, cls = "") =>
+        `<label${cls ? ` class="${cls}"` : ""}><span class="field-title">${label}</span><input name="${name}" type="${type}" ${required ? "required" : ""} autocomplete="off"></label>`;
       const positions = (name) =>
         `<label>${name === "sig_pos" ? "Principal signature" : "School stamp"}<select name="${name}"><option value="left">Left</option><option value="center">Center</option><option value="right" ${name === "sig_pos" ? "selected" : ""}>Right</option><option value="none">Hidden</option></select></label>`;
       $("admin-panels").innerHTML =
-        `<section id="admin-students" class="admin-section"><div class="layout layout-wide"><div class="card"><div class="row"><h2>Student records</h2><button id="new-student">+ New</button></div><label for="student-filter">Search GR, name, class, or mobile</label><input id="student-filter" type="search"><label for="csv-file">1-click CSV import</label><input id="csv-file" type="file" accept=".csv"><button id="sample-csv" style="margin:12px 0">Download Sample CSV</button><p class="small muted">Matching GR numbers are updated. Imports validate every row before saving.</p><div class="table-wrap"><table><thead><tr><th>Student</th><th>Class</th><th>Status</th><th>Actions</th></tr></thead><tbody id="students-table"></tbody></table></div></div><form class="card" id="student-form"><h2 id="student-form-title">Add student</h2>${field("gr_number", "GR number", "text", true)}${field("full_name", "Full student name", "text", true)}${field("father_name", "Father / parent name")}<div class="grid2">${field("class_name", "Class", "text", true)}${field("division", "Division", "text", true)}${field("dob", "Birth date (DD/MM/YYYY)", "text", true)}${field("aadhaar_last4", "Aadhaar last four only")}</div>${field("parent_phone", "Registered mobile (10 digits)", "tel", true)}<label>Status<select name="status"><option>ACTIVE</option><option>INACTIVE</option></select></label><button class="primary full" style="margin-top:20px">Save student</button><button type="button" class="quiet full" id="cancel-student">Clear form</button></form></div></section>
-<section id="admin-templates" class="admin-section" hidden><div class="layout"><div class="card"><div class="row"><h2>Document templates</h2><button id="new-template">+ New</button></div><div id="templates-list"></div><form id="template-form"><input type="hidden" id="template-id">${field("title_en", "English title", "text", true)}${field("title_mr", "Marathi title", "text", true)}${field("title_hi", "Hindi title", "text", true)}<div class="subnav"><button type="button" data-body-lang="en" class="active">English body</button><button type="button" data-body-lang="mr">मराठी</button><button type="button" data-body-lang="hi">हिंदी</button></div><label for="template-body">Certificate body · basic HTML supported</label><textarea id="template-body" rows="8"></textarea><div class="placeholders" id="placeholder-buttons"></div><div class="grid2">${positions("sig_pos")}${positions("stamp_pos")}</div><label class="check"><input id="template-active" type="checkbox" checked> Available to parents</label><button class="primary full">Save template</button></form></div><div class="card"><p class="eyebrow">A4 · LIVE PREVIEW</p><h2>See it before issuing.</h2><p class="small muted">Sample student details and the selected body language.</p><iframe id="template-preview" class="frame" title="Live template A4 preview" sandbox="allow-same-origin"></iframe><p class="small muted" id="preview-status">Enter titles and body to preview.</p></div></div></section>
-<section id="admin-branding" class="admin-section" hidden><form class="card" id="branding-form"><h2>School branding &amp; portal access</h2><div class="layout"><div>${field("school_name", "School name", "text", true)}${field("school_subtitle", "Subtitle / address")}${field("udise_no", "UDISE number")}${field("whatsapp_number", "School WhatsApp number")}${field("public_url", "Public tunnel URL (optional)", "url", false)}<p class="small muted">Shown inside the phone QR so parents can open the portal on any internet. Leave blank to auto-detect a running Cloudflare tunnel (run <code>Start_Public_Tunnel.bat</code>); otherwise the LAN address is used. Currently active: <strong id="active-portal-url">…</strong></p></div><div id="image-uploaders"></div></div><button class="primary" style="margin-top:20px">Save branding &amp; portal</button></form></section>
-<section id="admin-logs" class="admin-section" hidden><div class="card"><div class="row"><div><h2>Issued document register</h2><p class="small muted">Every issued document remains in the audit register.</p></div><button id="refresh-logs">Refresh</button></div><label for="logs-filter">Search serial, student, document, phone, or date</label><input id="logs-filter" type="search"><p class="small muted" id="logs-count"></p><div class="table-wrap"><table><thead><tr><th>Reference</th><th>Student</th><th>Document</th><th>Contact</th><th>Guardian</th><th>Issued</th><th>Verify</th></tr></thead><tbody id="logs-table"></tbody></table></div></div></section>
-<section id="admin-security" class="admin-section" hidden><div class="layout"><form class="card" id="password-form"><h2>Change admin password</h2><p class="small muted">Changing the password signs out all administrator sessions.</p>${field("currentPassword", "Current password", "password", true)}${field("newPassword", "New password (10–256 characters)", "password", true)}${field("repeatPassword", "Confirm new password", "password", true)}<button class="primary full" style="margin-top:20px">Update password</button></form><section class="card"><div class="icon">↧</div><h2>A safe copy of your records.</h2><p class="muted">Create a consistent SQLite snapshot while the portal stays open. Backups remain in RJC/backups.</p><button class="primary" id="backup-button">Create database backup</button><p class="small break" id="backup-status" role="status"></p><p class="small muted">Keep secure copies on separate storage to protect against disk failure.</p></section></div><section class="card" style="margin-top:20px"><div class="icon">⇲</div><h2>Prepare USB / Portable Package</h2><p class="muted">Run the portal on a PC without Node.js. Create a plug-and-play USB copy from this main PC:</p><ol class="small"><li>On this PC, double-click <code>Export_To_USB.bat</code> in the RJC folder.</li><li>Enter the USB drive letter when asked. The exporter copies the app, a matching portable Node.js (<code>portable-node\node.exe</code>, built for this PC&rsquo;s better-sqlite3), and a clean SQLite snapshot of <code>school.db</code> made with the backup API &mdash; never a raw copy of the live database.</li><li>Plug the USB stick into any Windows PC and double-click <code>Start_RGC_Kiosk.bat</code> inside <code>RJC_Portable</code>. No installation is required; the server starts on port 3000.</li></ol><p class="small muted">The export includes <code>admin-credentials.txt</code> if present &mdash; keep the USB stick secure. Automatic daily backups (<code>backups\auto-YYYY-MM-DD.db</code>, 14 kept) can be found in the RJC folder on this PC.</p></section></section>`;
-      $("admin-security").insertAdjacentHTML("beforeend", `<form class="card" id="guardian-approval-form"><h2>Approve guardian collection</h2><p class="small muted">Use the counter PC and your administrator password. The approval applies to one student and expires in 10 minutes.</p><label>Student GR number<input name="grNumber" required autocomplete="off"></label><label>Guardian mobile<input name="guardianPhone" inputmode="numeric" maxlength="10" required autocomplete="off"></label><label>Administrator password<input name="password" type="password" required autocomplete="current-password"></label><button class="primary full">Approve guardian</button><p id="guardian-approval-status" role="status"></p><img id="guardian-approval-qr" alt="Guardian approval QR" hidden style="max-width:200px"><a id="guardian-approval-link" hidden>Open guardian approval</a></form>`);
+        `<section id="admin-students" class="admin-section"><div class="layout"><div class="card"><div class="card-head"><div><h2>Student records</h2><p class="card-sub">Search existing students, import a CSV list, or edit details.</p></div><div class="card-head-actions"><button type="button" id="new-student">+ New student</button></div></div><label for="student-filter">Search students</label><input id="student-filter" type="search" placeholder="Name, GR number, class, or mobile"><label>Bulk import (CSV)</label><input id="csv-file" class="sr-only-input" type="file" accept=".csv"><div class="paper-file-bar"><button type="button" id="csv-choose-btn">Choose CSV file</button><span id="csv-file-name" class="paper-file-name">No file selected · updates matching GR</span><button type="button" id="sample-csv">Sample CSV</button></div><div class="table-wrap"><table><thead><tr><th>Student</th><th>Class</th><th>Status</th><th>Actions</th></tr></thead><tbody id="students-table"></tbody></table></div></div><form class="card" id="student-form"><div class="card-head"><div><h2 id="student-form-title">Add student</h2><p class="card-sub">Required details first, optional ID card info and photo on the second tab.</p></div></div><div class="subnav" id="student-form-tabs"><button type="button" data-student-tab="core" class="active">Basic record</button><button type="button" data-student-tab="card">ID card &amp; photo</button></div><div id="student-tab-core" class="student-form-grid">${field("gr_number", "GR number", "text", true)}<label><span class="field-title">Status</span><select name="status"><option>ACTIVE</option><option>INACTIVE</option></select></label>${field("full_name", "Full student name", "text", true, "span-full")}${field("father_name", "Father / parent name", "text", false, "span-full")}${field("class_name", "Class", "text", true)}${field("division", "Division", "text", true)}${field("dob", "Birth date (DD/MM/YYYY)", "text", true)}${field("aadhaar_last4", "Aadhaar (last 4 digits)")}${field("parent_phone", "Parent mobile (10 digits)", "tel", true, "span-full")}</div><div id="student-tab-card" hidden><label>Student photo · PNG / JPG / WebP</label><div class="student-photo-row"><img id="student-photo-preview" class="student-photo-thumb" alt="Student photo preview" hidden><div id="student-photo-placeholder" class="student-photo-placeholder" aria-hidden="true"></div><div class="student-photo-controls"><input id="student-photo-input" type="file" accept="image/png,image/jpeg,image/webp"><button type="button" id="student-photo-upload">Upload photo</button><button type="button" class="danger" id="student-photo-clear" hidden>Remove</button></div></div><div class="student-card-grid">${field("mother_name", "Mother's name")}${field("roll_no", "Roll number")}${field("academic_year", "Academic year")}<label><span class="field-title">Blood group</span><select name="blood_group"><option value="">Not specified</option><option>O+</option><option>O-</option><option>A+</option><option>A-</option><option>B+</option><option>B-</option><option>AB+</option><option>AB-</option></select></label>${field("house", "House / section")}${field("apaar_id", "APAAR / PEN ID")}${field("emergency_phone", "Emergency mobile (10 digits)", "tel")}${field("bus_route", "Bus / transport route")}${field("address", "Residential address", "text", false, "span-full")}${field("remarks", "ID card note / remarks", "text", false, "span-full")}</div></div><div class="student-form-actions"><button class="primary full">Save student</button><button type="button" class="quiet" id="cancel-student">Clear form</button></div></form></div></section>
+<section id="admin-templates" class="admin-section" hidden><div class="layout"><div class="card"><div class="card-head"><div><h2>Document templates</h2><p class="card-sub">Edit certificate titles, wording, signature, and school stamp placement.</p></div><div class="card-head-actions"><button type="button" id="toggle-active-template" hidden>Disable</button><button type="button" class="danger" id="delete-active-template" hidden>Delete</button><button type="button" id="new-template">+ New template</button></div></div><div id="templates-list" class="template-strip"></div><form id="template-form"><input type="hidden" id="template-id"><div class="template-titles">${field("title_en", "English title", "text", true)}${field("title_mr", "Marathi title", "text", true)}${field("title_hi", "Hindi title", "text", true)}</div><div class="subnav"><button type="button" data-body-lang="en" class="active">English body</button><button type="button" data-body-lang="mr">मराठी</button><button type="button" data-body-lang="hi">हिंदी</button></div><label for="template-body">Certificate wording · click a field chip below to insert</label><textarea id="template-body" rows="5"></textarea><div class="placeholders" id="placeholder-buttons"></div><div class="grid2">${positions("sig_pos")}${positions("stamp_pos")}</div><div class="template-submit-row"><label class="check"><input id="template-active" type="checkbox" checked> Available to parents</label><button class="primary">Save template</button></div></form></div><div class="card"><div class="card-head"><div><h2>A4 live preview</h2><p class="card-sub">Updates automatically with sample student data in the selected language.</p></div></div><iframe id="template-preview" class="frame" title="Live template A4 preview" sandbox="allow-same-origin"></iframe><p class="small muted" id="preview-status">Enter titles and body to preview.</p></div></div></section>
+<section id="admin-branding" class="admin-section" hidden><form class="card branding-shell" id="branding-form"><div class="layout"><div class="branding-pane"><div class="card-head"><div><h2>School branding &amp; portal</h2><p class="card-sub">Customize letterhead details and the QR portal link.</p></div></div>${field("school_name", "School name", "text", true)}<label><span class="field-title">Subtitle / address</span><textarea name="school_subtitle" rows="2" class="branding-textarea" autocomplete="off"></textarea></label><div class="grid2">${field("udise_no", "UDISE number")}${field("whatsapp_number", "School WhatsApp number")}</div>${field("public_url", "Public portal link (optional)", "url", false)}<p class="branding-note">Leave blank to use local campus Wi-Fi, or paste a public HTTPS link for parents. Currently active: <strong id="active-portal-url" class="branding-url">…</strong></p><div class="branding-save-row"><button class="primary full">Save settings</button></div></div><div class="branding-pane"><div class="card-head"><div><h2>Official media</h2><p class="card-sub">PNG format under 1.5 MB for school logo, signature, and stamp.</p></div></div><div id="image-uploaders" class="image-uploaders-stack"></div></div></div></form></section>
+<section id="admin-logs" class="admin-section" hidden><div class="card"><div class="card-head"><div><h2>Issued document register</h2><p class="card-sub">Every generated certificate stays saved here and can be downloaded to your PC.</p></div><div class="card-head-actions"><button type="button" id="refresh-logs">Refresh</button><button type="button" class="primary" id="export-logs-csv">Export Logs (CSV)</button></div></div><div class="logs-filter-row"><div><label for="logs-filter">Search logs</label><input id="logs-filter" type="search" placeholder="Reference number, student name, document, phone, or date"></div><p class="small muted" id="logs-count"></p></div><div class="table-wrap"><table><thead><tr><th>Reference</th><th>Student</th><th>Document</th><th>Contact</th><th>Guardian</th><th>Issued</th><th>Verify</th></tr></thead><tbody id="logs-table"></tbody></table></div></div></section>
+<section id="admin-security" class="admin-section" hidden><div class="security-grid"><form class="card security-card" id="password-form"><div class="card-head"><div><h2>Admin password</h2><p class="card-sub">Updating the password signs out all admin sessions.</p></div></div>${field("currentPassword", "Current password", "password", true)}<div class="grid2">${field("newPassword", "New password (10+ characters)", "password", true)}${field("repeatPassword", "Confirm new password", "password", true)}</div><div class="card-submit"><button class="primary full">Update password</button></div></form><section class="card security-card"><div class="card-head"><div><h2>Database backup</h2><p class="card-sub">Save a safe snapshot of all students, templates, and issued logs.</p></div></div><p class="small muted">Backups are saved inside the <code>backups</code> folder on this PC. Daily automatic copies are kept for 14 days.</p><p class="small break" id="backup-status" role="status"></p><div class="card-submit"><button type="button" class="primary full" id="backup-button">Create backup now</button></div></section><form class="card security-card" id="guardian-approval-form"><div class="card-head"><div><h2>Approve guardian collection</h2><p class="card-sub">One-student counter approval valid for 10 minutes.</p></div></div><div class="grid2"><label>Student GR number<input name="grNumber" required autocomplete="off"></label><label>Guardian mobile (10 digits)<input name="guardianPhone" inputmode="numeric" maxlength="10" required autocomplete="off"></label></div><label>Administrator password<input name="password" type="password" required autocomplete="current-password"></label><p class="status" id="guardian-approval-status" role="status"></p><div class="guardian-qr-box"><img id="guardian-approval-qr" alt="Guardian approval QR" hidden><a id="guardian-approval-link" hidden>Open guardian approval ↗</a></div><div class="card-submit"><button class="primary full">Approve guardian</button></div></form><section class="card security-card"><div class="card-head"><div><h2>Portable USB copy</h2><p class="card-sub">Run the school portal on another Windows PC without setup.</p></div></div><ol class="usb-steps"><li>Open the RJC folder on this PC and double-click <code>Export_To_USB.bat</code>.</li><li>Enter your USB drive letter when asked to copy the app and a safe snapshot of all school records.</li><li>On any Windows PC, open <code>RJC_Portable</code> on the USB drive and double-click <code>Start_RJC.bat</code>.</li></ol><p class="small muted">Keep the USB drive secure if <code>admin-credentials.txt</code> is included.</p></section></div></section>`;
       const tr = {
         en: {
           welcome: "School documents, made simple.",
@@ -1651,7 +2700,9 @@
           stepTwo: "STEP 2 OF 4",
           find: "Find your student",
           findHelp: "One search box: name, mobile number, GR number or class.",
-          searchAll: "Name, mobile number, GR number or class",
+          searchAll: "Name, mobile number, GR number, or class",
+          searchPrivacy:
+            "Select your student to continue. Personal details stay hidden until verified.",
           findStudent: "Find student",
           mobile: "Mobile number",
           nameSearch: "Class & name",
@@ -1698,6 +2749,14 @@
           done: "Done",
           noResults:
             "No student found. Check the details or contact the school office.",
+          noResultsTitle: "No students matched your search",
+          noResultsHint:
+            "Check the spelling, or search with a 10-digit mobile number, GR number, or class (for example: 8th). Contact the school office if your record needs updating.",
+          noResultsFor: "No match for",
+          clearSearch: "Clear search",
+          noVerifiedStudentsTitle: "No student record available",
+          noVerifiedStudentsHint:
+            "Go back and verify using the child’s birth year and GR number or last four Aadhaar digits.",
           chooseFirst: "Choose a document first.",
           working: "Preparing your document…",
           all: "All",
@@ -1720,6 +2779,8 @@
           findHelp:
             "एकच शोध पेटी: नाव, मोबाईल क्रमांक, जनरल रजिस्टर क्रमांक किंवा इयत्ता.",
           searchAll: "नाव, मोबाईल क्रमांक, जनरल रजिस्टर क्रमांक किंवा इयत्ता",
+          searchPrivacy:
+            "पुढे जाण्यासाठी विद्यार्थी निवडा. पडताळणीपूर्वी वैयक्तिक माहिती गुप्त ठेवली जाते.",
           findStudent: "विद्यार्थी शोधा",
           mobile: "मोबाईल क्रमांक",
           nameSearch: "इयत्ता व नाव",
@@ -1764,6 +2825,14 @@
           clearsIn: "माहिती हटवण्यास",
           done: "पूर्ण झाले",
           noResults: "विद्यार्थी सापडला नाही. माहिती तपासा किंवा शाळेशी संपर्क साधा.",
+          noResultsTitle: "तुमच्या शोधाशी जुळणारा विद्यार्थी आढळला नाही",
+          noResultsHint:
+            "नावाचे स्पेलिंग तपासा किंवा १० अंकी मोबाईल क्रमांक, GR क्रमांक किंवा इयत्ता (उदा. 8th) वापरून पहा. माहिती अद्ययावत करण्यासाठी शाळेच्या कार्यालयाशी संपर्क साधा.",
+          noResultsFor: "शोध शब्द",
+          clearSearch: "शोध साफ करा",
+          noVerifiedStudentsTitle: "विद्यार्थ्याची नोंद उपलब्ध नाही",
+          noVerifiedStudentsHint:
+            "कृपया मागे जाऊन विद्यार्थ्याचे जन्मवर्ष आणि GR क्रमांक किंवा आधारचे शेवटचे ४ अंक तपासा.",
           chooseFirst: "प्रथम प्रमाणपत्र निवडा.",
           working: "प्रमाणपत्र तयार होत आहे…",
           all: "सर्व",
@@ -1785,6 +2854,8 @@
           find: "छात्र खोजें",
           findHelp: "एक ही खोज बॉक्स: नाम, मोबाइल नंबर, जनरल रजिस्टर नंबर या कक्षा।",
           searchAll: "नाम, मोबाइल नंबर, जनरल रजिस्टर नंबर या कक्षा",
+          searchPrivacy:
+            "आगे बढ़ने के लिए छात्र चुनें। सत्यापन तक व्यक्तिगत विवरण सुरक्षित रहते हैं।",
           findStudent: "छात्र खोजें",
           mobile: "मोबाइल नंबर",
           nameSearch: "कक्षा और नाम",
@@ -1830,6 +2901,14 @@
           clearsIn: "जानकारी मिटेगी",
           done: "पूर्ण",
           noResults: "छात्र नहीं मिला। जानकारी जाँचें या विद्यालय से संपर्क करें।",
+          noResultsTitle: "आपकी खोज से मेल खाने वाला कोई छात्र नहीं मिला",
+          noResultsHint:
+            "नाम की वर्तनी जाँचें, या १० अंकों का मोबाइल नंबर, GR नंबर अथवा कक्षा (जैसे: 8th) लिखकर खोजें। रिकॉर्ड अपडेट के लिए विद्यालय कार्यालय से संपर्क करें।",
+          noResultsFor: "खोजा गया",
+          clearSearch: "खोज साफ़ करें",
+          noVerifiedStudentsTitle: "छात्र का रिकॉर्ड उपलब्ध नहीं है",
+          noVerifiedStudentsHint:
+            "कृपया वापस जाकर बच्चे का जन्म वर्ष और GR नंबर या आधार के अंतिम ४ अंक दोबारा जाँचें।",
           chooseFirst: "पहले प्रमाणपत्र चुनें।",
           working: "प्रमाणपत्र तैयार हो रहा है…",
           all: "सभी",
@@ -1850,16 +2929,85 @@
           .querySelectorAll("[data-t]")
           .forEach((el) => (el.textContent = t(el.dataset.t)));
         const labels = {
-          en: {mobile:'Registered parent mobile',mobileLabel:'Enter the registered 10-digit mobile number',continue:'Continue',verify:'Verify your details',neutral:'If the number is registered and WhatsApp is available, a code may arrive. If it does not arrive, use the family check.',otp:'WhatsApp verification code',verifyButton:'Verify',family:'Family Secret Check',familyHelp:'This checks knowledge, not control of the registered phone. It authorizes only the child whose details are checked. A guardian needs the parent’s WhatsApp verification or staff approval.',birth:'Child’s birth year',identifier:'Choose a family detail',identifierGr:'GR number',identifierBackup:'Backup ID (last four digits)',students:'Choose a student',document:'Choose a document'},
-          mr: {mobile:'नोंदणीकृत पालक मोबाईल',mobileLabel:'नोंदणीकृत १० अंकी मोबाईल क्रमांक टाका',continue:'पुढे',verify:'माहितीची पडताळणी',neutral:'क्रमांक नोंदणीकृत असल्यास आणि व्हॉट्सॲप उपलब्ध असल्यास कोड येऊ शकतो. कोड न आल्यास कौटुंबिक तपासणी वापरा.',otp:'व्हॉट्सॲप पडताळणी कोड',verifyButton:'पडताळा',family:'कौटुंबिक गुप्त तपासणी',familyHelp:'ही माहितीची तपासणी आहे; फोनवरील नियंत्रणाचा पुरावा नाही. फक्त तपासलेल्या विद्यार्थ्यासाठी परवानगी मिळते. प्रतिनिधीस पालकाची व्हॉट्सॲप पडताळणी किंवा कर्मचाऱ्यांची मंजुरी आवश्यक आहे.',birth:'विद्यार्थ्याचे जन्मवर्ष',identifier:'तपशील निवडा',identifierGr:'जीआर क्रमांक',identifierBackup:'पर्यायी ओळख क्रमांकाचे शेवटचे चार अंक',students:'विद्यार्थी निवडा',document:'प्रमाणपत्र निवडा'},
-          hi: {mobile:'पंजीकृत अभिभावक मोबाइल',mobileLabel:'पंजीकृत १० अंकों का मोबाइल नंबर दर्ज करें',continue:'आगे',verify:'विवरण सत्यापित करें',neutral:'नंबर पंजीकृत होने और व्हाट्सऐप उपलब्ध होने पर कोड आ सकता है। कोड न आए तो पारिवारिक जाँच करें।',otp:'व्हाट्सऐप सत्यापन कोड',verifyButton:'सत्यापित करें',family:'पारिवारिक गोपनीय जाँच',familyHelp:'यह जानकारी की जाँच है, फोन पर नियंत्रण का प्रमाण नहीं। केवल जाँचे गए बच्चे के लिए अनुमति मिलती है। प्रतिनिधि के लिए अभिभावक का व्हाट्सऐप सत्यापन या कर्मचारी की मंजूरी आवश्यक है।',birth:'बच्चे का जन्म वर्ष',identifier:'विवरण चुनें',identifierGr:'जीआर नंबर',identifierBackup:'वैकल्पिक पहचान के अंतिम चार अंक',students:'छात्र चुनें',document:'प्रमाणपत्र चुनें'}
-        }; document.querySelectorAll('[data-parent-text]').forEach(el => el.textContent = labels[state.lang][el.dataset.parentText]);
-        const identifierLabel = $('family-identifier').labels[0];
-        const backupId = $('identifier-type').value === 'backup';
-        identifierLabel.textContent = labels[state.lang][backupId ? 'identifierBackup' : 'identifierGr'];
-        $('family-identifier').maxLength = backupId ? 4 : 64;
-        if (backupId) $('family-identifier').setAttribute('inputmode', 'numeric');
-        else $('family-identifier').removeAttribute('inputmode');
+          en: {
+            mobile: "Registered parent mobile",
+            mobileLabel: "Enter the registered 10-digit mobile number",
+            continue: "Continue",
+            verify: "Verify your details",
+            neutral:
+              "If WhatsApp is active on the registered number, a verification code may arrive. Otherwise, verify using student details below.",
+            otp: "WhatsApp verification code",
+            verifyButton: "Verify",
+            family: "Verify with student details",
+            familyHelp:
+              "Enter your child’s birth year and GR number or last 4 Aadhaar digits. Visiting guardians need parent OTP or school office approval.",
+            birth: "Birth year (YYYY)",
+            identifier: "Verify using",
+            identifierGr: "GR number",
+            identifierBackup: "Aadhaar (last 4 digits)",
+            students: "Choose a student",
+            document: "Choose a document",
+          },
+          mr: {
+            mobile: "नोंदणीकृत पालक मोबाईल",
+            mobileLabel: "नोंदणीकृत १० अंकी मोबाईल क्रमांक टाका",
+            continue: "पुढे",
+            verify: "माहितीची पडताळणी",
+            neutral:
+              "नोंदणीकृत क्रमांकावर व्हॉट्सॲप सुरू असल्यास पडताळणी कोड येऊ शकतो. अन्यथा खालील विद्यार्थ्याच्या माहितीवरून पडताळणी करा.",
+            otp: "व्हॉट्सॲप पडताळणी कोड",
+            verifyButton: "पडताळा",
+            family: "विद्यार्थ्याच्या माहितीवरून पडताळणी",
+            familyHelp:
+              "विद्यार्थ्याचे जन्मवर्ष आणि GR क्रमांक किंवा आधारचे शेवटचे ४ अंक टाका. प्रतिनिधीसाठी पालकाची व्हॉट्सॲप पडताळणी किंवा शाळेची मंजुरी आवश्यक आहे.",
+            birth: "जन्मवर्ष (उदा. 2013)",
+            identifier: "पडताळणीचा प्रकार",
+            identifierGr: "GR क्रमांक",
+            identifierBackup: "आधार (शेवटचे ४ अंक)",
+            students: "विद्यार्थी निवडा",
+            document: "प्रमाणपत्र निवडा",
+          },
+          hi: {
+            mobile: "पंजीकृत अभिभावक मोबाइल",
+            mobileLabel: "पंजीकृत १० अंकों का मोबाइल नंबर दर्ज करें",
+            continue: "आगे",
+            verify: "विवरण सत्यापित करें",
+            neutral:
+              "पंजीकृत नंबर पर व्हाट्सऐप सक्रिय होने पर सत्यापन कोड आ सकता है। अन्यथा नीचे छात्र के विवरण से सत्यापन करें।",
+            otp: "व्हाट्सऐप सत्यापन कोड",
+            verifyButton: "सत्यापित करें",
+            family: "छात्र के विवरण से सत्यापन",
+            familyHelp:
+              "बच्चे का जन्म वर्ष और GR नंबर या आधार के अंतिम 4 अंक दर्ज करें। प्रतिनिधि के लिए अभिभावक का व्हाट्सऐप सत्यापन या विद्यालय की मंजूरी आवश्यक है।",
+            birth: "जन्म वर्ष (जैसे 2013)",
+            identifier: "सत्यापन का प्रकार",
+            identifierGr: "GR नंबर",
+            identifierBackup: "आधार (अंतिम 4 अंक)",
+            students: "छात्र चुनें",
+            document: "प्रमाणपत्र चुनें",
+          },
+        };
+        document
+          .querySelectorAll("[data-parent-text]")
+          .forEach(
+            (el) => (el.textContent = labels[state.lang][el.dataset.parentText]),
+          );
+        const typeSelect = $("identifier-type");
+        if (typeSelect?.options?.length >= 2) {
+          typeSelect.options[0].textContent = labels[state.lang].identifierGr;
+          typeSelect.options[1].textContent =
+            labels[state.lang].identifierBackup;
+        }
+        const identifierLabel = $("family-identifier").labels[0];
+        const backupId = typeSelect.value === "backup";
+        identifierLabel.textContent =
+          labels[state.lang][backupId ? "identifierBackup" : "identifierGr"];
+        $("family-identifier").maxLength = backupId ? 4 : 64;
+        if (backupId)
+          $("family-identifier").setAttribute("inputmode", "numeric");
+        else $("family-identifier").removeAttribute("inputmode");
+        syncSelects();
+        if (state.verifiedStudents?.length) renderParentStudents();
       }
       async function api(
         url,
@@ -1925,13 +3073,14 @@
         if (view === "parent") refreshFrontQr();
       }
       function resetParent() {
-        if (state.parentToken) fetch("/api/parent/done", { method: "POST", headers: { "x-parent-session": state.parentToken }, keepalive: true }).catch(() => {});
+        if (state.parentToken) fetch("/api/parent/done", { method: "POST", headers: { "Content-Type": "application/json", "x-parent-session": state.parentToken }, body: "{}", keepalive: true }).catch(() => {});
         state.parentToken = ""; state.challenge = ""; state.authMethod = "";
         state.epoch++;
         searchEpoch++;
         clearTimeout(searchTimer);
         expiresAt = 0;
         state.student = null;
+        state.verifiedStudents = [];
         state.cert = null;
         state.templateId = null;
         state.generating = false;
@@ -1960,6 +3109,9 @@
         updateVerification();
         goStep(1);
       }
+      const phoneMedia = matchMedia("(max-width: 700px)");
+      const syncPhoneMode = () => document.body.classList.toggle("phone", phoneMedia.matches);
+      phoneMedia.addEventListener?.("change", syncPhoneMode);
       async function loadConfig() {
         state.config = await json("/api/public-config");
         const name = state.config.schoolName || "R. J. CHAWARE CONVENT";
@@ -1968,18 +3120,190 @@
         $("brand-name").textContent = name;
         $("brand-sub").textContent = tagline;
         document.title = name + " · School Document Portal";
-        document.body.classList.toggle("phone", matchMedia("(max-width: 700px)").matches);
+        syncPhoneMode();
         $("otp-area").hidden = !state.config.otpConfigured;
+      }
+      const idCopy = {
+        en: {
+          identity: "STUDENT IDENTITY",
+          gr: "GR No.",
+          classPrefix: "Class",
+          divisionPrefix: "Division",
+          rollPrefix: "Roll No.",
+          dob: "Date of birth",
+          father: "Father / parent",
+          mother: "Mother",
+          bloodGroup: "Blood group",
+          house: "House",
+          phone: "Parent mobile",
+          emergencyPhone: "Emergency mobile",
+          apaar: "APAAR / PEN ID",
+          busRoute: "Transport route",
+          address: "Address",
+          remarks: "Notes",
+          selectBtn: "Continue to documents →",
+        },
+        mr: {
+          identity: "विद्यार्थी ओळखपत्र",
+          gr: "GR क्र.",
+          classPrefix: "इयत्ता",
+          divisionPrefix: "तुकडी",
+          rollPrefix: "हजेरी क्र.",
+          dob: "जन्मतारीख",
+          father: "वडील / पालक",
+          mother: "आई",
+          bloodGroup: "रक्तगट",
+          house: "गट / हाऊस",
+          phone: "पालक मोबाईल",
+          emergencyPhone: "आपत्कालीन मोबाईल",
+          apaar: "APAAR / PEN आयडी",
+          busRoute: "वाहन मार्ग",
+          address: "पत्ता",
+          remarks: "नोंद",
+          selectBtn: "पुढे जा — प्रमाणपत्र निवडा →",
+        },
+        hi: {
+          identity: "छात्र पहचान पत्र",
+          gr: "GR क्र.",
+          classPrefix: "कक्षा",
+          divisionPrefix: "विभाग",
+          rollPrefix: "रोल नंबर",
+          dob: "जन्मतिथि",
+          father: "पिता / अभिभावक",
+          mother: "माता",
+          bloodGroup: "रक्त समूह",
+          house: "हाउस / वर्ग",
+          phone: "अभिभावक मोबाइल",
+          emergencyPhone: "आपातकालीन मोबाइल",
+          apaar: "APAAR / PEN आईडी",
+          busRoute: "वाहन मार्ग",
+          address: "पता",
+          remarks: "टिप्पणी",
+          selectBtn: "आगे बढ़ें — प्रमाणपत्र चुनें →",
+        },
+      };
+      const emptyStudentSvg =
+        '<svg viewBox="0 0 64 64" fill="none" aria-hidden="true">' +
+        '<rect x="10" y="8" width="34" height="44" fill="#faf9f6" stroke="currentColor" stroke-width="1.5"/>' +
+        '<circle cx="23" cy="21" r="4.5" stroke="#5f5f59" stroke-width="1.4"/>' +
+        '<path d="M16 33c1.5-3.4 4.1-5 7-5s5.5 1.6 7 5" stroke="#5f5f59" stroke-width="1.4" stroke-linecap="square"/>' +
+        '<line x1="16" y1="40" x2="36" y2="40" stroke="#c8c7c0" stroke-width="1.4"/>' +
+        '<line x1="16" y1="45" x2="29" y2="45" stroke="#c8c7c0" stroke-width="1.4"/>' +
+        '<circle cx="44" cy="42" r="10.5" fill="#f3f2ee" stroke="currentColor" stroke-width="1.6"/>' +
+        '<line x1="51.5" y1="49.5" x2="58" y2="56" stroke="currentColor" stroke-width="1.8" stroke-linecap="square"/>' +
+        '<line x1="40.5" y1="38.5" x2="47.5" y2="45.5" stroke="#888780" stroke-width="1.4" stroke-linecap="square"/>' +
+        '<line x1="47.5" y1="38.5" x2="40.5" y2="45.5" stroke="#888780" stroke-width="1.4" stroke-linecap="square"/>' +
+        "</svg>";
+      function createStudentEmptyState({
+        title,
+        hint,
+        query = "",
+        queryPrefix = "",
+        actionLabel = "",
+        onAction = null,
+        tableMode = false,
+      }) {
+        const wrap = document.createElement("div");
+        wrap.className = tableMode ? "table-empty-state" : "empty-state";
+        wrap.setAttribute("role", "status");
+        const art = document.createElement("div");
+        art.className = "empty-state-art";
+        art.innerHTML = emptyStudentSvg;
+        const body = document.createElement("div");
+        body.className = "empty-state-body";
+        if (query) {
+          const qLine = document.createElement("p");
+          qLine.className = "empty-state-query";
+          qLine.textContent = queryPrefix ? `${queryPrefix}: “${query}”` : `“${query}”`;
+          body.append(qLine);
+        }
+        const h = document.createElement("p");
+        h.className = "empty-state-title";
+        h.textContent = title;
+        const p = document.createElement("p");
+        p.className = "empty-state-desc";
+        p.textContent = hint;
+        body.append(h, p);
+        if (actionLabel && typeof onAction === "function") {
+          const actions = document.createElement("div");
+          actions.className = "empty-state-actions";
+          const btn = document.createElement("button");
+          btn.type = "button";
+          btn.textContent = actionLabel;
+          btn.onclick = onAction;
+          actions.append(btn);
+          body.append(actions);
+        }
+        wrap.append(art, body);
+        return wrap;
+      }
+      function renderParentStudents() {
+        const c = idCopy[state.lang] || idCopy.en;
+        const container = $("search-results");
+        container.replaceChildren();
+        const list = state.verifiedStudents || [];
+        if (!list.length) {
+          container.append(
+            createStudentEmptyState({
+              title: t("noVerifiedStudentsTitle"),
+              hint: t("noVerifiedStudentsHint"),
+              actionLabel: t("back"),
+              onAction: () => goStep(3),
+            }),
+          );
+          return;
+        }
+        for (const student of list) {
+          const card = document.createElement("article");
+          card.className = "id-card";
+          const hasPhoto = Boolean(String(student.photo_data || "").trim());
+          const photoHtml = hasPhoto
+            ? `<div class="id-photo-slot"><img class="id-photo-img" src="${esc(student.photo_data)}" alt="${esc(student.full_name)}"></div>`
+            : `<div class="id-photo-slot"><div class="id-photo-empty" aria-hidden="true"></div></div>`;
+          const eyebrowParts = [c.identity];
+          if (String(student.gr_number || "").trim())
+            eyebrowParts.push(`${c.gr} ${student.gr_number.trim()}`);
+          if (String(student.academic_year || "").trim())
+            eyebrowParts.push(student.academic_year.trim());
+          const subParts = [];
+          if (String(student.class_name || "").trim())
+            subParts.push(`${c.classPrefix} ${student.class_name.trim()}`);
+          if (String(student.division || "").trim())
+            subParts.push(`${c.divisionPrefix} ${student.division.trim()}`);
+          if (String(student.roll_no || "").trim())
+            subParts.push(`${c.rollPrefix} ${student.roll_no.trim()}`);
+          const fields = [
+            [c.dob, student.dob, false],
+            [c.father, student.father_name, false],
+            [c.mother, student.mother_name, false],
+            [c.bloodGroup, student.blood_group, false],
+            [c.house, student.house, false],
+            [c.phone, student.parent_phone, false],
+            [c.emergencyPhone, student.emergency_phone, false],
+            [c.apaar, student.apaar_id, false],
+            [c.busRoute, student.bus_route, false],
+            [c.address, student.address, true],
+            [c.remarks, student.remarks, true],
+          ].filter(([, val]) => String(val || "").trim().length > 0);
+          const gridHtml = fields.length
+            ? `<div class="id-grid">${fields
+                .map(
+                  ([lbl, val, wide]) =>
+                    `<div class="id-field${wide ? " id-field-wide" : ""}"><span class="id-label">${esc(lbl)}</span><span class="id-val">${esc(String(val).trim())}</span></div>`,
+                )
+                .join("")}</div>`
+            : "";
+          card.innerHTML = `<div class="id-card-main">${photoHtml}<div class="id-body"><div class="id-head"><p class="id-eyebrow">${esc(eyebrowParts.join(" · "))}</p><h2 class="id-name">${esc(student.full_name)}</h2>${subParts.length ? `<p class="id-sub">${esc(subParts.join(" · "))}</p>` : ""}</div>${gridHtml}</div></div><div class="id-actions"><button type="button" class="primary id-choose-btn">${esc(c.selectBtn)}</button></div>`;
+          card.querySelector(".id-choose-btn").onclick = () =>
+            chooseStudent(student);
+          container.append(card);
+        }
       }
       async function acceptVerification(result) {
         state.parentToken = result.sessionToken; state.authMethod = result.method;
         const data = await json('/api/parent/students'); state.config.templates = data.templates;
-        $('search-results').replaceChildren();
-        for (const student of data.students) {
-          const button = document.createElement('button'); button.className = 'student';
-          button.innerHTML = `<strong>${esc(student.full_name)}</strong><small>${esc(student.class_name)} · ${esc(student.division)}</small>`;
-          button.onclick = () => chooseStudent(student); $('search-results').append(button);
-        }
+        state.verifiedStudents = data.students || [];
+        renderParentStudents();
         goStep(4);
       }
       async function runSearch() {
@@ -1990,7 +3314,27 @@
         try {
           const result = await json('/api/parent/find', {method:'POST',body:{query}});
           if (version !== searchEpoch || epoch !== state.epoch || state.step !== 2) return;
-          $('phone-status').textContent = result.students.length ? '' : t('noResults');
+          $('phone-status').textContent = '';
+          if (!result.students.length) {
+            $('candidate-results').append(
+              createStudentEmptyState({
+                title: t('noResultsTitle'),
+                hint: t('noResultsHint'),
+                query,
+                queryPrefix: t('noResultsFor'),
+                actionLabel: t('clearSearch'),
+                onAction: () => {
+                  ++searchEpoch;
+                  clearTimeout(searchTimer);
+                  $('search-query').value = '';
+                  $('candidate-results').replaceChildren();
+                  $('phone-status').textContent = '';
+                  $('search-query').focus();
+                },
+              }),
+            );
+            return;
+          }
           for (const candidate of result.students) {
             const button = document.createElement('button'); button.className = 'student';
             button.textContent = candidate.label + ' · ' + candidate.class_name + ' / ' + candidate.division;
@@ -2049,12 +3393,32 @@
         setTimeout(() => URL.revokeObjectURL(url), 1000);
       }
       function speak() {
-        if (!window.speechSynthesis) return alert(t("voiceUnavailable"));
+        const statusTarget =
+          state.view === "admin"
+            ? $("admin-content").hidden
+              ? "login-status"
+              : "admin-status"
+            : state.step === 2
+              ? "phone-status"
+              : state.step === 3
+                ? "auth-status"
+                : state.step === 5
+                  ? "verify-status"
+                  : state.step === 6
+                    ? "document-status"
+                    : null;
+        if (!window.speechSynthesis) {
+          if (statusTarget) report(Error(t("voiceUnavailable")), statusTarget);
+          return;
+        }
         const allVoices = speechSynthesis.getVoices(),
           matches = (v) => v.lang.toLowerCase().startsWith(state.lang),
           offline = allVoices.filter((v) => v.localService && matches(v)),
           voices = offline.length ? offline : allVoices.filter(matches);
-        if (!voices.length) return alert(t("voiceUnavailable"));
+        if (!voices.length) {
+          if (statusTarget) report(Error(t("voiceUnavailable")), statusTarget);
+          return;
+        }
         const u = new SpeechSynthesisUtterance(
           state.view === "parent"
             ? t("speech")[state.step - 1]
@@ -2090,6 +3454,7 @@
         for (const el of $(id).elements)
           if (el.name && values[el.name] !== undefined)
             el.value = values[el.name] ?? "";
+        syncSelects();
       }
       async function login(event) {
         event.preventDefault();
@@ -2167,25 +3532,78 @@
           editTemplate(r.templates[0].id);
       }
       function renderStudents() {
-        const q = $("student-filter").value.toLocaleLowerCase(),
+        const rawQuery = $("student-filter").value.trim(),
+          q = rawQuery.toLocaleLowerCase(),
           rows = state.admin.students.filter((s) =>
             [s.gr_number, s.full_name, s.class_name, s.parent_phone].some((v) =>
               String(v).toLocaleLowerCase().includes(q),
             ),
           );
-        $("students-table").innerHTML = rows.length
-          ? rows
-              .map(
-                (s) =>
-                  `<tr><td><strong>${esc(s.full_name)}</strong><br><span class="muted">GR ${esc(s.gr_number)}</span></td><td>${esc(s.class_name)} / ${esc(s.division)}</td><td>${esc(s.status)}</td><td><button data-edit-student="${esc(s.gr_number)}">Edit</button><button class="danger" data-delete-student="${esc(s.gr_number)}" ${s.status === "INACTIVE" ? "disabled" : ""}>Deactivate</button></td></tr>`,
-              )
-              .join("")
-          : '<tr><td colspan="4">No matching students.</td></tr>';
+        const tbody = $("students-table");
+        if (rows.length) {
+          tbody.innerHTML = rows
+            .map(
+              (s) =>
+                `<tr><td><strong>${esc(s.full_name)}</strong><br><span class="muted">GR ${esc(s.gr_number)}</span></td><td>${esc(s.class_name)} / ${esc(s.division)}</td><td>${esc(s.status)}</td><td><button data-edit-student="${esc(s.gr_number)}">Edit</button><button class="danger" data-delete-student="${esc(s.gr_number)}" ${s.status === "INACTIVE" ? "disabled" : ""}>Deactivate</button></td></tr>`,
+            )
+            .join("");
+          return;
+        }
+        const tr = document.createElement("tr");
+        const td = document.createElement("td");
+        td.colSpan = 4;
+        td.className = "table-empty-cell";
+        td.append(
+          createStudentEmptyState({
+            tableMode: true,
+            query: rawQuery,
+            queryPrefix: rawQuery ? "No match for" : "",
+            title: rawQuery ? "No matching students" : "No student records yet",
+            hint: rawQuery
+              ? "Try another name, GR number, class, or 10-digit mobile number — or clear the filter."
+              : "Import a CSV file above or fill out the form on the right to add your first student.",
+            actionLabel: rawQuery ? "Clear search" : "",
+            onAction: rawQuery
+              ? () => {
+                  $("student-filter").value = "";
+                  renderStudents();
+                  $("student-filter").focus();
+                }
+              : null,
+          }),
+        );
+        tr.append(td);
+        tbody.replaceChildren(tr);
+      }
+      function studentFormTab(name) {
+        $("student-tab-core").hidden = name !== "core";
+        $("student-tab-card").hidden = name !== "card";
+        document
+          .querySelectorAll("[data-student-tab]")
+          .forEach((b) =>
+            b.classList.toggle("active", b.dataset.studentTab === name),
+          );
+      }
+      function renderStudentPhotoPreview() {
+        const img = $("student-photo-preview");
+        const ph = $("student-photo-placeholder");
+        const clr = $("student-photo-clear");
+        const has = Boolean(state.studentPhoto);
+        if (has) img.src = state.studentPhoto;
+        else img.removeAttribute("src");
+        img.hidden = !has;
+        ph.hidden = has;
+        clr.hidden = !has;
       }
       function clearStudent() {
         $("student-form").reset();
         $("student-form").elements.gr_number.readOnly = false;
         $("student-form-title").textContent = "Add student";
+        state.studentPhoto = "";
+        $("student-photo-input").value = "";
+        renderStudentPhotoPreview();
+        studentFormTab("core");
+        syncSelects();
       }
       function editStudent(gr) {
         const s = state.admin.students.find((s) => s.gr_number === gr);
@@ -2193,6 +3611,9 @@
         fillForm("student-form", s);
         $("student-form").elements.gr_number.readOnly = true;
         $("student-form-title").textContent = "Edit student · GR " + gr;
+        state.studentPhoto = s.photo_data || "";
+        $("student-photo-input").value = "";
+        renderStudentPhotoPreview();
         $("student-form").elements.full_name.focus();
       }
       async function saveStudent(e) {
@@ -2201,7 +3622,7 @@
           await json("/api/admin/students", {
             admin: true,
             method: "POST",
-            body: formData("student-form"),
+            body: { ...formData("student-form"), photo_data: state.studentPhoto },
           });
           await loadAdmin();
           clearStudent();
@@ -2214,6 +3635,7 @@
       async function uploadCsv(event) {
         const file = event.target.files[0];
         if (!file) return;
+        $("csv-file-name").textContent = file.name + " · importing…";
         try {
           if (file.size > 5000000)
             throw Error("CSV must be smaller than 5 MB.");
@@ -2224,22 +3646,42 @@
           });
           await loadAdmin();
           await loadConfig();
+          $("csv-file-name").textContent = `${file.name} · imported ${r.count} students`;
           $("admin-status").textContent = `Imported ${r.count} students.`;
         } catch (e) {
+          $("csv-file-name").textContent = "Import failed · check CSV format";
           report(e);
         } finally {
           event.target.value = "";
         }
       }
       function renderTemplates() {
+        const activeId = Number($("template-id").value || 0);
+        const activeTpl = state.admin.templates.find((t) => t.id === activeId);
+        const toggleBtn = $("toggle-active-template");
+        const deleteBtn = $("delete-active-template");
+        if (toggleBtn && deleteBtn) {
+          if (activeTpl) {
+            toggleBtn.hidden = false;
+            deleteBtn.hidden = false;
+            toggleBtn.dataset.toggleTemplate = String(activeTpl.id);
+            toggleBtn.textContent = activeTpl.is_active ? "Disable" : "Enable";
+            deleteBtn.dataset.deleteTemplate = String(activeTpl.id);
+          } else {
+            toggleBtn.hidden = true;
+            deleteBtn.hidden = true;
+            delete toggleBtn.dataset.toggleTemplate;
+            delete deleteBtn.dataset.deleteTemplate;
+          }
+        }
         $("templates-list").innerHTML =
           state.admin.templates
             .map(
               (tpl) =>
-                `<div class="student"><span><strong>${esc(tpl.title_en)}</strong><small>${tpl.is_active ? "Active" : "Inactive"}</small></span><span><button data-edit-template="${tpl.id}">Edit</button><button data-toggle-template="${tpl.id}">${tpl.is_active ? "Disable" : "Enable"}</button><button class="danger" data-delete-template="${tpl.id}">Delete</button></span></div>`,
+                `<button type="button" class="template-tab${activeId === tpl.id ? " is-editing" : ""}" data-edit-template="${tpl.id}"><span>${esc(tpl.title_en)}</span><span class="template-tab-state">${tpl.is_active ? "Active" : "Hidden"}</span></button>`,
             )
             .join("") ||
-          '<p class="muted">No templates yet. Create your first certificate below.</p>';
+          '<p class="muted" style="margin:6px 0 10px">No templates yet. Create your first certificate below.</p>';
       }
       function editTemplate(id) {
         const tpl = state.admin.templates.find((t) => t.id === Number(id));
@@ -2253,6 +3695,7 @@
           hi: tpl.body_hi || "",
         };
         state.bodyLang = "en";
+        renderTemplates();
         selectBodyLanguage("en", false);
       }
       function newTemplate() {
@@ -2260,11 +3703,13 @@
         $("template-id").value = "";
         state.bodies = { en: "", mr: "", hi: "" };
         state.bodyLang = "en";
+        renderTemplates();
         selectBodyLanguage("en", false);
         clearTimeout(previewTimer);
         previewEpoch++;
         $("template-preview").removeAttribute("srcdoc");
         $("preview-status").textContent = "Enter titles and body to preview.";
+        syncSelects();
       }
       function selectBodyLanguage(lang, save = true) {
         if (save) state.bodies[state.bodyLang] = $("template-body").value;
@@ -2339,12 +3784,17 @@
         }
       }
       function renderImages() {
+        const titles = {
+          logo: "School logo",
+          signature: "Principal signature",
+          stamp: "School stamp",
+        };
         $("image-uploaders").innerHTML = ["logo", "signature", "stamp"]
           .map((k) => {
             const data = state.admin.settings[k + "_data"];
             const uploadIcon =
-              '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>';
-            return `<div><label for="image-${k}">School ${k === "signature" ? "principal signature" : k} · PNG</label><div class="row"><img id="preview-${k}" class="image-preview" alt="${k} preview" ${data ? 'src="' + data + '"' : "hidden"}><label id="drop-${k}" class="dropzone" for="image-${k}" data-drop-image="${k}" ${data ? "hidden" : ""}>${uploadIcon}<span>Drop a PNG or click to browse</span></label><button type="button" data-clear-image="${k}" ${data ? "" : "hidden"}>Remove</button></div><input id="image-${k}" type="file" accept="image/png" data-image="${k}"></div>`;
+              '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>';
+            return `<div class="image-slot"><div><img id="preview-${k}" class="image-preview" alt="${titles[k]} preview" ${data ? 'src="' + data + '"' : "hidden"}><label id="drop-${k}" class="dropzone" for="image-${k}" data-drop-image="${k}" ${data ? "hidden" : ""}>${uploadIcon}<span>Drop PNG</span></label></div><div class="image-slot-meta"><p class="image-slot-title">${titles[k]}</p><p class="image-slot-hint">PNG format · Under 1.5 MB</p><div class="image-slot-actions"><button type="button" data-upload-image="${k}">Upload PNG</button><button type="button" class="danger" data-clear-image="${k}" ${data ? "" : "hidden"}>Remove</button></div></div><input id="image-${k}" class="sr-only-input" type="file" accept="image/png" data-image="${k}"></div>`;
           })
           .join("");
         state.images = {};
@@ -2387,7 +3837,7 @@
           });
           await loadAdmin();
           await loadConfig();
-          $("admin-status").textContent = "Branding and Wi-Fi settings saved.";
+          $("admin-status").textContent = "Branding and portal settings saved.";
         } catch (e) {
           report(e);
         }
@@ -2476,7 +3926,7 @@
           if (b.dataset.editStudent) editStudent(b.dataset.editStudent);
           if (
             b.dataset.deleteStudent &&
-            confirm("Deactivate this student? Existing audit logs remain.")
+            (await askConfirm("Deactivate student", "Deactivate this student? Existing audit logs will remain."))
           ) {
             await json(
               "/api/admin/students/" +
@@ -2501,9 +3951,10 @@
           }
           if (
             b.dataset.deleteTemplate &&
-            confirm(
+            (await askConfirm(
+              "Delete template",
               "Delete this template? Issued certificates remain in the register.",
-            )
+            ))
           ) {
             await json("/api/admin/templates/" + b.dataset.deleteTemplate, {
               admin: true,
@@ -2524,6 +3975,9 @@
             );
             input.focus();
             schedulePreview();
+          }
+          if (b.dataset.uploadImage) {
+            $("image-" + b.dataset.uploadImage)?.click();
           }
           if (b.dataset.clearImage) {
             const key = b.dataset.clearImage;
@@ -2571,9 +4025,54 @@
       $("login-form").onsubmit = login;
       $("logout-button").onclick = () => logout();
       $("student-form").onsubmit = saveStudent;
+      $("student-form").addEventListener(
+        "invalid",
+        (e) => {
+          if ($("student-tab-core").contains(e.target))
+            studentFormTab("core");
+          else if ($("student-tab-card").contains(e.target))
+            studentFormTab("card");
+        },
+        true,
+      );
+      $("student-form-tabs").addEventListener("click", (e) => {
+        const b = e.target.closest("[data-student-tab]");
+        if (b) studentFormTab(b.dataset.studentTab);
+      });
+      $("student-photo-upload").onclick = () => $("student-photo-input").click();
+      $("student-photo-clear").onclick = () => {
+        state.studentPhoto = "";
+        $("student-photo-input").value = "";
+        renderStudentPhotoPreview();
+      };
+      $("student-photo-input").onchange = (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+        if (
+          !["image/png", "image/jpeg", "image/webp"].includes(file.type) ||
+          file.size > 1500000
+        ) {
+          e.target.value = "";
+          return report(
+            Error("Choose a PNG, JPG, or WebP photo smaller than 1.5 MB."),
+          );
+        }
+        const reader = new FileReader();
+        reader.onload = () => {
+          state.studentPhoto = reader.result;
+          renderStudentPhotoPreview();
+          e.target.value = "";
+        };
+        reader.onerror = () => {
+          e.target.value = "";
+          report(Error("Unable to read this photo."));
+        };
+        reader.readAsDataURL(file);
+      };
       $("new-student").onclick = clearStudent;
       $("cancel-student").onclick = clearStudent;
       $("student-filter").oninput = () => state.admin && renderStudents();
+      $("csv-choose-btn").onclick = () => $("csv-file").click();
       $("csv-file").onchange = uploadCsv;
       $("sample-csv").onclick = async () => {
         try {
@@ -2629,6 +4128,17 @@
       });
       $("logs-filter").oninput = () => state.admin && renderLogs();
       $("refresh-logs").onclick = () => loadAdmin().catch((e) => report(e));
+      $("export-logs-csv").onclick = async () => {
+        try {
+          const q = encodeURIComponent($("logs-filter").value.trim());
+          const r = await api("/api/admin/logs.csv" + (q ? "?q=" + q : ""), {
+            admin: true,
+          });
+          downloadBlob(await r.blob(), "issued-logs.csv");
+        } catch (e) {
+          report(e);
+        }
+      };
       $("password-form").onsubmit = password;
       $("guardian-approval-form").onsubmit = async event => {
         event.preventDefault();
@@ -2675,6 +4185,141 @@
         resetParent();
         logout();
       });
+      function closeSelectMenus(except = null) {
+        document.querySelectorAll(".paper-select").forEach((wrap) => {
+          if (wrap === except) return;
+          const menu = wrap.querySelector(".select-menu");
+          const trigger = wrap.querySelector(".select-trigger");
+          if (menu) menu.hidden = true;
+          if (trigger) trigger.setAttribute("aria-expanded", "false");
+        });
+      }
+      function syncSelects() {
+        document.querySelectorAll(".paper-select").forEach((wrap) => {
+          const select = wrap.querySelector("select");
+          const labelEl = wrap.querySelector(".select-trigger-label");
+          const menu = wrap.querySelector(".select-menu");
+          if (!select || !labelEl || !menu) return;
+          const activeOpt = select.options[select.selectedIndex] || select.options[0];
+          labelEl.textContent = activeOpt ? activeOpt.textContent : "";
+          menu.replaceChildren();
+          for (const opt of select.options) {
+            const item = document.createElement("button");
+            item.type = "button";
+            item.className = "select-option";
+            item.setAttribute("role", "option");
+            const selected = opt.value === select.value;
+            item.setAttribute("aria-selected", selected ? "true" : "false");
+            item.innerHTML = `<span>${esc(opt.textContent)}</span><span class="select-mark" aria-hidden="true">▸</span>`;
+            item.onclick = () => {
+              select.value = opt.value;
+              closeSelectMenus();
+              syncSelects();
+              select.dispatchEvent(new Event("change", { bubbles: true }));
+              wrap.querySelector(".select-trigger")?.focus();
+            };
+            menu.append(item);
+          }
+        });
+      }
+      function enhanceSelects() {
+        document.querySelectorAll("select").forEach((select) => {
+          if (select.closest(".paper-select")) return;
+          const wrap = document.createElement("div");
+          wrap.className = "paper-select";
+          select.parentNode.insertBefore(wrap, select);
+          wrap.append(select);
+          select.tabIndex = -1;
+          select.setAttribute("aria-hidden", "true");
+          const trigger = document.createElement("button");
+          trigger.type = "button";
+          trigger.className = "select-trigger";
+          trigger.setAttribute("aria-haspopup", "listbox");
+          trigger.setAttribute("aria-expanded", "false");
+          if (select.id) trigger.dataset.for = select.id;
+          trigger.innerHTML = `<span class="select-trigger-label"></span><span class="select-caret" aria-hidden="true">▾</span>`;
+          const menu = document.createElement("div");
+          menu.className = "select-menu";
+          menu.setAttribute("role", "listbox");
+          menu.hidden = true;
+          wrap.append(trigger, menu);
+          const toggleMenu = (open) => {
+            const next = typeof open === "boolean" ? open : menu.hidden;
+            closeSelectMenus(next ? wrap : null);
+            menu.hidden = !next;
+            trigger.setAttribute("aria-expanded", next ? "true" : "false");
+          };
+          trigger.onclick = (e) => {
+            e.stopPropagation();
+            toggleMenu();
+          };
+          trigger.onkeydown = (e) => {
+            if (e.key === "Escape") {
+              toggleMenu(false);
+            } else if (e.key === "ArrowDown" || e.key === "ArrowUp") {
+              e.preventDefault();
+              if (menu.hidden) {
+                toggleMenu(true);
+              } else {
+                const opts = [...menu.querySelectorAll(".select-option")];
+                const idx = Math.max(0, opts.findIndex((o) => o.getAttribute("aria-selected") === "true"));
+                const nextIdx = (idx + (e.key === "ArrowDown" ? 1 : opts.length - 1)) % opts.length;
+                opts[nextIdx]?.click();
+              }
+            }
+          };
+          const parentLbl = select.closest("label");
+          const labelEls = [
+            ...(select.id
+              ? document.querySelectorAll(`label[for="${select.id}"]`)
+              : []),
+            ...(parentLbl ? [parentLbl] : []),
+          ];
+          labelEls.forEach((lbl) => {
+            lbl.onclick = (e) => {
+              if (e.target.closest(".select-menu") || e.target.closest(".select-trigger"))
+                return;
+              e.preventDefault();
+              e.stopPropagation();
+              trigger.focus();
+              toggleMenu(true);
+            };
+          });
+        });
+        syncSelects();
+      }
+      document.addEventListener("click", (e) => {
+        if (!e.target.closest(".paper-select")) closeSelectMenus();
+      });
+      document.addEventListener("keydown", (e) => {
+        if (e.key === "Escape") closeSelectMenus();
+      });
+      function askConfirm(title, message) {
+        return new Promise((resolve) => {
+          const backdrop = $("confirm-backdrop");
+          $("confirm-title").textContent = title;
+          $("confirm-message").textContent = message;
+          backdrop.hidden = false;
+          const cancelBtn = $("confirm-cancel"), okBtn = $("confirm-ok");
+          const onKey = (e) => {
+            if (e.key === "Escape") finish(false);
+          };
+          const finish = (val) => {
+            backdrop.hidden = true;
+            cancelBtn.onclick = null;
+            okBtn.onclick = null;
+            backdrop.onclick = null;
+            document.removeEventListener("keydown", onKey);
+            resolve(val);
+          };
+          cancelBtn.onclick = () => finish(false);
+          okBtn.onclick = () => finish(true);
+          backdrop.onclick = (e) => { if (e.target === backdrop) finish(false); };
+          document.addEventListener("keydown", onKey);
+          cancelBtn.focus();
+        });
+      }
+      enhanceSelects();
       loadConfig()
         .then(() => {
 

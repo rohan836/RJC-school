@@ -51,6 +51,17 @@ function openDatabase(dir) {
   };
   db.transaction(() => {
     add("students", "aadhaar_last4", "TEXT DEFAULT ''");
+    add("students", "mother_name", "TEXT DEFAULT ''");
+    add("students", "roll_no", "TEXT DEFAULT ''");
+    add("students", "academic_year", "TEXT DEFAULT ''");
+    add("students", "blood_group", "TEXT DEFAULT ''");
+    add("students", "house", "TEXT DEFAULT ''");
+    add("students", "apaar_id", "TEXT DEFAULT ''");
+    add("students", "emergency_phone", "TEXT DEFAULT ''");
+    add("students", "bus_route", "TEXT DEFAULT ''");
+    add("students", "address", "TEXT DEFAULT ''");
+    add("students", "remarks", "TEXT DEFAULT ''");
+    add("students", "photo_data", "TEXT DEFAULT ''");
     add("school_settings", "wifi_ssid", "TEXT DEFAULT ''");
     add("school_settings", "wifi_password", "TEXT DEFAULT ''");
     add("school_settings", "public_url", "TEXT DEFAULT ''");
