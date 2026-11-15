@@ -53,7 +53,7 @@ const fonts = ["devanagari", "latin"]
   .join("");
 const css =
   fonts +
-  `@page{size:A4;margin:16mm}@media screen{body{padding:10mm 12mm}}*{box-sizing:border-box}body{margin:0;background:white;color:#17202b;font-family:Noto,Arial,sans-serif;font-size:11pt;line-height:1.85}.certificate{max-width:178mm;margin:auto;overflow-wrap:anywhere}.certificate header{text-align:center;border-bottom:2px solid #17202b;padding:0 0 5mm}.certificate header img{width:22mm;height:22mm;object-fit:contain}.certificate .monogram{width:22mm;height:22mm;margin:0 auto 3mm;display:grid;place-items:center;border:1.5pt solid #17202b;border-radius:3mm;font-family:Georgia,'Times New Roman',serif;font-size:13pt;font-weight:700;letter-spacing:.08em}.certificate h1{font-size:17pt;margin:2mm 0 1.5mm;letter-spacing:.02em}.certificate header div{font-size:9.5pt;line-height:1.6}.certificate header small{display:block;margin-top:1.5mm;font-size:8.5pt;letter-spacing:.06em}.certificate h2{text-align:center;font-size:15pt;margin:8mm 0;text-decoration:underline}.meta{display:flex;justify-content:space-between;font-size:9pt;margin-top:5mm}.signatures{display:grid;grid-template-columns:repeat(3,1fr);align-items:end;text-align:center;gap:4mm;margin-top:20mm;break-inside:avoid}.signatures img{max-width:40mm;max-height:24mm;object-fit:contain}.qr{margin-top:8mm;border-top:1px solid #ccc;padding-top:4mm;display:flex;align-items:center;gap:4mm;break-inside:avoid}.qr img{width:23mm;height:23mm}.qr small{font-size:8pt}.certificate p{orphans:3;widows:3}table{border-collapse:collapse;width:100%}td,th{border:1px solid #aaa;padding:2mm}`;
+  `@page{size:A4;margin:16mm}@media screen{body{padding:10mm 12mm}}*{box-sizing:border-box}body{margin:0;background:white;color:#17202b;font-family:Noto,Arial,sans-serif;font-size:11pt;line-height:1.85}.certificate{position:relative;max-width:178mm;margin:auto;overflow-wrap:anywhere}.certificate header,.certificate .meta,.certificate h2,.certificate section,.certificate .signatures,.certificate .qr{position:relative;z-index:1}.certificate header{text-align:center;border-bottom:2px solid #17202b;padding:0 0 5mm}.certificate header img{width:22mm;height:22mm;object-fit:contain}.certificate .monogram{width:22mm;height:22mm;margin:0 auto 3mm;display:grid;place-items:center;border:1.5pt solid #17202b;border-radius:3mm;font-family:Georgia,'Times New Roman',serif;font-size:13pt;font-weight:700;letter-spacing:.08em}.certificate h1{font-size:17pt;margin:2mm 0 1.5mm;letter-spacing:.02em}.certificate header div{font-size:9.5pt;line-height:1.6}.certificate header small{display:block;margin-top:1.5mm;font-size:8.5pt;letter-spacing:.06em}.certificate h2{text-align:center;font-size:15pt;margin:8mm 0;text-decoration:underline}.meta{display:flex;justify-content:space-between;font-size:9pt;margin-top:5mm}.signatures{display:grid;grid-template-columns:repeat(3,1fr);align-items:end;text-align:center;gap:4mm;margin-top:20mm;break-inside:avoid}.signatures img{max-width:40mm;max-height:24mm;object-fit:contain}.qr{margin-top:10mm;border:1.5px solid #17202b;background:#faf9f6;padding:3.2mm 4mm;display:flex;align-items:center;gap:4.5mm;break-inside:avoid}.qr-link{display:block;flex-shrink:0;text-decoration:none}.qr img{display:block;width:24mm;height:24mm;border:1px solid #cbd5e1;background:#fff;padding:1mm;flex-shrink:0}.qr small{display:block;flex:1;min-width:0;font-size:8pt;line-height:1.45;color:#17202b}.qr-head{display:flex;justify-content:space-between;align-items:baseline;gap:3mm;border-bottom:1px solid #cbd5e1;padding-bottom:1.2mm;margin-bottom:1.6mm;font-weight:700;font-size:7.6pt;letter-spacing:.05em;text-transform:uppercase}.qr-copy-tag{font-family:'Courier New',monospace;font-size:7.4pt;font-weight:700;letter-spacing:.04em;white-space:nowrap;color:#17202b}.qr-copy-tag.duplicate{color:#a32620}.qr-grid{display:grid;grid-template-columns:1fr 1fr;gap:1mm 5mm;font-size:7.8pt;line-height:1.45}.qr-grid span{overflow-wrap:anywhere}.qr-code-val{font-family:'Courier New',monospace;font-weight:700;letter-spacing:.03em}.qr-foot-note{grid-column:1 / -1;margin-top:0.8mm;padding-top:1mm;border-top:1px dashed #cbd5e1;font-size:7.2pt;color:#475569;line-height:1.35}.certificate p{orphans:3;widows:3}table{border-collapse:collapse;width:100%}td,th{border:1px solid #aaa;padding:2mm}`;
 function renderCertificate(c) {
   const s = c.settings;
   const title = esc(c.docTitle);
@@ -74,7 +74,36 @@ function renderCertificate(c) {
   const emblem = s.logo_data
     ? `<img src="${s.logo_data}" alt="School logo">`
     : `<div class="monogram">RJC</div>`;
-  const body = `<article class="certificate"><header>${emblem}<h1>${esc(s.school_name)}</h1><div>${esc(s.school_subtitle)}</div>${udise ? `<small>UDISE: ${esc(udise)}</small>` : ""}</header><div class="meta"><span>Ref: ${esc(c.serialNo)}</span><span>Date: ${esc(c.issuedAt)}</span></div><h2>${title}</h2><section>${clean(c.bodyHtml)}</section><div class="signatures">${positions}</div><footer class="qr"><img src="${c.verificationQr}" alt="Verification QR"><small>School record verification<br>${esc(c.serialNo)}<br>${esc(c.verificationUrl)}</small></footer></article>`;
+  const copyNum = Number(c.copyNumber || 0);
+  const isDuplicate = copyNum >= 2;
+  const sheetNumPadded = copyNum ? String(copyNum).padStart(2, "0") : "01";
+  const headerTag = isDuplicate
+    ? `DUPLICATE #${copyNum} · PAGE 1 OF 1 (SHEET #${sheetNumPadded})`
+    : `ORIGINAL · PAGE 1 OF 1 (SHEET #${sheetNumPadded})`;
+  const copyStatusSimple = isDuplicate
+    ? `Duplicate Copy (#${copyNum})`
+    : "Original Record";
+  const sealCode = c.securityCode || "VERIFIED";
+  const printCode =
+    c.printSecurityCode ||
+    (copyNum ? `PRT-${sheetNumPadded}-${sealCode.slice(-4)}` : sealCode);
+  const approverCell = c.approvedByName
+    ? `<span>Approved By: <strong>${esc(c.approvedByName)}</strong>${c.approvedByRole ? ` (${esc(c.approvedByRole)})` : ""}</span>`
+    : `<span>Collector: <strong>${esc(c.collectorLabel || "Parent / Family")}</strong></span>`;
+  const extraRows = [
+    c.approvedByName && c.collectorLabel
+      ? `<span>Collector: <strong>${esc(c.collectorLabel)}</strong></span>`
+      : "",
+    c.printerName
+      ? `<span>Counter Printer: <strong>${esc(c.printerName)}</strong></span>`
+      : "",
+  ]
+    .filter(Boolean)
+    .join("");
+  const qrImgHtml = c.verificationUrl
+    ? `<a class="qr-link" href="${esc(c.verificationUrl)}" target="_blank" rel="noopener" title="Open Official School Verification Record"><img src="${c.verificationQr}" alt="Verification QR"></a>`
+    : `<img src="${c.verificationQr}" alt="Verification QR">`;
+  const body = `<article class="certificate"><header>${emblem}<h1>${esc(s.school_name)}</h1><div>${esc(s.school_subtitle)}</div>${udise ? `<small>UDISE: ${esc(udise)}</small>` : ""}</header><div class="meta"><span>Ref: ${esc(c.serialNo)}</span><span>Date: ${esc(c.issuedAt)}</span></div><h2>${title}</h2><section>${clean(c.bodyHtml)}</section><div class="signatures">${positions}</div><footer class="qr">${qrImgHtml}<small><div class="qr-head"><span>Official School Verification Record</span><span class="qr-copy-tag ${isDuplicate ? "duplicate" : "original"}">${esc(headerTag)}</span></div><div class="qr-grid"><span>Document Ref: <strong class="qr-code-val">${esc(c.serialNo)}</strong></span><span>Issued Date: <strong>${esc(c.issuedAt)}</strong></span><span>Security Seal: <strong class="qr-code-val">${esc(sealCode)}</strong></span><span>Print 2FA Code: <strong class="qr-code-val">${esc(printCode)}</strong></span><span>Record Status: <strong>${esc(copyStatusSimple)} · Sheet #${esc(sheetNumPadded)}</strong></span>${approverCell}${extraRows}<span class="qr-foot-note">Tamper-proof QR · Scan on any network or verify Print 2FA Code in the school database.</span></div></small></footer></article>`;
   return {
     certificateBody: body,
     certificateCss: css,
@@ -102,6 +131,7 @@ function browserPath() {
     "/usr/bin/chromium-browser",
     "/usr/bin/microsoft-edge",
     "/snap/bin/chromium",
+    "/ms-playwright/chrome-headless-shell-linux64/chrome-headless-shell",
   ].find((p) => p && fs.existsSync(p));
 }
 function stripTags(html) {
@@ -163,6 +193,7 @@ async function pdfFallback(html) {
     return m ? stripTags(m[1]) : "";
   };
   const schoolName = asciiSafe(matchTag(/<header>[\s\S]*?<h1>([\s\S]*?)<\/h1>/i)) || "SCHOOL DOCUMENT";
+  const copyStamp = asciiSafe(matchTag(/<span class="copy-stamp[^"]*">([\s\S]*?)<\/span>/i));
   const subtitle = asciiSafe(matchTag(/<header>[\s\S]*?<h1>[\s\S]*?<\/h1><div>([\s\S]*?)<\/div>/i));
   const udise = asciiSafe(matchTag(/<header>[\s\S]*?<small>([\s\S]*?)<\/small>/i));
   const title = asciiSafe(matchTag(/<article class="certificate">[\s\S]*?<h2>([\s\S]*?)<\/h2>/i)) || "Certificate";
@@ -174,6 +205,17 @@ async function pdfFallback(html) {
   const qrMatch = /<footer class="qr">[\s\S]*?src="(data:image\/png;base64,[^"]+)"[\s\S]*?<small>([\s\S]*?)<\/small>/i.exec(html);
 
   let y = 780;
+  if (copyStamp) {
+    const isDup = /DUPLICATE/i.test(copyStamp);
+    const sw = bold.widthOfTextAtSize(copyStamp, 9);
+    page.drawText(copyStamp, {
+      x: Math.max(48, 547 - sw),
+      y: 806,
+      size: 9,
+      font: bold,
+      color: isDup ? rgb(0.64, 0.15, 0.13) : ink,
+    });
+  }
   const drawCenter = (txt, size, useBold = false, color = ink) => {
     if (!txt) return;
     const f = useBold ? bold : font;

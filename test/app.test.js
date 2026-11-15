@@ -39,7 +39,7 @@ test(
         },
         stdio: "ignore",
       });
-      for (let i = 0; i < 100; i++) {
+      for (let i = 0; i < 200; i++) {
         try {
           if ((await fetch(base + "/api/health")).ok) return;
         } catch {}
@@ -63,7 +63,12 @@ test(
         },
         ...(body === undefined ? {} : { body: JSON.stringify(body) }),
       });
-      return { status: r.status, data: await r.json() };
+      const text = await r.text();
+      let data = text;
+      try {
+        data = JSON.parse(text);
+      } catch {}
+      return { status: r.status, data };
     };
     const searchStudentRef = async (query) => {
       const result = await req(
@@ -210,6 +215,46 @@ test(
         ).status,
         400,
       );
+      // Submit one synthetic parent request + teacher approval so backup verifies real issued_logs
+      const tAdd = await req("/api/admin/teachers", "POST", {
+        slot_number: 1,
+        name: "Backup QA Teacher",
+        role: "Top Teacher",
+        is_top_teacher: true,
+        pin: "1234",
+        is_active: true,
+      });
+      assert.equal(tAdd.status, 200);
+      const pStart = await req("/api/parent/start", "POST", { phone: "9800000001" }, false);
+      const pVer = await req(
+        "/api/parent/family",
+        "POST",
+        { challengeId: pStart.data.challengeId, birthMonth: "01", birthYear: "2014", grNumber: "SYN-1" },
+        false,
+      );
+      const pHeaders = { "Content-Type": "application/json", "x-parent-session": pVer.data.sessionToken };
+      const tinyFace = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAUCAYAAACNiR0NAAAAJ0lEQVR42mP8z8BQz0BFwMioBaNgFIyCUTAKRsEoGAWjYBSMglEAAAwQAQF3sX/BAAAAAElFTkSuQmCC";
+      const pFace = await (await fetch(base + "/api/parent/face-proof", { method: "POST", headers: pHeaders, body: JSON.stringify({ photoData: tinyFace }) })).json();
+      assert.equal(pFace.faceVerified, true);
+      const pSub = await (await fetch(base + "/api/parent/submit-request", {
+        method: "POST",
+        headers: pHeaders,
+        body: JSON.stringify({
+          studentRef: pVer.data.students[0].studentRef,
+          templateId: config.templates[0].id,
+          campusCode: c.code,
+          lang: "en",
+        }),
+      })).json();
+      assert.ok(pSub.requestId);
+      const tLogin = await req("/api/teacher/login", "POST", { teacherId: tAdd.data.id, pin: "1234" }, false);
+      const tApprove = await fetch(base + `/api/teacher/requests/${pSub.requestId}/approve`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "x-teacher-token": tLogin.data.token },
+        body: "{}",
+      });
+      assert.equal(tApprove.status, 200);
+
       const backup = await req("/api/admin/backup", "POST", {});
       assert.equal(backup.status, 200);
       const bdb = new Database(path.join(dir, "backups", backup.data.filename));
@@ -390,7 +435,7 @@ async function browserChecks(base) {
       father_name: "Local QA",
       class_name: "7th",
       division: "A",
-      dob: "01/01/2017",
+      dob: "2017-01-01",
       aadhaar_last4: "6789",
       parent_phone: "9822099952",
       status: "ACTIVE",
@@ -422,8 +467,9 @@ async function browserChecks(base) {
       await page.$eval('#student-form [name="gr_number"]', (el) => el.value),
       "",
     );
-    page.once("dialog", (dialog) => dialog.accept());
     await page.click('[data-delete-student="9952"]');
+    await page.waitForSelector("#confirm-backdrop:not([hidden])");
+    await page.click("#confirm-ok");
     await page.waitForFunction(
       () =>
         state.admin.students.find((student) => student.gr_number === "9952")
@@ -431,7 +477,9 @@ async function browserChecks(base) {
     );
 
     await page.click('[data-admin-tab="branding"]');
-    await page.click('[data-clear-image="logo"]');
+    if (await page.$eval('[data-clear-image="logo"]', (el) => !el.hidden)) {
+      await page.click('[data-clear-image="logo"]');
+    }
     assert.equal(
       await page.$eval("#drop-logo", (el) => el.control.id),
       "image-logo",
@@ -620,7 +668,7 @@ test("branding migration replaces the placeholder school with the real identity"
       /Chaware Line, Karanja \(Lad\), Dist\. Washim, Maharashtra 444105$/,
     );
     assert.equal(s.udise_no, "");
-    assert.equal(d.pragma("user_version", { simple: true }), 2);
+    assert.equal(d.pragma("user_version", { simple: true }), 3);
     assert.equal(
       d.prepare("SELECT count(*) n FROM students WHERE gr_number='4506'").get()
         .n,

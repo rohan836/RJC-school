@@ -156,11 +156,23 @@ test(
       const start = await req("/api/parent/start", { phone: "9800000011" });
       const verified = await req("/api/parent/family", {
         challengeId: start.data.challengeId,
+        birthMonth: "06",
         birthYear: "2013",
-        identifierType: "gr",
-        identifier: "9001",
+        grNumber: "9001",
       });
       assert.equal(verified.status, 200);
+
+      const gated = await req("/api/parent/students", undefined, {
+        "x-parent-session": verified.data.sessionToken,
+      });
+      assert.equal(gated.status, 403);
+
+      const faceProof = await req(
+        "/api/parent/face-proof",
+        { photoData: photo },
+        { "x-parent-session": verified.data.sessionToken },
+      );
+      assert.equal(faceProof.status, 200);
 
       const res = await req("/api/parent/students", undefined, {
         "x-parent-session": verified.data.sessionToken,

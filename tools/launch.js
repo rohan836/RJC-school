@@ -35,10 +35,15 @@ function own(h) {
   return h.appId === "rjc-school-portal" && h.projectKey === projectKey;
 }
 
-function openBrowser(targetUrl) {
+const { buildDualMonitorLaunchPlan } = require("../public/dual-monitor");
+
+function openBrowser(targetUrl, customArgs = null) {
   const executable = browserPath();
   if (executable) {
-    const child = spawn(executable, ["--new-window", targetUrl], {
+    const args = Array.isArray(customArgs) && customArgs.length
+      ? customArgs
+      : ["--new-window", targetUrl];
+    const child = spawn(executable, args, {
       detached: true,
       windowsHide: true,
       stdio: "ignore",
@@ -61,6 +66,25 @@ function openBrowser(targetUrl) {
     console.log("Open in your browser: " + targetUrl);
   });
   child.unref();
+}
+
+function openDualMonitorWindows() {
+  const profilesDir = path.join(root, "data", "browser-profiles");
+  fs.mkdirSync(path.join(profilesDir, "staff-host"), { recursive: true });
+  fs.mkdirSync(path.join(profilesDir, "parent-kiosk"), { recursive: true });
+  const xArg = process.argv.find((a) => a.startsWith("--parent-monitor-x="));
+  const parentMonitorX = xArg
+    ? Number(xArg.split("=")[1])
+    : Number(process.env.RJC_PARENT_MONITOR_X || 1920);
+  const plan = buildDualMonitorLaunchPlan({
+    port,
+    parentMonitorX,
+    profileRoot: profilesDir,
+  });
+  console.log("Monitor 1 (Staff Room Admin & Daily Queue): " + plan.staffWindow.url);
+  console.log("Monitor 2 (Parent Counter Display):         " + plan.parentWindow.url);
+  openBrowser(plan.staffWindow.url, plan.staffWindow.chromiumArgs);
+  openBrowser(plan.parentWindow.url, plan.parentWindow.chromiumArgs);
 }
 
 async function run() {
@@ -98,7 +122,11 @@ async function run() {
   }
   console.log("RJC: " + url + " (PID " + h.pid + ")");
   if (!process.argv.includes("--no-browser")) {
-    openBrowser(url + "?v=" + Date.now());
+    if (process.argv.includes("--dual-monitor")) {
+      openDualMonitorWindows();
+    } else {
+      openBrowser(url + "?v=" + Date.now());
+    }
   }
 }
 

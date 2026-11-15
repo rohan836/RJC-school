@@ -30,12 +30,14 @@ if errorlevel 1 (
   exit /b 1
 )
 
-for %%F in (server.js db.js certificate.js whatsapp.js parent-auth.js student-search.js setup.js package.json package-lock.json README.md Start_RJC.bat) do (
-  copy /Y "%%F" "%TARGET%\" >nul
-  if errorlevel 1 (
-    echo Failed to copy %%F.
-    pause
-    exit /b 1
+for %%F in (server.js db.js certificate.js data-exchange.js verification-seal.js backup-crypto.js whatsapp.js parent-auth.js student-search.js approval-service.js telegram.js print-queue.js zip-export.js notify-service.js setup.js package.json package-lock.json .env.example README.md PROJECT.md PROJECT_WORKFLOW.md WINDOWS_11_SETUP.md Start_RJC.bat Start_Dual_Monitor_Windows11.bat Restore_Backup.bat) do (
+  if exist "%%F" (
+    copy /Y "%%F" "%TARGET%\" >nul
+    if errorlevel 1 (
+      echo Failed to copy %%F.
+      pause
+      exit /b 1
+    )
   )
 )
 

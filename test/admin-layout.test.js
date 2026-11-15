@@ -62,6 +62,7 @@ test(
       browser = await puppeteer.launch({
         executablePath: browserPath(),
         headless: true,
+        args: process.platform === "linux" ? ["--no-sandbox"] : [],
       });
       for (const phase of ["before", "after"]) {
         const page = await browser.newPage();

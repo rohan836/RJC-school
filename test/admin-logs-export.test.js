@@ -116,7 +116,7 @@ test(
       const verifyOk = await fetch(base + "/verify/RJC-2026-88002");
       assert.equal(verifyOk.status, 200);
       const verifyHtml = await verifyOk.text();
-      assert.match(verifyHtml, /School record found/);
+      assert.match(verifyHtml, /Verified school record/);
       assert.match(verifyHtml, /#f3f2ee/i);
       assert.doesNotMatch(verifyHtml, /border-radius:\s*24px/i);
 

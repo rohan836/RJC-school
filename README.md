@@ -2,6 +2,8 @@
 
 The active project lives in **RJC**. RJC is the application name, for **R. J. Chaware Convent** (Jain Minority Institute · Karanja Education Society's · Chaware Line, Karanja (Lad), Dist. Washim, Maharashtra 444105). The old project remains archived under the ignored `backups/previous-project` directory.
 
+> **Windows 11 Step-by-Step Guide:** See **[`WINDOWS_11_SETUP.md`](./WINDOWS_11_SETUP.md)** for complete instructions on running the portal on Windows 11, making certificate QR codes open worldwide on any network, configuring Physical Printer 2FA (`PRT-01-…`), adding unlimited Top Teachers & Staff, and 1-click setup for Telegram Bot, Gmail SMTP, and WhatsApp.
+
 ## Permanent install at C:\RJC & USB portable package
 
 The project lives at **C:\RJC**. On this PC, `Start_Server_Silent.vbs` starts the server hidden in the background (a shortcut sits in the Startup folder, pointing at `C:\RJC`), and `Start_RJC.bat` (also on the Desktop) starts the server if port 3000 is free and opens Chrome/Edge in `--kiosk --kiosk-printing` mode. `Start_RJC.bat` works from any drive — it uses `cd /d "%~dp0"` and prefers a bundled `portable-node\node.exe`, falling back to system Node.js.

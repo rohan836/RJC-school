@@ -1,0 +1,921 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width,initial-scale=1,viewport-fit=cover"
+    />
+    <title>RJC · Teacher Approval Portal</title>
+    <style>
+      @font-face {
+        font-family: Noto;
+        src: url("/fonts/noto-sans-devanagari-devanagari-400-normal.woff2");
+      }
+      @font-face {
+        font-family: Noto;
+        src: url("/fonts/noto-sans-devanagari-latin-400-normal.woff2");
+        unicode-range: U+0000-00FF;
+      }
+      :root {
+        --paper: #f3f2ee;
+        --paper-field: #faf9f6;
+        --paper-tint: #eae9e3;
+        --ink: #141414;
+        --muted: #5f5f59;
+        --rule: #c8c7c0;
+        --accent: #d96b27;
+        --ok: #1b5e37;
+        --ok-tint: #e8f2ec;
+        --danger: #a32620;
+        --danger-tint: #f5e9e8;
+        --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto", sans-serif;
+        --mono: "SF Mono", ui-monospace, Menlo, Consolas, monospace;
+      }
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+      }
+      [hidden] {
+        display: none !important;
+      }
+      html {
+        -webkit-text-size-adjust: 100%;
+      }
+      body {
+        margin: 0;
+        min-height: 100dvh;
+        background: var(--paper);
+        color: var(--ink);
+        font: 15px/1.5 var(--sans);
+        font-variant-numeric: tabular-nums;
+      }
+      button,
+      input,
+      select,
+      textarea {
+        font: inherit;
+        border-radius: 0;
+      }
+      button {
+        cursor: pointer;
+        border: 1px solid var(--ink);
+        background: var(--paper);
+        color: var(--ink);
+        font-family: var(--mono);
+        font-size: 13px;
+        font-weight: 500;
+        min-height: 46px;
+        padding: 10px 16px;
+      }
+      button:disabled {
+        opacity: 0.45;
+        cursor: not-allowed;
+      }
+      button.primary {
+        background: var(--ink);
+        color: var(--paper);
+      }
+      button.danger {
+        background: var(--danger-tint);
+        color: var(--danger);
+        border-color: var(--danger);
+      }
+      input,
+      select,
+      textarea {
+        width: 100%;
+        border: 1px solid var(--muted);
+        background: var(--paper-field);
+        color: var(--ink);
+        padding: 12px 14px;
+        min-height: 48px;
+        font-size: 16px;
+      }
+      label {
+        display: block;
+        font-family: var(--mono);
+        font-size: 11px;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: var(--muted);
+        margin: 14px 0 6px;
+      }
+      .top-bar {
+        position: sticky;
+        top: 0;
+        z-index: 30;
+        height: 54px;
+        background: var(--paper);
+        border-top: 4px solid var(--ink);
+        border-bottom: 1px solid var(--rule);
+        padding: 0 16px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+      }
+      .brand-title {
+        font-family: var(--mono);
+        font-size: 13px;
+        font-weight: 600;
+        letter-spacing: 0.05em;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      .top-bar button {
+        min-height: 36px;
+        padding: 6px 12px;
+        font-size: 12px;
+      }
+      .wrap {
+        max-width: 960px;
+        margin: 0 auto;
+        padding: 16px 16px 96px;
+      }
+      .sheet {
+        background: var(--paper-field);
+        border: 1px solid var(--rule);
+        padding: 20px;
+      }
+      .eyebrow {
+        font-family: var(--mono);
+        font-size: 11px;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        color: var(--muted);
+        margin: 0 0 6px;
+      }
+      h1 {
+        font-size: 24px;
+        font-weight: 400;
+        letter-spacing: -0.02em;
+        margin: 0 0 8px;
+      }
+      .muted {
+        color: var(--muted);
+      }
+      .status-line {
+        font-family: var(--mono);
+        font-size: 13px;
+        min-height: 20px;
+        margin: 10px 0 0;
+        color: var(--danger);
+      }
+      .status-line.ok {
+        color: var(--ok);
+      }
+      .tabs {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        border: 1px solid var(--ink);
+        margin-bottom: 16px;
+        background: var(--paper);
+      }
+      .tabs button {
+        border: 0;
+        border-right: 1px solid var(--ink);
+        min-height: 44px;
+        padding: 8px 6px;
+        font-size: 12px;
+      }
+      .tabs button:last-child {
+        border-right: 0;
+      }
+      .tabs button.active {
+        background: var(--ink);
+        color: var(--paper);
+      }
+      .req-list {
+        border: 1px solid var(--rule);
+        background: var(--paper-field);
+      }
+      .req-row {
+        width: 100%;
+        border: 0;
+        border-bottom: 1px solid var(--rule);
+        background: transparent;
+        text-align: left;
+        padding: 14px 16px;
+        min-height: 68px;
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
+        gap: 10px;
+        align-items: center;
+      }
+      .req-row:last-child {
+        border-bottom: 0;
+      }
+      .req-row:hover {
+        background: var(--paper-tint);
+      }
+      .req-title {
+        font-family: var(--sans);
+        font-size: 16px;
+        font-weight: 600;
+        color: var(--ink);
+        display: block;
+      }
+      .req-sub {
+        font-family: var(--mono);
+        font-size: 12px;
+        color: var(--muted);
+        display: block;
+        margin-top: 3px;
+      }
+      .state-tag {
+        font-family: var(--mono);
+        font-size: 11px;
+        padding: 4px 8px;
+        border: 1px solid var(--rule);
+        background: var(--paper);
+        color: var(--ink);
+        white-space: nowrap;
+      }
+      .state-tag.approved {
+        border-color: var(--ok);
+        background: var(--ok-tint);
+        color: var(--ok);
+      }
+      .state-tag.rejected {
+        border-color: var(--danger);
+        background: var(--danger-tint);
+        color: var(--danger);
+      }
+      .detail-head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        margin-bottom: 14px;
+      }
+      .detail-grid {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr);
+        gap: 16px;
+      }
+      @media (min-width: 760px) {
+        .detail-grid {
+          grid-template-columns: minmax(0, 0.95fr) minmax(0, 1.05fr);
+        }
+      }
+      .info-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 12px;
+        border-top: 1px solid var(--rule);
+        border-bottom: 1px solid var(--rule);
+        padding: 14px 0;
+        margin: 12px 0;
+      }
+      .info-lbl {
+        display: block;
+        font-family: var(--mono);
+        font-size: 10.5px;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: var(--muted);
+      }
+      .info-val {
+        display: block;
+        font-size: 14.5px;
+        font-weight: 600;
+        overflow-wrap: anywhere;
+      }
+      .photo-compare {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 10px;
+      }
+      @media (max-width: 480px) {
+        .photo-compare {
+          grid-template-columns: minmax(0, 1fr);
+        }
+      }
+      .photo-box {
+        border: 1px solid var(--rule);
+        background: var(--paper);
+        padding: 10px;
+      }
+      .photo-box img {
+        display: block;
+        width: 100%;
+        height: 220px;
+        object-fit: cover;
+        background: #ffffff;
+      }
+      .photo-empty {
+        height: 220px;
+        display: grid;
+        place-items: center;
+        border: 1px dashed var(--rule);
+        background: var(--paper-field);
+        color: var(--muted);
+        font-family: var(--mono);
+        font-size: 12px;
+        text-align: center;
+        padding: 10px;
+      }
+      .lock-banner {
+        border: 1px solid var(--accent);
+        background: #fbf1ea;
+        color: var(--ink);
+        padding: 10px 12px;
+        margin: 10px 0 14px;
+        font-family: var(--mono);
+        font-size: 12.5px;
+      }
+      .approved-actions {
+        margin-top: 14px;
+        padding: 14px;
+        border: 1px solid var(--ok);
+        background: var(--ok-tint);
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        align-items: center;
+        justify-content: space-between;
+      }
+      .doc-frame {
+        width: 100%;
+        height: 340px;
+        border: 1px solid var(--rule);
+        background: #ffffff;
+      }
+      .sticky-actions {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        z-index: 35;
+        background: var(--paper);
+        border-top: 2px solid var(--ink);
+        padding: 10px 16px calc(10px + env(safe-area-inset-bottom, 0px));
+        display: flex;
+        justify-content: center;
+      }
+      .sticky-actions-inner {
+        width: 100%;
+        max-width: 960px;
+        display: grid;
+        grid-template-columns: 1fr 1.6fr;
+        gap: 10px;
+      }
+      .sticky-actions button {
+        min-height: 50px;
+        font-size: 14px;
+      }
+      .reject-panel {
+        margin-top: 14px;
+        padding: 14px;
+        border: 1px solid var(--danger);
+        background: var(--danger-tint);
+      }
+      .empty-box {
+        padding: 28px 18px;
+        text-align: center;
+        color: var(--muted);
+        font-family: var(--mono);
+        font-size: 13px;
+      }
+    </style>
+  </head>
+  <body>
+    <header class="top-bar">
+      <div class="brand-title" id="top-brand">RJC · TEACHER APPROVAL PORTAL</div>
+      <div style="display:flex;gap:8px;align-items:center">
+        <span id="teacher-badge" style="font-family:var(--mono);font-size:12px;color:var(--muted)" hidden></span>
+        <button type="button" id="logout-btn" hidden>Sign out</button>
+      </div>
+    </header>
+
+    <main class="wrap">
+      <section class="sheet" id="login-view">
+        <p class="eyebrow">AUTHORIZED TEACHERS &amp; STAFF</p>
+        <h1>Teacher Sign In</h1>
+        <p class="muted">
+          Enter your personal approval PIN to review parent face photos, uploaded applications, and trigger office printing.
+        </p>
+        <form id="teacher-login-form">
+          <label for="teacher-select">Select teacher / staff name</label>
+          <select id="teacher-select" required>
+            <option value="">Loading staff list...</option>
+          </select>
+          <label for="teacher-pin">Personal approval PIN</label>
+          <input
+            id="teacher-pin"
+            type="password"
+            inputmode="numeric"
+            autocomplete="current-password"
+            maxlength="20"
+            placeholder="Enter 4–8 digit PIN"
+            required
+          />
+          <p class="status-line" id="login-status" role="alert"></p>
+          <button type="submit" class="primary" style="width:100%;margin-top:12px;min-height:50px">
+            Sign In &rarr;
+          </button>
+        </form>
+      </section>
+
+      <section id="portal-view" hidden>
+        <div id="queue-view">
+          <div class="tabs" role="tablist">
+            <button type="button" data-filter="PENDING" class="active">
+              Pending (<span id="count-pending">0</span>)
+            </button>
+            <button type="button" data-filter="APPROVED">
+              Approved (<span id="count-approved">0</span>)
+            </button>
+            <button type="button" data-filter="REJECTED">
+              Declined (<span id="count-rejected">0</span>)
+            </button>
+          </div>
+          <p class="status-line" id="queue-status" role="status"></p>
+          <div class="req-list" id="requests-container"></div>
+        </div>
+
+        <div id="detail-view" class="sheet" hidden>
+          <div class="detail-head">
+            <button type="button" id="back-queue-btn" style="min-height:40px">
+              &larr; Back to list
+            </button>
+            <span class="state-tag" id="detail-status-tag">PENDING</span>
+          </div>
+          <p class="eyebrow" id="detail-id">REQ-...</p>
+          <h1 id="detail-student-name">Student Name</h1>
+          <div id="detail-top-only-note" class="lock-banner" hidden></div>
+          <div class="info-grid" id="detail-meta-grid"></div>
+
+          <div class="detail-grid">
+            <div class="photo-compare">
+              <div class="photo-box">
+                <p class="eyebrow">STUDENT RECORD PHOTO</p>
+                <img id="detail-student-img" alt="Student school record photo" hidden />
+                <div class="photo-empty" id="detail-no-student-photo" hidden>No student photo on record</div>
+              </div>
+              <div class="photo-box">
+                <p class="eyebrow" id="detail-collector-role">CAPTURED COLLECTOR PROOF</p>
+                <img id="detail-face-img" alt="Captured collector face proof" hidden />
+                <div class="photo-empty" id="detail-no-face" hidden>No face photo recorded</div>
+              </div>
+            </div>
+            <div class="photo-box">
+              <p class="eyebrow">UPLOADED APPLICATION LETTER</p>
+              <p class="muted" id="detail-doc-name" style="font-size:13px;margin:0 0 8px"></p>
+              <img id="detail-doc-img" alt="Uploaded application photo" hidden />
+              <iframe id="detail-doc-frame" class="doc-frame" title="Uploaded application PDF" hidden></iframe>
+              <div id="detail-doc-actions" style="margin-top:10px" hidden>
+                <a id="detail-doc-link" target="_blank" rel="noopener">
+                  <button type="button" style="width:100%">Open / Download Application File</button>
+                </a>
+              </div>
+              <p class="muted" id="detail-no-doc" hidden>No application file uploaded by parent.</p>
+            </div>
+          </div>
+
+          <div id="detail-approved-actions" class="approved-actions" hidden>
+            <div style="min-width:200px;flex:1">
+              <strong id="detail-approved-headline" style="display:block;font-size:14px">Document Approved</strong>
+              <span id="detail-notify-note" class="muted" style="font-family:var(--mono);font-size:12px"></span>
+            </div>
+            <div style="display:flex;flex-wrap:wrap;gap:8px">
+              <button type="button" class="primary" id="release-print-btn" hidden>&#10003; Confirm Parent &amp; Print</button>
+              <a id="notify-wa-link" target="_blank" rel="noopener" hidden>
+                <button type="button">Notify Parent on WhatsApp &#8599;</button>
+              </a>
+            </div>
+          </div>
+
+          <div id="detail-reject-box" class="reject-panel" hidden>
+            <label for="reject-reason-input" style="margin-top:0">Reason for declining (shown to parent)</label>
+            <input id="reject-reason-input" type="text" maxlength="200" placeholder="e.g. Unclear face photo or missing application" />
+            <div style="display:flex;gap:10px;margin-top:10px">
+              <button type="button" id="cancel-reject-btn" style="flex:1">Cancel</button>
+              <button type="button" class="danger" id="confirm-reject-btn" style="flex:1.4">Confirm Decline</button>
+            </div>
+          </div>
+
+          <p class="status-line" id="detail-action-status" role="status"></p>
+        </div>
+      </section>
+    </main>
+
+    <div class="sticky-actions" id="sticky-bar" hidden>
+      <div class="sticky-actions-inner">
+        <button type="button" class="danger" id="sticky-reject-btn">&#10005; Reject</button>
+        <button type="button" class="primary" id="sticky-approve-btn">&#10003; Approve &amp; Print</button>
+      </div>
+    </div>
+
+    <script>
+      const $ = (id) => document.getElementById(id);
+      const esc = (v) =>
+        String(v ?? "").replace(
+          /[&<>"']/g,
+          (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]),
+        );
+      const TOKEN_KEY = "rjc_teacher_token_v1";
+      const state = {
+        token: localStorage.getItem(TOKEN_KEY) || "",
+        teacher: null,
+        filter: "PENDING",
+        requests: [],
+        activeId: new URLSearchParams(location.search).get("req") || "",
+        busy: false,
+      };
+      let pollTimer = null;
+
+      async function api(url, { method = "GET", body } = {}) {
+        const headers = {
+          ...(body === undefined ? {} : { "Content-Type": "application/json" }),
+          ...(state.token ? { "x-teacher-token": state.token } : {}),
+        };
+        const res = await fetch(url, {
+          method,
+          headers,
+          ...(body === undefined ? {} : { body: JSON.stringify(body) }),
+        });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) {
+          if (res.status === 401 && state.token) signOut(false);
+          throw Error(data.error || "Request failed.");
+        }
+        return data;
+      }
+
+      async function loadRoster() {
+        try {
+          const data = await api("/api/teacher/roster");
+          const sel = $("teacher-select");
+          if (data.schoolName) {
+            $("top-brand").textContent = `${data.schoolName} · TEACHER PORTAL`;
+          }
+          if (!data.teachers?.length) {
+            sel.innerHTML = '<option value="">No active teachers configured</option>';
+            return;
+          }
+          sel.innerHTML = data.teachers
+            .map(
+              (t) =>
+                `<option value="${t.id}">${esc(t.name)} · ${esc(t.role)}</option>`,
+            )
+            .join("");
+        } catch (e) {
+          $("login-status").textContent = e.message;
+        }
+      }
+
+      function signOut(remote = true) {
+        const tok = state.token;
+        state.token = "";
+        state.teacher = null;
+        localStorage.removeItem(TOKEN_KEY);
+        if (pollTimer) clearInterval(pollTimer);
+        if (remote && tok) {
+          fetch("/api/teacher/logout", {
+            method: "POST",
+            headers: { "x-teacher-token": tok },
+          }).catch(() => {});
+        }
+        $("login-view").hidden = false;
+        $("portal-view").hidden = true;
+        $("sticky-bar").hidden = true;
+        $("logout-btn").hidden = true;
+        $("teacher-badge").hidden = true;
+        loadRoster();
+      }
+
+      $("teacher-login-form").onsubmit = async (e) => {
+        e.preventDefault();
+        $("login-status").textContent = "";
+        try {
+          const r = await api("/api/teacher/login", {
+            method: "POST",
+            body: {
+              teacherId: Number($("teacher-select").value),
+              pin: $("teacher-pin").value,
+            },
+          });
+          state.token = r.token;
+          state.teacher = r.teacher;
+          localStorage.setItem(TOKEN_KEY, r.token);
+          $("teacher-pin").value = "";
+          enterPortal();
+        } catch (err) {
+          $("login-status").textContent = err.message;
+        }
+      };
+
+      $("logout-btn").onclick = () => signOut(true);
+
+      async function refreshRequests() {
+        if (!state.token) return;
+        try {
+          const data = await api("/api/teacher/requests");
+          state.teacher = data.teacher;
+          state.requests = data.requests || [];
+          $("teacher-badge").textContent = state.teacher.name;
+          $("teacher-badge").hidden = false;
+          $("logout-btn").hidden = false;
+          renderCounts();
+          renderList();
+          if (state.activeId) renderDetail(state.activeId);
+        } catch (e) {
+          $("queue-status").textContent = e.message;
+        }
+      }
+
+      function enterPortal() {
+        $("login-view").hidden = true;
+        $("portal-view").hidden = false;
+        refreshRequests();
+        if (pollTimer) clearInterval(pollTimer);
+        pollTimer = setInterval(refreshRequests, 4000);
+      }
+
+      function renderCounts() {
+        const counts = { PENDING: 0, APPROVED: 0, REJECTED: 0 };
+        for (const r of state.requests) {
+          if (counts[r.status] !== undefined) counts[r.status]++;
+        }
+        $("count-pending").textContent = counts.PENDING;
+        $("count-approved").textContent = counts.APPROVED;
+        $("count-rejected").textContent = counts.REJECTED;
+      }
+
+      function renderList() {
+        const list = state.requests.filter((r) => r.status === state.filter);
+        const container = $("requests-container");
+        if (!list.length) {
+          container.innerHTML = `<div class="empty-box">No ${esc(state.filter.toLowerCase())} requests right now.</div>`;
+          return;
+        }
+        container.replaceChildren();
+        for (const r of list) {
+          const btn = document.createElement("button");
+          btn.type = "button";
+          btn.className = "req-row";
+          const tagCls =
+            r.status === "APPROVED"
+              ? "state-tag approved"
+              : r.status === "REJECTED"
+                ? "state-tag rejected"
+                : "state-tag";
+          const extraTag = [
+            r.require_top_teacher ? "Top 3 Only" : "",
+            r.supporting_doc_name ? "App file attached" : "No attachment",
+            r.print_status === "HOLD_STAFF" ? "Waiting Counter Confirm" : "",
+          ].filter(Boolean).join(" · ");
+          btn.innerHTML = `<div><span class="req-title">${esc(r.student_name)} · ${esc(r.doc_title)}</span><span class="req-sub">${esc(r.id)} · GR ${esc(r.gr_number)} · ${esc(extraTag)}</span></div><span class="${tagCls}">${esc(r.status)}</span>`;
+          btn.onclick = () => {
+            state.activeId = r.id;
+            renderDetail(r.id);
+          };
+          container.append(btn);
+        }
+      }
+
+      function buildWhatsAppReadyHref(r) {
+        const raw = String(r.guardian_phone || r.verified_phone || r.student_phone || "").replace(/\D/g, "");
+        const num = raw.length === 10 ? "91" + raw : raw;
+        if (!num) return "";
+        const msg = [
+          "Namaste from School Office.",
+          `Your ${r.doc_title} for ${r.student_name} is ready (${r.serial_no || r.id}).`,
+          "Please visit the school office counter to collect your original stamped paper copy in person (no online PDF is sent).",
+        ].join("\n");
+        return `https://wa.me/${num}?text=${encodeURIComponent(msg)}`;
+      }
+
+      function renderDetail(id) {
+        const r = state.requests.find((x) => x.id === id);
+        if (!r) {
+          $("queue-view").hidden = false;
+          $("detail-view").hidden = true;
+          $("sticky-bar").hidden = true;
+          return;
+        }
+        $("queue-view").hidden = true;
+        $("detail-view").hidden = false;
+        $("detail-id").textContent = r.id;
+        $("detail-student-name").textContent = `${r.student_name} (${r.doc_title})`;
+        const tag = $("detail-status-tag");
+        tag.textContent = r.print_status === "HOLD_STAFF" ? "HOLD · CONFIRM COUNTER" : r.status;
+        tag.className =
+          "state-tag" +
+          (r.status === "APPROVED"
+            ? " approved"
+            : r.status === "REJECTED"
+              ? " rejected"
+              : "");
+
+        const isTopLocked = Boolean(r.require_top_teacher);
+        const canApprove = !isTopLocked || Boolean(state.teacher?.is_top_teacher);
+        if (isTopLocked) {
+          $("detail-top-only-note").hidden = false;
+          $("detail-top-only-note").textContent = canApprove
+            ? "⚠ Sensitive Document: Top Teacher (Slot 1–3) approval required."
+            : "🔒 Restricted Document: Only Top Teachers (Slot 1–3) can approve this request.";
+        } else {
+          $("detail-top-only-note").hidden = true;
+        }
+
+        const collectorRole = r.is_guardian
+          ? "Authorized Guardian (Counter-Verified Collector)"
+          : "Parent / Family Collector";
+        $("detail-collector-role").textContent = collectorRole.toUpperCase();
+        const items = [
+          ["GR Number", r.gr_number],
+          ["Requested", new Date(r.created_at).toLocaleString("en-IN", { timeZone: "Asia/Kolkata" })],
+          ["Collector Role", collectorRole],
+          ["Contact", r.is_guardian ? `Guardian (${r.guardian_phone})` : r.verified_phone],
+          ["Status", r.status === "PENDING" ? "Waiting for review" : `${r.status} by ${r.reviewed_by_name}`],
+        ];
+        if (r.campus_code_used) items.push(["Campus Code Used", r.campus_code_used]);
+        if (r.reason) items.push(["Purpose / Reason", r.reason]);
+        if (r.serial_no) {
+          const cCount = Number(r.print_count || 0);
+          const copyText = cCount > 0 ? ` · Copy #${cCount} (${cCount === 1 ? "ORIGINAL" : `DUPLICATE #${cCount}`})` : "";
+          items.push(["Certificate Serial", `${r.serial_no} · Print: ${r.print_status}${copyText}${r.printer_name ? ` (${r.printer_name})` : ""}`]);
+        }
+        if (r.rejection_reason) items.push(["Decline Reason", r.rejection_reason]);
+
+        $("detail-meta-grid").innerHTML = items
+          .map(
+            ([k, v]) =>
+              `<div><span class="info-lbl">${esc(k)}</span><span class="info-val">${esc(v)}</span></div>`,
+          )
+          .join("");
+
+        if (r.student_photo_data) {
+          $("detail-student-img").src = r.student_photo_data;
+          $("detail-student-img").hidden = false;
+          $("detail-no-student-photo").hidden = true;
+        } else {
+          $("detail-student-img").hidden = true;
+          $("detail-no-student-photo").hidden = false;
+        }
+
+        if (r.parent_photo_data) {
+          $("detail-face-img").src = r.parent_photo_data;
+          $("detail-face-img").hidden = false;
+          $("detail-no-face").hidden = true;
+        } else {
+          $("detail-face-img").hidden = true;
+          $("detail-no-face").hidden = false;
+        }
+
+        const attUrl = `/api/teacher/requests/${encodeURIComponent(r.id)}/attachment?t=${encodeURIComponent(state.token)}`;
+        $("detail-doc-img").hidden = true;
+        $("detail-doc-frame").hidden = true;
+        $("detail-doc-actions").hidden = true;
+        $("detail-no-doc").hidden = true;
+
+        if (r.has_supporting_doc) {
+          $("detail-doc-name").textContent = r.supporting_doc_name;
+          $("detail-doc-link").href = attUrl;
+          $("detail-doc-actions").hidden = false;
+          if (String(r.supporting_doc_mime).startsWith("image/")) {
+            $("detail-doc-img").src = attUrl;
+            $("detail-doc-img").hidden = false;
+          } else {
+            $("detail-doc-frame").src = attUrl;
+            $("detail-doc-frame").hidden = false;
+          }
+        } else {
+          $("detail-doc-name").textContent = "";
+          $("detail-no-doc").hidden = false;
+        }
+
+        if (r.status === "APPROVED") {
+          $("detail-approved-actions").hidden = false;
+          $("detail-approved-headline").textContent =
+            r.print_status === "HOLD_STAFF"
+              ? "Teacher Approved · Waiting for Staff to Confirm Parent & Print"
+              : `Approved · Print Status: ${r.print_status}`;
+          $("detail-notify-note").textContent = r.notification_status || "Ready to notify parent";
+          $("release-print-btn").hidden = r.print_status !== "HOLD_STAFF";
+          const waHref = buildWhatsAppReadyHref(r);
+          if (waHref) {
+            $("notify-wa-link").href = waHref;
+            $("notify-wa-link").hidden = false;
+          } else {
+            $("notify-wa-link").hidden = true;
+          }
+        } else {
+          $("detail-approved-actions").hidden = true;
+        }
+
+        $("detail-reject-box").hidden = true;
+        $("sticky-approve-btn").disabled = !canApprove;
+        $("sticky-approve-btn").textContent = canApprove ? "✓ Approve & Print" : "Top Teacher Only";
+        $("sticky-bar").hidden = r.status !== "PENDING";
+      }
+
+      document.querySelectorAll("[data-filter]").forEach((btn) => {
+        btn.onclick = () => {
+          state.filter = btn.dataset.filter;
+          document
+            .querySelectorAll("[data-filter]")
+            .forEach((b) => b.classList.toggle("active", b === btn));
+          renderList();
+        };
+      });
+
+      $("back-queue-btn").onclick = () => {
+        state.activeId = "";
+        $("detail-action-status").textContent = "";
+        $("queue-view").hidden = false;
+        $("detail-view").hidden = true;
+        $("sticky-bar").hidden = true;
+      };
+
+      $("sticky-approve-btn").onclick = async () => {
+        if (state.busy || !state.activeId) return;
+        state.busy = true;
+        $("sticky-approve-btn").disabled = true;
+        $("sticky-reject-btn").disabled = true;
+        $("detail-action-status").textContent = "Approving request...";
+        $("detail-action-status").className = "status-line ok";
+        try {
+          const res = await api(
+            `/api/teacher/requests/${encodeURIComponent(state.activeId)}/approve`,
+            { method: "POST", body: {} },
+          );
+          $("detail-action-status").textContent = res.alreadyHandled
+            ? `Already handled by ${res.request.reviewed_by_name}.`
+            : res.request.print_status === "HOLD_STAFF"
+              ? `Approved (${res.request.serial_no}). Waiting for counter staff to confirm parent & print.`
+              : `Approved! Serial ${res.request.serial_no} queued for printing.`;
+          await refreshRequests();
+        } catch (e) {
+          $("detail-action-status").className = "status-line";
+          $("detail-action-status").textContent = e.message;
+        } finally {
+          state.busy = false;
+          $("sticky-approve-btn").disabled = false;
+          $("sticky-reject-btn").disabled = false;
+        }
+      };
+
+      $("release-print-btn").onclick = async () => {
+        if (state.busy || !state.activeId) return;
+        state.busy = true;
+        $("release-print-btn").disabled = true;
+        try {
+          await api(
+            `/api/teacher/requests/${encodeURIComponent(state.activeId)}/release-print`,
+            { method: "POST", body: {} },
+          );
+          $("detail-action-status").className = "status-line ok";
+          $("detail-action-status").textContent = "Parent confirmed — printing triggered at school counter.";
+          await refreshRequests();
+        } catch (e) {
+          $("detail-action-status").className = "status-line";
+          $("detail-action-status").textContent = e.message;
+        } finally {
+          state.busy = false;
+          $("release-print-btn").disabled = false;
+        }
+      };
+
+      $("sticky-reject-btn").onclick = () => {
+        $("detail-reject-box").hidden = false;
+        $("reject-reason-input").focus();
+      };
+      $("cancel-reject-btn").onclick = () => {
+        $("detail-reject-box").hidden = true;
+      };
+      $("confirm-reject-btn").onclick = async () => {
+        if (state.busy || !state.activeId) return;
+        state.busy = true;
+        $("confirm-reject-btn").disabled = true;
+        try {
+          await api(
+            `/api/teacher/requests/${encodeURIComponent(state.activeId)}/reject`,
+            {
+              method: "POST",
+              body: { reason: $("reject-reason-input").value.trim() },
+            },
+          );
+          $("reject-reason-input").value = "";
+          $("detail-reject-box").hidden = true;
+          $("detail-action-status").className = "status-line";
+          $("detail-action-status").textContent = "Request declined.";
+          await refreshRequests();
+        } catch (e) {
+          $("detail-action-status").textContent = e.message;
+        } finally {
+          state.busy = false;
+          $("confirm-reject-btn").disabled = false;
+        }
+      };
+
+      if (state.token) enterPortal();
+      else loadRoster();
+    </script>
+  </body>
+</html>

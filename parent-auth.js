@@ -31,14 +31,39 @@ function createParentAuth({ db, sendOtp, otpConfigured = () => false, now = Date
     if (!s || s.expires <= now()) { if (s) wipe(s); sessions.delete(id); return null; }
     return s;
   }
-  function createSession(number, rows, method, guardianPhone = '') {
+  function createSession(number, rows, method, guardianPhone = '', mobileParentOnly = false) {
     const id = token(), refs = new Map();
     const students = rows.map(row => {
       const ref = token(); refs.set(ref, row.gr_number);
       return { studentRef: ref, full_name: row.full_name, class_name: row.class_name, division: row.division };
     });
-    sessions.set(id, { phone: number, refs, method, guardianPhone, expires: now() + 900000, serial: null });
-    return { sessionToken: id, method, students };
+    sessions.set(id, {
+      phone: number,
+      refs,
+      method,
+      guardianPhone,
+      mobileParentOnly: Boolean(mobileParentOnly),
+      faceVerified: false,
+      facePhotoData: '',
+      requestId: null,
+      expires: now() + 900000,
+      serial: null,
+    });
+    return { sessionToken: id, method, students, faceRequired: true };
+  }
+  function setFaceProof(id, photoData) {
+    const s = getSession(id);
+    if (!s) throw failure();
+    s.faceVerified = true;
+    s.facePhotoData = photoData;
+    s.expires = Math.max(s.expires, now() + 900000);
+    return { ok: true, faceVerified: true };
+  }
+  function setPendingRequest(id, requestId) {
+    const s = getSession(id);
+    if (!s) throw failure();
+    s.requestId = requestId;
+    s.expires = now() + 1800000;
   }
   async function start(number, lang, selectedGr = null) {
     const p = phone(number);
@@ -73,16 +98,40 @@ function createParentAuth({ db, sendOtp, otpConfigured = () => false, now = Date
     if (!rows.length) throw failure();
     return createSession(c.p, rows, 'otp');
   }
-  function verifyFamily(id, year, kind, identifier) {
-    const c = challenge(id), value = String(identifier || '').trim();
+  function normalizeMonth(value) {
+    const raw = String(value || '').trim();
+    if (!/^\d{1,2}$/.test(raw)) return '';
+    const n = Number(raw);
+    if (n < 1 || n > 12) return '';
+    return String(n).padStart(2, '0');
+  }
+  function extractDobMonth(dob) {
+    const raw = String(dob || '').trim();
+    let m = /^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})$/.exec(raw);
+    if (m) return normalizeMonth(m[2]);
+    m = /^(\d{4})[\/\-](\d{1,2})[\/\-](\d{1,2})$/.exec(raw);
+    if (m) return normalizeMonth(m[2]);
+    return '';
+  }
+  function verifyFamily(id, month, year, grNumber, kind = 'gr') {
+    const c = challenge(id), value = String(grNumber || '').trim();
     const subject = digest('family:' + c.p), row = limit(subject);
     if (row.locked_until > now()) throw failure();
-    const validInput = /^\d{4}$/.test(String(year || '')) && ((kind === 'gr' && value.length > 0 && value.length <= 64) || (kind === 'backup' && /^\d{4}$/.test(value)));
+    const normMonth = normalizeMonth(month);
+    const validInput =
+      normMonth.length === 2 &&
+      /^\d{4}$/.test(String(year || '').trim()) &&
+      String(kind || 'gr') === 'gr' &&
+      value.length > 0 &&
+      value.length <= 64;
     let rows = [];
-    if (validInput) rows = kind === 'gr'
-      ? db.prepare("SELECT gr_number,full_name,class_name,division FROM students WHERE parent_phone=? AND birth_year=? AND gr_number=? AND status='ACTIVE'").all(c.p, String(year), value)
-      : db.prepare("SELECT gr_number,full_name,class_name,division FROM students WHERE parent_phone=? AND birth_year=? AND aadhaar_last4=? AND status='ACTIVE'").all(c.p, String(year), value);
-    rows = rows.filter(row => !c.selectedGr || row.gr_number === c.selectedGr);
+    if (validInput) {
+      rows = db
+        .prepare("SELECT gr_number,full_name,class_name,division,dob FROM students WHERE parent_phone=? AND birth_year=? AND gr_number=? AND status='ACTIVE'")
+        .all(c.p, String(year).trim(), value)
+        .filter(r => extractDobMonth(r.dob) === normMonth && (!c.selectedGr || r.gr_number === c.selectedGr))
+        .map(({ gr_number, full_name, class_name, division }) => ({ gr_number, full_name, class_name, division }));
+    }
     if (rows.length !== 1) { failed(subject); throw failure(); }
     clear(subject); challenges.delete(id);
     return createSession(c.p, rows, 'family');
@@ -112,6 +161,6 @@ function createParentAuth({ db, sendOtp, otpConfigured = () => false, now = Date
     for (const [id, c] of challenges) if (c.expires <= now()) challenges.delete(id);
     for (const [id, a] of approvals) if (a.expires <= now()) approvals.delete(id);
   }, 1000); timer.unref();
-  return { start, verifyOtp, verifyFamily, getSession, approve, redeem, finish, issued, canDownload, close: () => clearInterval(timer) };
+  return { start, verifyOtp, verifyFamily, getSession, approve, redeem, finish, issued, canDownload, setFaceProof, setPendingRequest, close: () => clearInterval(timer) };
 }
 module.exports = { createParentAuth };
