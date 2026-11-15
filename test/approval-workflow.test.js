@@ -328,7 +328,7 @@ test(
       assert.equal(printNext.status, 200);
       assert.ok(printNext.data.job);
       assert.equal(printNext.data.job.requestId, requestId);
-      assert.match(printNext.data.job.certificateHtml, /Approved by: Mrs\. Joshi/);
+      assert.match(printNext.data.job.certificateHtml, /Approved By:\s*<strong>Mrs\. Joshi<\/strong>/);
 
       const ack = await api(`/api/kiosk/print-ack/${requestId}`, {
         body: { ok: true },
