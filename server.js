@@ -122,7 +122,9 @@ const portalHostname = () => {
 const local = (req) =>
   ["127.0.0.1", "::1", "::ffff:127.0.0.1"].includes(req.socket.remoteAddress);
 const isHostedPreviewHost = (hostname) =>
-  /\.run\.app$/i.test(String(hostname || ""));
+  /\.run\.app$/i.test(String(hostname || "")) ||
+  /\.trycloudflare\.com$/i.test(String(hostname || "")) ||
+  /\.loca\.lt$/i.test(String(hostname || ""));
 const canAccessLocalCounter = (req) =>
   local(req) || isHostedPreviewHost(req.hostname);
 const tokens = new Map();
