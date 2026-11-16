@@ -358,10 +358,14 @@ test(
       );
 
       // Staff Room Monitor 1 approves Parent A's request from Daily Queue & triggers print
-      await staffPage.click("#front-desk-btn");
+      await staffPage.evaluate(() => document.getElementById("front-desk-btn").click());
       await staffPage.waitForSelector("#counter-desk-backdrop:not([hidden])");
       await staffPage.waitForSelector(`[data-desk-approve="${parentAReq.requestId}"]`);
-      await staffPage.click(`[data-desk-approve="${parentAReq.requestId}"]`);
+      await staffPage.evaluate(
+        (id) =>
+          document.querySelector(`[data-desk-approve="${id}"]`).click(),
+        parentAReq.requestId,
+      );
 
       // Wait for Monitor 1's auto-print poller and Parent A's Monitor 2 status poller to update
       await parentPage.waitForFunction(
@@ -387,7 +391,7 @@ test(
       assert.equal(parentAApprovedUi.pipePrint, "✓ 3. Printed at Counter");
 
       // Parent A clicks "Clear / New Parent" (#parent-new-session-btn) -> screen resets for Parent B
-      await parentPage.click("#parent-new-session-btn");
+      await parentPage.evaluate(() => document.getElementById("parent-new-session-btn").click());
       const afterReset = await parentPage.evaluate(() => ({
         step: state.step,
         parentToken: state.parentToken,

@@ -22,23 +22,30 @@ This guide explains how to run the **R. J. Chaware Convent (RJC) Document Portal
 
 ---
 
-## 2. Making QR Codes Open Anywhere in the World (No `localhost` Issue)
+## 2. Making QR Codes Open Anywhere in the World (Permanent Domain Setup)
 
-Every printed certificate has a **Tamper-Proof School Verification QR** inside the bottom bordered box (`/verify/RJC-YYYY-XXXXX?v=...`). To make sure this QR code opens on **any phone on any mobile network (4G/5G/Wi-Fi) anywhere in the world**:
+Every printed certificate has a **Tamper-Proof School Verification QR** inside the bottom bordered box (`/verify/RJC-YYYY-XXXXX?v=...`).
 
-### Method 1 — Free 1-Click Cloudflare Tunnel on Windows 11 (No Domain Required)
-1. Install Cloudflare Tunnel once in PowerShell:
-   ```powershell
-   winget install Cloudflare.cloudflared
+### Method 1 — Production Permanent Domain (Cloudflare Named Tunnel) [RECOMMENDED]
+Run your school on permanent branded domains (`https://rjcschool.in` and `https://verify.rjcschool.in`):
+1. Run the interactive setup wizard:
+   ```cmd
+   tools\setup-cloudflare-tunnel.bat
    ```
-2. Double-click **`tools\Start_Public_Tunnel.bat`**.
-3. It creates an instant HTTPS public URL (`https://xxxx.trycloudflare.com`) and saves it to `public-url`. The RJC server automatically embeds this public HTTPS link into every certificate QR code and updates existing certificates on the fly.
+2. The wizard authenticates Cloudflare, creates the `rjc-school` tunnel, routes both domains, and installs `cloudflared` as an automatic Windows Service (`sc.exe config cloudflared start= auto`) that starts automatically on boot.
+3. Strict security controls ensure `/admin`, `/staff-host`, `/kiosk`, and private APIs are strictly blocked from the public internet.
+4. Verify anytime with `tools\check-status.bat`.
+5. For complete architecture diagrams, DNS settings, and recovery steps, see **[`PERMANENT_DOMAIN_SETUP.md`](./PERMANENT_DOMAIN_SETUP.md)**.
 
-### Method 2 — Permanent School Domain / Cloud URL
-1. Sign in to **Admin → Teachers & Printing** (or **Admin → Branding & Portal**).
-2. Open **1-Click Setup: Global QR Domain, Gmail SMTP, WhatsApp & Telegram Topics**.
-3. Enter your school's HTTPS domain or cloud URL in **Public School Domain / Cloud URL** (for example, `https://verify.rjcconvent.edu.in` or your Cloud Run URL) and click **Save**.
-4. Every newly printed and previously issued certificate QR code immediately resolves to that public URL.
+### Method 2 — Temporary Cloudflare Quick Tunnel (Testing / Fallback)
+For quick testing without owning a domain:
+1. Double-click **`tools\Start_Public_Tunnel.bat`**.
+2. It creates a temporary URL (`https://xxxx.trycloudflare.com`) and updates `public-url`. Temporary tunnels regenerate a new URL whenever restarted.
+
+### Method 3 — Manual Domain Configuration
+1. Sign in to **Admin → School Branding**.
+2. Enter your **Public Portal URL** (`https://rjcschool.in`) and **Public Verify URL** (`https://verify.rjcschool.in`) and click **Save Settings**.
+3. Every newly printed and previously issued certificate QR code immediately resolves to the dedicated verification domain.
 
 ---
 

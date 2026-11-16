@@ -11,16 +11,17 @@ An offline-first web app for a school document counter: parents/guardians verify
 | Project location | `C:\RJC` |
 | Application name | RJC — School Document Portal (R. J. Chaware Convent) |
 | Stack | Node.js >= 22 · Express 5 · `better-sqlite3` (WAL, `synchronous=FULL`) · `puppeteer-core` |
+| Permanent Domains | `https://rjcschool.in` (Parent Portal) · `https://verify.rjcschool.in` (Public Verification) via Cloudflare Named Tunnel |
 | Dual-Monitor Routes | `/staff-host` (Monitor 1: Admin + Daily Queue + Auto-Print) · `/kiosk` (Monitor 2: Private Parent Front Panel + QR) · `/teacher` (Mobile staff approvals) |
 | Database & Backups | `school.db` (SQLite WAL) + startup `quick_check(1)` + 14-day `backups/auto-*.db` + AES-256-GCM `.rjcbackup` off-PC downloads + `BACKUP_DIR` auto-mirror |
 | Port | 3000 (`HOST=0.0.0.0`); admin via `http://localhost:3000/admin` or `/staff-host` |
-| Entry points | `Start_Dual_Monitor_Windows11.bat` (2 monitors) · `Start_RJC.bat` (1 monitor) · `Restore_Backup.bat` (verified restore) |
+| Entry points | `Start_Dual_Monitor_Windows11.bat` (2 monitors) · `Start_RJC.bat` (1 monitor) · `tools\setup-cloudflare-tunnel.bat` (Tunnel Setup) · `tools\check-status.bat` (Diagnostics) |
 
 ## Layout
 | Path | Purpose |
 |---|---|
-| `server.js` | Express app, APIs, auth/rate limits, startup DB health check, `autoBackup()` + `BACKUP_DIR` mirroring, WAL checkpoint shutdown |
-| `db.js` | Schema + additive migrations (`user_version = 3`), demo seeds, `scrypt` hashing |
+| `server.js` | Express app, APIs, auth/rate limits, dual-domain routing & perimeter lockdown, startup DB health check, auto-backup, WAL checkpoint shutdown |
+| `db.js` | Schema + additive migrations (`public_verify_url`, `allow_public_teacher`), demo seeds, `scrypt` hashing |
 | `backup-crypto.js` | AES-256-GCM + `scrypt` `.rjcbackup` encryption/decryption, SQLite `integrity_check` & `quick_check` helpers |
 | `approval-service.js` | Request approval workflow, sequential serials, HMAC seal assignment, `print_logs` 2FA sheets, scan logs |
 | `verification-seal.js` | Cryptographic HMAC document seal (`RJC-...`) and per-sheet `PRT-XX-...` verification |
@@ -28,6 +29,8 @@ An offline-first web app for a school document counter: parents/guardians verify
 | `data-exchange.js` | All-rounder Excel (`.xlsx`/`.xls`), `.csv`, and `.json` student import/export, filtered log exports, and 5-sheet workbook |
 | `telegram.js` / `notify-service.js` / `whatsapp.js` | Telegram Bot approval-only bridge, Email (SMTP), and WhatsApp Cloud notifications |
 | `public/dual-monitor.js` | Strict screen isolation (`parent` vs `staff-host`), multi-monitor Chromium launch plan |
+| `tools/setup-cloudflare-tunnel.bat` | Production Cloudflare Named Tunnel setup wizard for Windows 11 |
+| `tools/check-status.js` / `tools/check-status.bat` | Comprehensive CLI diagnostic tester for server, DB, Cloudflare service, internet & portal reachability |
 | `tools/restore.js` / `Restore_Backup.bat` | Atomic verified restore for `.db` and `.rjcbackup` backups |
 | `tools/Export_To_USB.bat` | 1-click Windows USB portable packager with live online DB snapshot |
 

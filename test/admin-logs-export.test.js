@@ -124,8 +124,12 @@ test(
       assert.equal(verifyMissing.status, 404);
       assert.match(await verifyMissing.text(), /Record not found/);
     } finally {
-      child.kill("SIGTERM");
-      fs.rmSync(dir, { recursive: true, force: true });
+      if (child.exitCode === null) {
+        const exited = new Promise((resolve) => child.once("exit", resolve));
+        child.kill();
+        await exited;
+      }
+      fs.rmSync(dir, { recursive: true, force: true, maxRetries: 10, retryDelay: 200 });
     }
   },
 );

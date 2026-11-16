@@ -132,6 +132,8 @@ function openDatabase(dir) {
     add("school_settings", "wifi_ssid", "TEXT DEFAULT ''");
     add("school_settings", "wifi_password", "TEXT DEFAULT ''");
     add("school_settings", "public_url", "TEXT DEFAULT ''");
+    add("school_settings", "public_verify_url", "TEXT DEFAULT ''");
+    add("school_settings", "allow_public_teacher", "INTEGER NOT NULL DEFAULT 0");
     add("school_settings", "telegram_bot_token", "TEXT DEFAULT ''");
     add("school_settings", "telegram_storage_chat_id", "TEXT DEFAULT ''");
     add("school_settings", "staff_join_code", "TEXT DEFAULT ''");

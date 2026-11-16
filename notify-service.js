@@ -39,6 +39,7 @@ function createNotifyService({
   db,
   settings,
   portalUrl,
+  verifyUrl,
   smtpFactory = (cfg) => nodemailer.createTransport(cfg),
   fetchImpl = globalThis.fetch,
 }) {
@@ -65,15 +66,19 @@ function createNotifyService({
       return { sent: false, skipped: true };
     }
     const s = settings() || {};
-    const verifyUrl =
-      serialNo && portalUrl() ? `${portalUrl()}/verify/${encodeURIComponent(serialNo)}` : "";
+    const verifyUrlLink =
+      typeof verifyUrl === "function"
+        ? verifyUrl(serialNo)
+        : serialNo && typeof portalUrl === "function" && portalUrl()
+          ? `${portalUrl()}/verify/${encodeURIComponent(serialNo)}`
+          : "";
     const textBody = buildReadyMessageText({
       schoolName: s.school_name || "R. J. Chaware Convent",
       studentName,
       docTitle,
       serialNo,
       approverName,
-      verifyUrl,
+      verifyUrl: verifyUrlLink,
     });
     const transporter = smtpFactory({
       host: cfg.host,

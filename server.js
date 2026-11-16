@@ -85,12 +85,19 @@ const publicPortalEnv = process.env.PUBLIC_PORTAL_URL
   : null;
 if (process.env.PUBLIC_PORTAL_URL && !publicPortalEnv)
   throw Error("Invalid PUBLIC_PORTAL_URL");
+
+const publicVerifyEnv = process.env.PUBLIC_VERIFY_URL
+  ? normalizePortalUrl(process.env.PUBLIC_VERIFY_URL)
+  : null;
+if (process.env.PUBLIC_VERIFY_URL && !publicVerifyEnv)
+  throw Error("Invalid PUBLIC_VERIFY_URL");
+
 const toPublicCloudRunUrl = (value) => {
   const norm = normalizePortalUrl(value);
   if (!norm) return null;
   return norm.replace(/^https:\/\/ais-dev-/i, "https://ais-pre-");
 };
-// Base URL used inside the phone QR and certificate verification QR:
+// Base URL used inside the phone QR and parent document portal:
 // Admin setting -> .env -> auto-detected tunnel (public-url file) -> Cloud Run URL -> LAN fallback.
 function portalUrl() {
   try {
@@ -112,21 +119,104 @@ function portalUrl() {
   }
   return `http://${lanIp}:${port}`;
 }
+
+// Base URL used for public certificate / document verification:
+// Admin setting (public_verify_url) -> .env (PUBLIC_VERIFY_URL) -> portalUrl() fallback.
+function verifyBaseUrl() {
+  try {
+    const fromAdmin = normalizePortalUrl(settings().public_verify_url || "");
+    if (fromAdmin) return fromAdmin;
+  } catch {}
+  if (publicVerifyEnv) return publicVerifyEnv;
+  return portalUrl();
+}
+
 const portalHostname = () => {
   try {
-    return new URL(portalUrl()).hostname;
+    return new URL(portalUrl()).hostname.toLowerCase();
   } catch {
     return null;
   }
 };
+
+const verifyHostname = () => {
+  try {
+    return new URL(verifyBaseUrl()).hostname.toLowerCase();
+  } catch {
+    return null;
+  }
+};
+
+function buildVerificationUrl(serialNo, sig) {
+  const base = verifyBaseUrl();
+  const vParam = sig ? `?v=${encodeURIComponent(sig)}` : "";
+  try {
+    const vUrl = new URL(base);
+    const pUrl = new URL(portalUrl());
+    if (vUrl.hostname.toLowerCase() !== pUrl.hostname.toLowerCase()) {
+      return `${base}/${encodeURIComponent(serialNo)}${vParam}`;
+    }
+  } catch {}
+  return `${base}/verify/${encodeURIComponent(serialNo)}${vParam}`;
+}
+
+function isPublicTeacherAllowed() {
+  if (
+    process.env.ALLOW_PUBLIC_TEACHER === "true" ||
+    process.env.ALLOW_PUBLIC_TEACHER === "1"
+  ) {
+    return true;
+  }
+  try {
+    const s = settings();
+    return Boolean(
+      s &&
+        (s.allow_public_teacher === 1 ||
+          s.allow_public_teacher === true ||
+          s.allow_public_teacher === "1"),
+    );
+  } catch {
+    return false;
+  }
+}
+
+function isLocalLanRequest(req) {
+  if (
+    req.headers["cf-ray"] ||
+    req.headers["cf-connecting-ip"] ||
+    req.headers["x-localtunnel-host"]
+  ) {
+    return false;
+  }
+  const host = String(req.hostname || "").toLowerCase().trim();
+  const isLocalHostName =
+    host === "localhost" ||
+    host === "127.0.0.1" ||
+    host === "[::1]" ||
+    host === lanIp.toLowerCase() ||
+    interfaces.some((i) => i.address.toLowerCase() === host);
+
+  if (!isLocalHostName) {
+    return false;
+  }
+
+  const remote = String(req.socket.remoteAddress || "");
+  const isLoopback = ["127.0.0.1", "::1", "::ffff:127.0.0.1"].includes(remote);
+  const isLan =
+    /^::ffff:(192\.168\.|10\.|172\.(1[6-9]|2\d|3[01])\.)/.test(remote) ||
+    /^(192\.168\.|10\.|172\.(1[6-9]|2\d|3[01])\.)/.test(remote);
+
+  return isLoopback || isLan;
+}
+
 const local = (req) =>
   ["127.0.0.1", "::1", "::ffff:127.0.0.1"].includes(req.socket.remoteAddress);
-const isHostedPreviewHost = (hostname) =>
-  /\.run\.app$/i.test(String(hostname || "")) ||
-  /\.trycloudflare\.com$/i.test(String(hostname || "")) ||
-  /\.loca\.lt$/i.test(String(hostname || ""));
 const canAccessLocalCounter = (req) =>
-  local(req) || isHostedPreviewHost(req.hostname);
+  (local(req) &&
+    ["localhost", "127.0.0.1", "[::1]"].includes(
+      String(req.hostname || "").toLowerCase(),
+    )) ||
+  isHostedPreviewHost(req.hostname);
 const tokens = new Map();
 const studentRefs = new Map();
 const STUDENT_REF_TTL = 15 * 60 * 1000;
@@ -152,78 +242,84 @@ function resolveStudentRef(value) {
 const app = express();
 app.disable("x-powered-by");
 app.set("trust proxy", 1);
-const allowedHosts = new Set([
+const staticAllowedHosts = new Set([
   "localhost",
   "127.0.0.1",
   "[::1]",
-  lanIp,
-  ...interfaces.map((i) => i.address),
+  lanIp.toLowerCase(),
+  ...interfaces.map((i) => i.address.toLowerCase()),
 ]);
-for (const envUrl of [process.env.APP_URL, process.env.SHARED_APP_URL]) {
+for (const envUrl of [
+  process.env.APP_URL,
+  process.env.SHARED_APP_URL,
+  process.env.PUBLIC_PORTAL_URL,
+  process.env.PUBLIC_VERIFY_URL,
+]) {
   const normalized = normalizePortalUrl(envUrl);
   if (normalized) {
-    allowedHosts.add(new URL(normalized).hostname);
+    staticAllowedHosts.add(new URL(normalized).hostname.toLowerCase());
     const pub = toPublicCloudRunUrl(normalized);
-    if (pub) allowedHosts.add(new URL(pub).hostname);
+    if (pub) staticAllowedHosts.add(new URL(pub).hostname.toLowerCase());
   }
 }
 if (process.env.PUBLIC_WEBHOOK_URL) {
   try {
-    allowedHosts.add(new URL(process.env.PUBLIC_WEBHOOK_URL).hostname);
+    staticAllowedHosts.add(
+      new URL(process.env.PUBLIC_WEBHOOK_URL).hostname.toLowerCase(),
+    );
   } catch {
     throw Error("Invalid PUBLIC_WEBHOOK_URL");
   }
 }
-// Routes that are safe to expose through the public tunnel host.
-// Everything else (/admin, /api/admin/*, /api/campus-code, ...) stays local.
+
+function isKnownHost(host) {
+  const h = String(host || "").toLowerCase().trim();
+  if (!h) return false;
+  if (staticAllowedHosts.has(h)) return true;
+  const pHost = portalHostname();
+  if (pHost && h === pHost) return true;
+  const vHost = verifyHostname();
+  if (vHost && h === vHost) return true;
+  try {
+    const s = settings();
+    if (s?.public_url) {
+      const u = normalizePortalUrl(s.public_url);
+      if (u && new URL(u).hostname.toLowerCase() === h) return true;
+    }
+    if (s?.public_verify_url) {
+      const u = normalizePortalUrl(s.public_verify_url);
+      if (u && new URL(u).hostname.toLowerCase() === h) return true;
+    }
+  } catch {}
+  if (
+    /\.trycloudflare\.com$/i.test(h) ||
+    /\.loca\.lt$/i.test(h) ||
+    /\.run\.app$/i.test(h)
+  ) {
+    return true;
+  }
+  return false;
+}
+
+// Routes that are safe to expose through the public parent portal host.
+// Everything else (/admin, /staff-host, /kiosk, /api/admin/*, /api/campus-code, ...) stays local.
 const isPublicPortalAllowed = (req) => {
   const p = req.path;
   if (
     req.method === "GET" &&
-    (p === "/" ||
-      p === "/index.html" ||
-      p === "/favicon.ico" ||
-      p === "/teacher" ||
-      p === "/teacher.html" ||
-      p === "/kiosk" ||
-      p === "/parent-screen" ||
-      p === "/face-check.js" ||
-      p === "/keypad-history.js" ||
-      p === "/dual-monitor.js")
+    (p === "/" || p === "/index.html" || p === "/favicon.ico")
   )
-    return true;
-  if (req.method === "GET" && /^\/m\/[A-Za-z0-9_-]+$/.test(p)) return true;
-  if (req.method === "GET" && /^\/upload\/[A-Za-z0-9_-]+$/.test(p))
     return true;
   if (req.method === "GET" && p.startsWith("/fonts/")) return true;
   if (req.method === "GET" && p === "/api/public-config") return true;
-  if (
-    req.method === "GET" &&
-    (p === "/api/teacher/roster" ||
-      p === "/api/teacher/requests" ||
-      /^\/api\/teacher\/requests\/[A-Za-z0-9_-]+\/attachment$/.test(p))
-  )
-    return true;
-  if (
-    req.method === "POST" &&
-    (p === "/api/teacher/login" ||
-      p === "/api/teacher/logout" ||
-      /^\/api\/teacher\/requests\/[A-Za-z0-9_-]+\/(approve|reject|release-print)$/.test(p))
-  )
-    return true;
-  if (
-    req.method === "POST" &&
-    (p === "/api/search-student" ||
-      p === "/api/generate-document" ||
-      p.startsWith("/api/parent/") ||
-      /^\/api\/upload\/[A-Za-z0-9_-]+$/.test(p))
-  )
+
+  if (req.method === "GET" && /^\/m\/[A-Za-z0-9_-]+$/.test(p)) return true;
+  if (req.method === "GET" && /^\/upload\/[A-Za-z0-9_-]+$/.test(p)) return true;
+  if (req.method === "POST" && /^\/api\/upload\/[A-Za-z0-9_-]+$/.test(p))
     return true;
   if (
     req.method === "GET" &&
-    (p === "/api/parent/students" ||
-      /^\/api\/parent\/request-status\/[A-Za-z0-9_-]+$/.test(p) ||
-      /^\/api\/parent\/upload-status\/[A-Za-z0-9_-]+$/.test(p))
+    /^\/api\/parent\/upload-status\/[A-Za-z0-9_-]+$/.test(p)
   )
     return true;
   if (
@@ -231,9 +327,67 @@ const isPublicPortalAllowed = (req) => {
     /^\/api\/parent\/upload-session\/[A-Za-z0-9_-]+$/.test(p)
   )
     return true;
+
+  if (
+    req.method === "POST" &&
+    (p === "/api/search-student" ||
+      p === "/api/generate-document" ||
+      p.startsWith("/api/parent/"))
+  )
+    return true;
+  if (
+    req.method === "GET" &&
+    (p === "/api/parent/students" ||
+      /^\/api\/parent\/request-status\/[A-Za-z0-9_-]+$/.test(p))
+  )
+    return true;
+
   if (req.method === "GET" && /^\/api\/documents\/[^/]+\/pdf$/.test(p))
     return true;
   if (req.method === "GET" && /^\/verify\/[^/]+$/.test(p)) return true;
+  if (req.method === "POST" && p === "/api/verify-lookup") return true;
+
+  // Teacher panel - strictly conditional on isPublicTeacherAllowed()
+  if (isPublicTeacherAllowed()) {
+    if (req.method === "GET" && (p === "/teacher" || p === "/teacher.html"))
+      return true;
+    if (
+      req.method === "GET" &&
+      (p === "/api/teacher/roster" ||
+        p === "/api/teacher/requests" ||
+        /^\/api\/teacher\/requests\/[A-Za-z0-9_-]+\/attachment$/.test(p))
+    )
+      return true;
+    if (
+      req.method === "POST" &&
+      (p === "/api/teacher/login" ||
+        p === "/api/teacher/logout" ||
+        /^\/api\/teacher\/requests\/[A-Za-z0-9_-]+\/(approve|reject|release-print)$/.test(p))
+    )
+      return true;
+  }
+  return false;
+};
+
+// Routes allowed on dedicated verification domain (e.g. verify.rjcschool.in)
+const isVerificationHostAllowed = (req) => {
+  const p = req.path;
+  if (req.method === "GET") {
+    if (p === "/" || p === "/index.html" || p === "/favicon.ico") return true;
+    if (p.startsWith("/fonts/")) return true;
+    if (p.startsWith("/verify/")) return true;
+    if (
+      /^\/[A-Za-z0-9_-]+$/.test(p) &&
+      p !== "/admin" &&
+      p !== "/kiosk" &&
+      p !== "/teacher" &&
+      p !== "/staff-host" &&
+      p !== "/parent-screen"
+    ) {
+      return true;
+    }
+  }
+  if (req.method === "POST" && p === "/api/verify-lookup") return true;
   return false;
 };
 const mobileParentSessions = new Map();
@@ -265,36 +419,52 @@ function isMobileParentSession(req) {
   return true;
 }
 app.use((req, res, next) => {
+  const reqHost = String(req.hostname || "").toLowerCase().trim();
+  if (!isKnownHost(reqHost)) {
+    return res.status(403).json({ error: "Invalid host" });
+  }
+
   if (
     process.env.PUBLIC_WEBHOOK_URL &&
-    req.hostname === new URL(process.env.PUBLIC_WEBHOOK_URL).hostname &&
+    reqHost === new URL(process.env.PUBLIC_WEBHOOK_URL).hostname.toLowerCase() &&
     req.path !== "/webhook"
-  )
+  ) {
     return res
       .status(403)
       .json({ error: "Public access is restricted to the WhatsApp webhook." });
-  const portalHost = portalHostname();
-  const isLocalPortal =
-    !portalHost ||
-    portalHost === lanIp ||
-    ["localhost", "127.0.0.1", "[::1]"].includes(portalHost) ||
-    isHostedPreviewHost(portalHost);
-  if (portalHost && req.hostname === portalHost && !isLocalPortal) {
-    if (!isPublicPortalAllowed(req))
-      return res.status(403).json({
-        error: "This link provides access to the parent portal only.",
-      });
-  } else if (
-    !allowedHosts.has(req.hostname) &&
-    !isHostedPreviewHost(req.hostname)
-  )
-    return res.status(403).json({ error: "Invalid host" });
+  }
+
+  const isLocal = isLocalLanRequest(req);
+  if (!isLocal) {
+    const vHost = verifyHostname();
+    const pHost = portalHostname();
+    const isDedicatedVerifyHost = Boolean(
+      vHost && reqHost === vHost && vHost !== pHost,
+    );
+
+    if (isDedicatedVerifyHost) {
+      if (!isVerificationHostAllowed(req)) {
+        return res.status(403).json({
+          error: "This domain is dedicated to document verification only.",
+        });
+      }
+    } else {
+      if (!isPublicPortalAllowed(req)) {
+        return res.status(403).json({
+          error: "This link provides access to the parent portal only.",
+        });
+      }
+    }
+  }
+
   if (
     isMobileParentSession(req) &&
     (req.path === "/admin" ||
       req.path.startsWith("/api/admin") ||
       req.path === "/api/campus-code" ||
-      req.path.startsWith("/api/kiosk"))
+      req.path.startsWith("/api/kiosk") ||
+      req.path.startsWith("/api/counter") ||
+      req.path === "/staff-host")
   ) {
     return res.status(403).json({
       error: "Admin access is blocked on mobile parent QR sessions.",
@@ -701,6 +871,10 @@ function pruneUploads() {
     if (entry.expiresAt <= now) bonafideUploads.delete(k);
   }
 }
+const isHostedPreviewHost = (hostname) =>
+  /\.run\.app$/i.test(String(hostname || "")) ||
+  /\.trycloudflare\.com$/i.test(String(hostname || "")) ||
+  /\.loca\.lt$/i.test(String(hostname || ""));
 function requestPortalBase(req) {
   try {
     const fromAdmin = normalizePortalUrl(settings().public_url || "");
@@ -1098,7 +1272,7 @@ function issue(b, session, sessionToken) {
 }
 function repairStoredCertificateUrls() {
   try {
-    const activeBase = portalUrl();
+    const activeBase = verifyBaseUrl();
     if (!activeBase || /^https?:\/\/(localhost|127\.0\.0\.1)\b/i.test(activeBase)) return;
     const rows = db
       .prepare(
@@ -1111,7 +1285,10 @@ function repairStoredCertificateUrls() {
         const parsed = JSON.parse(r.certificate_json);
         if (parsed && typeof parsed.verificationUrl === "string") {
           const u = new URL(parsed.verificationUrl);
-          parsed.verificationUrl = `${activeBase}${u.pathname}${u.search}`;
+          parsed.verificationUrl = buildVerificationUrl(
+            r.serial_no,
+            parsed.docSignature || u.searchParams.get("v"),
+          );
           upd.run(JSON.stringify(parsed), r.serial_no);
         }
       } catch {}
@@ -1123,9 +1300,9 @@ repairStoredCertificateUrls();
 async function decorate(cert, opts = {}) {
   let verificationUrl = cert.verificationUrl || "";
   if (cert.serialNo && cert.serialNo !== "PREVIEW") {
-    const activeBase = normalizePortalUrl(opts.baseUrl || "") || portalUrl();
+    const activeBase = normalizePortalUrl(opts.baseUrl || "") || verifyBaseUrl();
     if (!verificationUrl && activeBase) {
-      verificationUrl = `${activeBase}/verify/${encodeURIComponent(cert.serialNo)}`;
+      verificationUrl = buildVerificationUrl(cert.serialNo, cert.docSignature);
     } else if (verificationUrl && activeBase) {
       try {
         const parsed = new URL(verificationUrl);
@@ -1135,10 +1312,16 @@ async function decorate(cert, opts = {}) {
           parsed.hostname === "[::1]" ||
           /^ais-dev-/i.test(parsed.hostname);
         const hasConfiguredPublic = Boolean(
-          normalizePortalUrl(settings().public_url || "") || publicPortalEnv,
+          normalizePortalUrl(settings().public_verify_url || "") ||
+            normalizePortalUrl(settings().public_url || "") ||
+            publicVerifyEnv ||
+            publicPortalEnv,
         );
         if (isStaleOrigin || hasConfiguredPublic) {
-          verificationUrl = `${activeBase}${parsed.pathname}${parsed.search}`;
+          verificationUrl = buildVerificationUrl(
+            cert.serialNo,
+            cert.docSignature || parsed.searchParams.get("v"),
+          );
         }
       } catch {}
     }
@@ -1231,6 +1414,7 @@ const approvalService = createApprovalService({
   esc,
   safeSettings,
   portalUrl,
+  verifyUrl: (serialNo, sig) => buildVerificationUrl(serialNo, sig),
   verificationSecret: () => settings().verification_secret || "",
 });
 const printQueue = createPrintQueue({ db, settings, decorate, pdf });
@@ -1243,7 +1427,12 @@ const generatePdfForRequest = async (reqRow) => {
   const cert = await decorate(JSON.parse(logRow.certificate_json));
   return await pdf(cert.certificateHtml);
 };
-const notifyService = createNotifyService({ db, settings, portalUrl });
+const notifyService = createNotifyService({
+  db,
+  settings,
+  portalUrl,
+  verifyUrl: (serialNo, sig) => buildVerificationUrl(serialNo, sig),
+});
 const telegramBot = createTelegramBot({
   db,
   settings,
@@ -1812,7 +2001,7 @@ app.post("/api/counter/requests/:id/reprint", requireStaffOrAdmin, async (req, r
   res.json({ ok: true, request: row });
 });
 
-app.get("/verify/:serial", async (req, res) => {
+async function handleVerificationRequest(req, res) {
   const serial = String(req.params.serial || "").trim();
   const existing = db
     .prepare(
@@ -2083,7 +2272,267 @@ app.get("/verify/:serial", async (req, res) => {
     .send(
       `<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>RJC · Verify certificate</title><style>${scopedCertCss}*{box-sizing:border-box}body{margin:0;min-height:100dvh;font:15px/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:#f3f2ee;color:#141414;padding:4vh 4vw}.sheet{max-width:880px;margin:auto;background:#faf9f6;border:1px solid #c8c7c0;border-top:4px solid #141414;padding:24px 26px}.eyebrow{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:#5f5f59;margin:0 0 8px}h1{font-weight:400;font-size:26px;letter-spacing:-.02em;margin:0 0 14px;padding-bottom:12px;border-bottom:1px solid #c8c7c0}.nb{white-space:nowrap;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}.seal-banner{border:1px solid #c8c7c0;padding:10px 14px;margin-bottom:16px;font-size:13px;display:flex;flex-direction:column;gap:2px}.seal-banner strong{font-family:ui-monospace,Menlo,monospace;font-size:12px;letter-spacing:.06em}.seal-banner.valid{border-color:#1b5e37;background:#e8f2ec;color:#143d25}.seal-banner.neutral{background:#f3f2ee;color:#3d3d39}.grid{display:grid;grid-template-columns:1fr;gap:18px;margin-bottom:18px}@media(min-width:640px){.grid.has-photo{grid-template-columns:160px minmax(0,1fr)}}.face-box{border:1px solid #c8c7c0;background:#fff;padding:6px;align-self:start}.face-box img{display:block;width:100%;height:170px;object-fit:cover}.face-cap{font-family:ui-monospace,Menlo,monospace;font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:#141414;font-weight:600;margin-top:6px;text-align:center}.verify-meta{display:grid;grid-template-columns:repeat(auto-fit,minmax(195px,1fr));gap:12px 16px}.lbl{display:block;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:#5f5f59;margin-bottom:3px}.val{display:block;font-size:14.5px;line-height:1.4;font-weight:600;overflow-wrap:break-word}.sub-val{display:block;font-size:12px;font-weight:500;color:#5f5f59;margin-top:2px}.code-pill{display:inline-block;font-family:ui-monospace,Menlo,monospace;font-size:12px;font-weight:600;white-space:nowrap;background:#f3f2ee;border:1px solid #c8c7c0;padding:1px 6px;margin:1px 4px 1px 0}.db-crosscheck{margin-top:18px;padding:14px 16px;border:1px solid #141414;background:#f3f2ee}.db-crosscheck-head{display:flex;justify-content:space-between;align-items:flex-start;gap:14px;flex-wrap:wrap;margin-bottom:10px}.db-crosscheck-head h2{margin:0 0 4px;font-size:15px;font-weight:600}.db-crosscheck-head p{margin:0;font-size:12.5px;color:#5f5f59;max-width:440px}.code-check-form{display:flex;gap:8px;flex-wrap:wrap;align-items:center}.code-check-form input{height:36px;padding:0 10px;border:1px solid #888780;background:#fff;font-family:ui-monospace,Menlo,monospace;font-size:12px;min-width:305px;text-transform:uppercase}.sheet-match{padding:8px 12px;margin-bottom:10px;font-size:12.5px;border:1px solid #c8c7c0}.sheet-match.ok{background:#e8f2ec;border-color:#1b5e37;color:#143d25}.sheet-match.bad{background:#fdf3f2;border-color:#a32620;color:#a32620}.sheet-table-wrap{max-height:215px;overflow-y:auto;overflow-x:auto;background:#fff;border:1px solid #c8c7c0;scrollbar-gutter:stable}.sheet-table{width:100%;border-collapse:collapse;font-size:12.5px}.sheet-table th,.sheet-table td{padding:7px 10px;border-bottom:1px solid #e2e1dc;text-align:left;vertical-align:middle}.sheet-table th{position:sticky;top:0;z-index:2;font-family:ui-monospace,Menlo,monospace;font-size:10.5px;text-transform:uppercase;letter-spacing:.06em;color:#5f5f59;background:#faf9f6;box-shadow:0 1px 0 #c8c7c0}.tag{display:inline-block;padding:2px 6px;font-family:ui-monospace,Menlo,monospace;font-size:10.5px;font-weight:700;white-space:nowrap;border:1px solid #141414}.tag.orig{background:#e8f2ec;border-color:#1b5e37;color:#143d25}.tag.dup{background:#fdf3f2;border-color:#a32620;color:#a32620}.sheet-empty{margin:4px 0 0;font-size:12.5px;color:#3d3d39}.doc-compare{margin-top:18px;padding-top:16px;border-top:2px solid #141414}.doc-compare-head{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:12px}.doc-compare-head h2{margin:0;font-size:17px;font-weight:600}.doc-compare-sub{margin:0 0 12px;font-size:13px;color:#5f5f59}.doc-paper{background:#fff;border:1px solid #888780;padding:18px;overflow-x:auto;font-family:Noto,Arial,sans-serif;font-size:11pt;line-height:1.85;color:#17202b}.print-btn{cursor:pointer;border:1px solid #141414;background:#141414;color:#f3f2ee;font-family:ui-monospace,Menlo,monospace;font-size:12px;padding:8px 14px;height:36px}.note{margin:16px 0 0;padding-top:14px;border-top:1px solid #c8c7c0;font-size:13px;color:#5f5f59}@media print{body{background:#fff;padding:0}.sheet{border:0;padding:0;max-width:none}.no-print{display:none!important}.doc-paper{border:0;padding:0}}</style><main class="sheet"><p class="eyebrow">RJC · PERSONALIZED QR VERIFICATION</p><h1>${log ? "Verified school record" : "Record not found"}</h1>${sealBanner}${log ? `<div class="grid${log.parent_photo_data ? " has-photo" : ""}">${log.parent_photo_data ? `<div class="face-box"><img src="${esc(log.parent_photo_data)}" alt="Captured collector face proof"><div class="face-cap">${esc(collectorRoleText)}</div></div>` : ""}<div class="verify-meta"><div><span class="lbl">Student</span><span class="val">${esc(log.student_name)} (GR ${esc(log.gr_number)})</span></div><div><span class="lbl">Document</span><span class="val">${esc(log.doc_title)}</span></div><div><span class="lbl">Collector Role</span><span class="val">${esc(collectorRoleText)}</span></div><div><span class="lbl">Reference number</span><span class="val nb">${esc(log.serial_no)}</span></div><div><span class="lbl">Crypto Seal &amp; Print 2FA</span><span class="val"><span class="code-pill">${esc(sealState.securityCode || "VERIFIED")}</span><span class="code-pill">${esc(log.last_print_code || defaultCopySeal?.printSecurityCode || "")}</span></span></div><div><span class="lbl">Approved by</span><span class="val">${esc(log.approved_by_name || "School Office")}${log.approved_by_role ? `<span class="sub-val">${esc(log.approved_by_role)}</span>` : ""}</span></div><div><span class="lbl">Approved &amp; issued</span><span class="val">${esc(issuedDisplay)}</span></div><div><span class="lbl">Physical Prints</span><span class="val">${esc(printStatusPrimary)}<span class="sub-val">${esc(printStatusSub)}</span></span></div>${log.reason ? `<div><span class="lbl">Purpose / Reason</span><span class="val">${esc(log.reason)}</span></div>` : ""}<div><span class="lbl">Total QR scans</span><span class="val">${esc(String(log.scan_count || 1))} Scan${Number(log.scan_count || 1) === 1 ? "" : "s"}${scanDisplay ? `<span class="sub-val">Latest: ${esc(scanDisplay)}</span>` : ""}</span></div></div></div>${printSheetTableHtml}${originalDocHtml ? `<section class="doc-compare"><div class="doc-compare-head"><h2>Original Authentic Document (Locked Record)</h2><button type="button" class="print-btn no-print" onclick="window.print()">Print Verified Copy</button></div><p class="doc-compare-sub no-print">If any name, date, class, or wording on a paper copy differs from this original document, the paper copy has been tampered with. Only Print #1 issued at the school counter carries an ORIGINAL mark; reprints carry DUPLICATE.</p><div class="doc-paper">${originalDocHtml}</div></section>` : ""}<p class="note no-print">Every scan of this personalized QR code is logged in the school office database along with the approving teacher identity, collector role, and captured face proof.</p>` : '<p class="note">Check the reference number printed on the certificate or contact the school office.</p>'}</main></html>`,
     );
+}
+
+app.get("/verify/:serial", handleVerificationRequest);
+app.get("/:serial", (req, res, next) => {
+  const serial = String(req.params.serial || "").trim();
+  if (!serial || !/^[A-Za-z0-9_-]+$/.test(serial)) return next();
+  const reserved = new Set([
+    "favicon.ico",
+    "robots.txt",
+    "admin",
+    "kiosk",
+    "staff-host",
+    "parent-screen",
+    "teacher",
+    "webhook",
+    "fonts",
+    "api",
+    "index.html",
+  ]);
+  if (reserved.has(serial.toLowerCase())) return next();
+  const vHost = verifyHostname();
+  const pHost = portalHostname();
+  const isVerify = Boolean(
+    vHost && req.hostname.toLowerCase() === vHost && vHost !== pHost,
+  );
+  if (isVerify || /^[A-Za-z]{2,5}-\d{4}-\d{3,6}$/i.test(serial)) {
+    return handleVerificationRequest(req, res);
+  }
+  next();
 });
+
+app.post("/api/verify-lookup", (req, res) => {
+  const serial = String(req.body?.serial || "").trim();
+  const code = String(req.body?.code || "").trim().toUpperCase();
+  if (!serial && !code) {
+    return res
+      .status(400)
+      .json({ error: "Serial number or Print 2FA code is required." });
+  }
+  let row = null;
+  if (serial) {
+    row = db
+      .prepare(
+        "SELECT serial_no, gr_number, student_name, doc_title, issued_at, approved_by_name, approved_by_role, print_count, scan_count, doc_signature, security_code FROM issued_logs WHERE serial_no=?",
+      )
+      .get(serial);
+  }
+  if (!row && code) {
+    const printRow = db
+      .prepare("SELECT serial_no FROM print_logs WHERE print_security_code=?")
+      .get(code);
+    if (printRow) {
+      row = db
+        .prepare(
+          "SELECT serial_no, gr_number, student_name, doc_title, issued_at, approved_by_name, approved_by_role, print_count, scan_count, doc_signature, security_code FROM issued_logs WHERE serial_no=?",
+        )
+        .get(printRow.serial_no);
+    }
+  }
+  if (!row) {
+    return res.status(404).json({
+      found: false,
+      error: "No matching certificate record found in official school logs.",
+    });
+  }
+  return res.json({
+    found: true,
+    serial_no: row.serial_no,
+    student_name: row.student_name,
+    doc_title: row.doc_title,
+    gr_number: row.gr_number,
+    issued_at: row.issued_at,
+    issued_display: formatIstDateTime(row.issued_at),
+    approved_by: `${row.approved_by_name} (${row.approved_by_role})`,
+    print_count: Number(row.print_count || 0),
+    scan_count: Number(row.scan_count || 0),
+    has_seal: Boolean(row.doc_signature),
+    security_code: row.security_code || "",
+    verify_url: buildVerificationUrl(row.serial_no, row.doc_signature),
+  });
+});
+
+function renderVerificationLookupPage(req, res) {
+  const s = settings() || {};
+  const schoolName = esc(s.school_name || "R. J. CHAWARE CONVENT");
+  const schoolSubtitle = esc(s.school_subtitle || "");
+  res.type("html").send(`<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>${schoolName} · Official Document Verification</title>
+  <style>
+    :root {
+      --bg: #f8fafc;
+      --card: #ffffff;
+      --text: #0f172a;
+      --muted: #64748b;
+      --primary: #1e3a8a;
+      --primary-hover: #1e40af;
+      --border: #e2e8f0;
+      --ring: rgba(30, 58, 138, 0.15);
+      --font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+      --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--font);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 24px 16px;
+    }
+    .container {
+      width: 100%;
+      max-width: 520px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+      padding: 32px 28px;
+    }
+    .header {
+      text-align: center;
+      margin-bottom: 24px;
+    }
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 12px;
+      background: #eff6ff;
+      color: #1d4ed8;
+      border: 1px solid #bfdbfe;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 12px;
+    }
+    h1 {
+      font-size: 20px;
+      font-weight: 700;
+      color: #0f172a;
+      margin-bottom: 4px;
+    }
+    .sub {
+      font-size: 13px;
+      color: var(--muted);
+      line-height: 1.4;
+    }
+    form {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      margin-top: 20px;
+    }
+    label {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      font-size: 13px;
+      font-weight: 600;
+      color: #334155;
+    }
+    input {
+      padding: 12px 14px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      font-size: 15px;
+      font-family: var(--mono);
+      text-transform: uppercase;
+      outline: none;
+      transition: all 0.15s ease;
+    }
+    input:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px var(--ring);
+    }
+    button {
+      padding: 12px 16px;
+      background: var(--primary);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.15s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+    button:hover {
+      background: var(--primary-hover);
+    }
+    .info-box {
+      margin-top: 24px;
+      padding: 16px;
+      background: #f1f5f9;
+      border-radius: 8px;
+      font-size: 12px;
+      color: var(--muted);
+      line-height: 1.5;
+    }
+    .info-box strong {
+      color: #1e293b;
+    }
+    .footer {
+      text-align: center;
+      margin-top: 20px;
+      font-size: 12px;
+      color: var(--muted);
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <span class="badge">Official Verification Portal</span>
+      <h1>${schoolName}</h1>
+      <p class="sub">${schoolSubtitle || "Document & Certificate Authenticity Verification"}</p>
+    </div>
+    <form onsubmit="handleLookup(event)">
+      <label>
+        Certificate Reference / Serial Number
+        <input id="serial-input" name="serial" placeholder="e.g. BON-2026-0001" required autofocus autocomplete="off">
+      </label>
+      <label>
+        Print 2FA Code (Optional)
+        <input id="code-input" name="code" placeholder="e.g. PRT-01-XXXX" autocomplete="off">
+      </label>
+      <button type="submit" id="submit-btn">Verify Certificate Authenticity ➔</button>
+    </form>
+    <div class="info-box">
+      <strong>How to verify:</strong> Look at the certificate. Enter the printed Certificate Reference Number (or scan the printed QR code with your smartphone camera) to inspect the authentic school office seal and student records directly.
+    </div>
+    <div class="footer">
+      Powered by RJC School Verification Engine · Offline-First & Cryptographically Sealed
+    </div>
+  </div>
+  <script>
+    function handleLookup(e) {
+      e.preventDefault();
+      var serial = document.getElementById("serial-input").value.trim();
+      var code = document.getElementById("code-input").value.trim();
+      if (!serial) return;
+      var target = "/" + encodeURIComponent(serial);
+      if (code) target += "?code=" + encodeURIComponent(code);
+      window.location.href = target;
+    }
+  </script>
+</body>
+</html>`);
+}
 app.post(
   "/api/admin/login",
   rateLimit({
@@ -2123,6 +2572,8 @@ app.get("/api/admin/dashboard", (req, res) => {
   return res.json({
     settings: adminSettings,
     activePortalUrl: portalUrl(),
+    activeVerifyUrl: verifyBaseUrl(),
+    isPublicTeacherAllowed: isPublicTeacherAllowed(),
     students: db.prepare("SELECT * FROM students ORDER BY full_name").all(),
     templates: db.prepare("SELECT * FROM document_templates ORDER BY id").all(),
     teachers: db
@@ -2169,6 +2620,147 @@ app.get("/api/admin/dashboard", (req, res) => {
         return { ...l, last_print_code: printCode };
       }),
   });
+});
+
+app.get("/api/admin/system/status", requireAdmin, async (req, res) => {
+  const dbHealth = checkDbHealth(db, path.join(dataDir, "school.db"));
+  const pUrl = portalUrl();
+  const vUrl = verifyBaseUrl();
+  const pHost = portalHostname();
+  const vHost = verifyHostname();
+
+  // 1. Internet connectivity check
+  let internetOk = false;
+  let internetLatencyMs = null;
+  const startInternet = Date.now();
+  try {
+    const r = await fetch("https://1.1.1.1", {
+      method: "HEAD",
+      signal: AbortSignal.timeout(2500),
+    });
+    internetOk = r.status < 500;
+    internetLatencyMs = Date.now() - startInternet;
+  } catch {}
+
+  // 2. Public portal reachability check
+  let portalReachable = null;
+  let portalError = null;
+  if (pUrl && pUrl.startsWith("https://")) {
+    try {
+      const pr = await fetch(`${pUrl}/api/public-config`, {
+        signal: AbortSignal.timeout(3000),
+      });
+      portalReachable = pr.ok;
+    } catch (e) {
+      portalReachable = false;
+      portalError = e.message;
+    }
+  }
+
+  // 3. Public verify reachability check
+  let verifyReachable = null;
+  let verifyError = null;
+  if (vUrl && vUrl.startsWith("https://") && vUrl !== pUrl) {
+    try {
+      const vr = await fetch(`${vUrl}/favicon.ico`, {
+        signal: AbortSignal.timeout(3000),
+      });
+      verifyReachable = vr.ok;
+    } catch (e) {
+      verifyReachable = false;
+      verifyError = e.message;
+    }
+  }
+
+  // 4. Cloudflare tunnel check
+  let cloudflareProcessRunning = false;
+  let cloudflareServiceStatus = "NOT_INSTALLED";
+  try {
+    const { execSync } = require("node:child_process");
+    try {
+      const taskOut = execSync(
+        'tasklist /FI "IMAGENAME eq cloudflared.exe" /FO CSV /NH',
+        {
+          encoding: "utf8",
+          timeout: 2000,
+          stdio: ["ignore", "pipe", "ignore"],
+        },
+      );
+      cloudflareProcessRunning = taskOut
+        .toLowerCase()
+        .includes("cloudflared.exe");
+    } catch {}
+
+    try {
+      const scOut = execSync("sc.exe query cloudflared", {
+        encoding: "utf8",
+        timeout: 2000,
+        stdio: ["ignore", "pipe", "ignore"],
+      });
+      if (scOut.includes("STATE") && scOut.includes("RUNNING")) {
+        cloudflareServiceStatus = "RUNNING";
+      } else if (scOut.includes("STATE")) {
+        cloudflareServiceStatus = "STOPPED";
+      }
+    } catch {}
+  } catch {}
+
+  res.json({
+    ok: true,
+    server: {
+      status: "running",
+      uptimeSeconds: Math.floor(process.uptime()),
+      port,
+      pid: process.pid,
+      nodeVersion: process.version,
+    },
+    database: {
+      status: dbHealth.ok ? "healthy" : "warning",
+      journalMode: dbHealth.journalMode,
+      synchronous: dbHealth.synchronous,
+      studentCount: dbHealth.counts?.students || 0,
+      issuedCount: dbHealth.counts?.issuedLogs || 0,
+      quickCheck: dbHealth.quickCheck,
+    },
+    network: {
+      lanIp,
+      lanUrl: `http://${lanIp}:${port}`,
+      localUrl: `http://localhost:${port}`,
+      portalUrl: pUrl,
+      portalHost: pHost,
+      verifyUrl: vUrl,
+      verifyHost: vHost,
+      allowPublicTeacher: isPublicTeacherAllowed(),
+    },
+    internet: {
+      online: internetOk,
+      latencyMs: internetLatencyMs,
+    },
+    publicPortal: {
+      url: pUrl,
+      reachable: portalReachable,
+      error: portalError,
+    },
+    publicVerify: {
+      url: vUrl,
+      reachable: verifyReachable,
+      error: verifyError,
+    },
+    cloudflare: {
+      processRunning: cloudflareProcessRunning,
+      serviceStatus: cloudflareServiceStatus,
+      active: cloudflareProcessRunning || cloudflareServiceStatus === "RUNNING",
+    },
+    timestamp: new Date().toISOString(),
+  });
+});
+
+app.post("/api/admin/system/shutdown", requireAdmin, (req, res) => {
+  try {
+    db.pragma("wal_checkpoint(TRUNCATE)");
+  } catch {}
+  res.json({ ok: true, message: "Server shutting down cleanly" });
+  setTimeout(() => gracefulShutdown(), 50);
 });
 app.get("/api/admin/logs/:serial/details", (req, res) => {
   const serial = String(req.params.serial || "");
@@ -3109,10 +3701,31 @@ app.post("/api/admin/settings", (req, res) => {
       );
     s.public_url = raw ? normalizePortalUrl(raw) : "";
   }
+  if (req.body.public_verify_url !== undefined) {
+    const raw = text(
+      req.body.public_verify_url || "",
+      "public verify URL",
+      300,
+      false,
+    );
+    if (raw && !normalizePortalUrl(raw))
+      fail(
+        "Public verify URL must be a valid http(s) URL, e.g. https://verify.rjcschool.in",
+      );
+    s.public_verify_url = raw ? normalizePortalUrl(raw) : "";
+  }
+  if (req.body.allow_public_teacher !== undefined) {
+    s.allow_public_teacher =
+      req.body.allow_public_teacher === 1 ||
+      req.body.allow_public_teacher === "1" ||
+      req.body.allow_public_teacher === true
+        ? 1
+        : 0;
+  }
   for (const k of ["logo_data", "signature_data", "stamp_data"])
     if (req.body[k] !== undefined) s[k] = png(req.body[k]);
   db.prepare(
-    "UPDATE school_settings SET school_name=@school_name,school_subtitle=@school_subtitle,udise_no=@udise_no,whatsapp_number=@whatsapp_number,wifi_ssid=@wifi_ssid,wifi_password=@wifi_password,logo_data=@logo_data,signature_data=@signature_data,stamp_data=@stamp_data,public_url=@public_url WHERE id=1",
+    "UPDATE school_settings SET school_name=@school_name,school_subtitle=@school_subtitle,udise_no=@udise_no,whatsapp_number=@whatsapp_number,wifi_ssid=@wifi_ssid,wifi_password=@wifi_password,logo_data=@logo_data,signature_data=@signature_data,stamp_data=@stamp_data,public_url=@public_url,public_verify_url=@public_verify_url,allow_public_teacher=@allow_public_teacher WHERE id=1",
   ).run(s);
   qrCache = null;
   res.json({ ok: true });
@@ -3247,8 +3860,16 @@ app.get("/webhook", wa.verify);
 // The former conversational issuance flow predates parent sessions. It is
 // disabled; outbound authentication templates use the OTP transport above.
 app.post("/webhook", (req, res) => res.sendStatus(410));
+app.get("/", (req, res) => {
+  const vHost = verifyHostname();
+  const pHost = portalHostname();
+  if (vHost && req.hostname.toLowerCase() === vHost && vHost !== pHost) {
+    return renderVerificationLookupPage(req, res);
+  }
+  return res.sendFile(path.join(__dirname, "public", "index.html"));
+});
 app.get(
-  ["/", "/admin", "/kiosk", "/parent-screen", "/staff-host"],
+  ["/admin", "/kiosk", "/parent-screen", "/staff-host"],
   (req, res) => res.sendFile(path.join(__dirname, "public", "index.html")),
 );
 app.use(express.static(path.join(__dirname, "public")));
@@ -3257,6 +3878,7 @@ app.use("/api", (req, res) =>
 );
 app.use((err, req, res, next) => {
   if (res.headersSent) return next(err);
+  if ((err.status || 500) >= 500) console.error("[SERVER ERROR]", err);
   const status =
     err.status || (String(err.code || "").startsWith("CSV_") ? 400 : 500);
   res.status(status).json({
@@ -3282,18 +3904,25 @@ server.on("error", (e) => {
   db.close();
   process.exit(1);
 });
-for (const signal of ["SIGINT", "SIGTERM"])
+function gracefulShutdown() {
+  try {
+    db.pragma("wal_checkpoint(TRUNCATE)");
+  } catch {}
+  clearInterval(ticker);
+  clearInterval(backupTimer);
+  clearTimeout(startupBackup);
+  telegramBot.stop();
+  wa.close();
+  try {
+    db.close();
+  } catch {}
+  try {
+    server.close();
+  } catch {}
+  process.exit(0);
+}
+
+for (const signal of ["SIGINT", "SIGTERM", "SIGBREAK"])
   process.on(signal, () => {
-    clearInterval(ticker);
-    clearInterval(backupTimer);
-    clearTimeout(startupBackup);
-    telegramBot.stop();
-    wa.close();
-    server.close(() => {
-      try {
-        db.pragma("wal_checkpoint(TRUNCATE)");
-      } catch {}
-      db.close();
-      process.exit(0);
-    });
+    gracefulShutdown();
   });

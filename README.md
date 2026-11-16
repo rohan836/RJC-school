@@ -2,7 +2,9 @@
 
 The active project lives in **RJC**. RJC is the application name, for **R. J. Chaware Convent** (Jain Minority Institute · Karanja Education Society's · Chaware Line, Karanja (Lad), Dist. Washim, Maharashtra 444105). The old project remains archived under the ignored `backups/previous-project` directory.
 
-> **Windows 11 Step-by-Step Guide:** See **[`WINDOWS_11_SETUP.md`](./WINDOWS_11_SETUP.md)** for complete instructions on running the portal on Windows 11, making certificate QR codes open worldwide on any network, configuring Physical Printer 2FA (`PRT-01-…`), adding unlimited Top Teachers & Staff, and 1-click setup for Telegram Bot, Gmail SMTP, and WhatsApp.
+> **Windows 11 Step-by-Step Guide:** See **[`WINDOWS_11_SETUP.md`](./WINDOWS_11_SETUP.md)** for complete instructions on running the portal on Windows 11, configuring Physical Printer 2FA (`PRT-01-…`), adding unlimited Top Teachers & Staff, and 1-click setup for Telegram Bot, Gmail SMTP, and WhatsApp.
+>
+> **Permanent Public Domain & Named Tunnel:** See **[`PERMANENT_DOMAIN_SETUP.md`](./PERMANENT_DOMAIN_SETUP.md)** for configuring production permanent domains (`https://rjcschool.in` & `https://verify.rjcschool.in`) via Cloudflare Named Tunnels with automated Windows service startup, multi-host ingress routing, and strict route lockdowns.
 
 ## Permanent install at C:\RJC & USB portable package
 
@@ -49,11 +51,17 @@ The kiosk is designed for a desktop monitor at 100% zoom. The header and workspa
 
 Three incorrect family-verification attempts lock the student record for 15 minutes, including across server restarts. The backup route does not bypass the lock. A localhost/127.0.0.1 front-panel connection can bypass the campus code; a LAN request cannot obtain that bypass by setting the client flag. Campus codes rotate every 60 seconds and after each issuance. Only the Front Panel PC (localhost) can retrieve the live code and QR; the panel polls once a second and uses Data URLs.
 
-### Phones on any internet (Cloudflare quick tunnel)
-The Front Panel shows **one** QR. By default it encodes `http://<LAN_IP>:3000/?code=####` (offline, school Wi-Fi only). To let parents connect on any internet (4G/5G or Wi-Fi) without any LAN connection:
-1. Install Cloudflare Tunnel (`winget install Cloudflare.cloudflared` or place `cloudflared.exe` in this folder).
-2. Double-click `tools/Start_Public_Tunnel.bat`. It starts a free quick tunnel and writes the live `https://<name>.trycloudflare.com` URL to `public-url`, which the server automatically uses for the single QR (and prints as "Portal link" on startup). `public-url` is deleted when the tunnel stops.
-3. Alternatively set `PUBLIC_PORTAL_URL` in `.env`, or **Admin → Branding & Portal → Public tunnel URL** (admin override wins; leave blank for .env, tunnel auto-detection, or LAN fallback).
+### Production Permanent Domains (Cloudflare Named Tunnel)
+For official school deployment on permanent domains (`https://rjcschool.in` and `https://verify.rjcschool.in`):
+1. Run `tools\setup-cloudflare-tunnel.bat` or follow the comprehensive step-by-step guide in [`PERMANENT_DOMAIN_SETUP.md`](./PERMANENT_DOMAIN_SETUP.md).
+2. The tunnel installs as an automatic Windows Service (`sc.exe config cloudflared start= auto`) running 24/7 across PC reboots.
+3. Strict perimeter isolation ensures `/admin`, `/staff-host`, `/kiosk`, and private management APIs are 100% blocked from the public internet.
+4. Run `tools\check-status.bat` anytime to check local server health, database, Cloudflare service, and domain reachability.
+
+### Phones on any internet (Cloudflare quick tunnel fallback)
+For temporary testing or development without a custom domain, the free Quick Tunnel remains fully supported:
+1. Double-click `tools/Start_Public_Tunnel.bat`. It starts a temporary tunnel and writes the live `https://<name>.trycloudflare.com` URL to `public-url`, which the server automatically uses for the single QR.
+2. Alternatively set `PUBLIC_PORTAL_URL` in `.env`, or **Admin → Branding & Portal → Public tunnel URL**.
 
 On the tunnel host, only the parent portal is reachable (`/`, `/fonts/*`, `/api/public-config`, `/api/search-student`, `/api/generate-document`, `/api/documents/:serial/pdf`, `/verify/:serial`). `/admin`, `/api/admin/*` and `/api/campus-code` remain available on localhost/school office only. Verification needs no SMS or WhatsApp OTP: parents use the 60-second campus code plus the child's birth year, or the detailed check with full date of birth and the registered parent mobile's last four digits. Search results do not return GR numbers or phone suffixes; selections use short-lived opaque references. The tunnel is a public doorway — it is free ("quick" tunnels), changes URL on each restart, and requires no account; do not expose student data beyond the parent portal.
 

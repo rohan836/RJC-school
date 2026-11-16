@@ -48,7 +48,9 @@ RJC School Document Portal is an **offline-first, local-first Windows 11 school 
 | `tools/launch.js` | Cross-platform Chrome/Edge launcher (`--dual-monitor` places Monitor 1 at `0,0` and Monitor 2 at `primaryWidth,0`) | Creates isolated browser profiles in `data/profiles/` |
 | `tools/restore.js` | Atomic verified CLI database restore for `.db` and `.rjcbackup` files | Paired with `Restore_Backup.bat` |
 | `tools/Export_To_USB.bat` | 1-click Windows USB portable package builder (bundles runtime, `node_modules`, and online DB snapshot) | Re-copies all modular `.js` & `.bat` files |
-| `tools/Start_Public_Tunnel.bat` | Launches `cloudflared` HTTPS tunnel and writes `public-url` so printed QR codes work on any network | Optional when school has no static domain |
+| `tools/setup-cloudflare-tunnel.bat` | Production Cloudflare Named Tunnel wizard (routes `rjcschool.in` + `verify.rjcschool.in` and installs Windows service) | Automated Windows 11 setup |
+| `tools/check-status.js` / `tools/check-status.bat` | Diagnostics CLI inspecting local server, DB WAL, Cloudflare service, Internet, and public URLs | Pure health checker |
+| `tools/Start_Public_Tunnel.bat` | Launches temporary `cloudflared` quick tunnel (`*.trycloudflare.com`) for testing | Fallback / testing only |
 
 ---
 
@@ -174,7 +176,8 @@ Future AI agents modifying this repo MUST follow these invariants:
 - [ ] Replace seeded demo students (`GR 4501–4506`) with real CSV student import in **Admin → Students**.
 - [ ] Change default `admin` password (`school1234`) in **Admin → Security & Backup** (10+ characters) and delete or lock `admin-credentials.txt`.
 - [ ] Upload official school logo, Principal signature PNG, and school stamp PNG, plus real **UDISE number** in **Admin → Branding & Portal**.
-- [ ] Configure **Public School Domain** (e.g. Cloudflare Tunnel via `tools/Start_Public_Tunnel.bat` or custom HTTPS domain) so printed QRs scan on any mobile network.
+- [ ] Configure **Permanent Public School Domain** (`https://rjcschool.in` & `https://verify.rjcschool.in`) via `tools\setup-cloudflare-tunnel.bat` (see [PERMANENT_DOMAIN_SETUP.md](./PERMANENT_DOMAIN_SETUP.md)) so printed QRs scan reliably worldwide without relying on temporary URLs.
+- [ ] Run `tools\check-status.bat` to verify local and public connectivity across all endpoints.
 - [ ] Configure `BACKUP_DIR` (Google Drive / OneDrive synced folder or secondary drive `D:\RJC_Backups`) and `BACKUP_PASSPHRASE` in `.env` so off-PC encrypted backups run automatically every day.
 - [ ] Print 1 real Bonafide test copy on the Windows 11 school printer and scan its bottom QR code from a phone on 4G/5G data.
 

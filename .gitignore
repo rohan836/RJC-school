@@ -15,6 +15,9 @@ admin-credentials.txt
 public-url
 cloudflared-tunnel.log
 tools/cloudflared.exe
+.cloudflared/
+*.pem
+credentials.json
 *.exe
 *.csv
 *.sqlite

@@ -133,7 +133,7 @@ test("notify-service formats WhatsApp ready links and sends SMTP ready emails", 
   const updatedReq = db.prepare("SELECT notification_status FROM approval_requests WHERE id=?").get(created.id);
   assert.match(updatedReq.notification_status, /Email \(parent\.meera@example\.com\)/);
   db.close();
-  fs.rmSync(dir, { recursive: true, force: true });
+  fs.rmSync(dir, { recursive: true, force: true, maxRetries: 10, retryDelay: 200 });
 });
 
 test(
@@ -415,8 +415,12 @@ test(
       const zipAllEntries = parseZipEntries(Buffer.from(await zipAllRes.arrayBuffer()));
       assert.ok(zipAllEntries.get("issued-logs.csv").toString("utf8").includes("RJC-2025-99901"));
     } finally {
-      child.kill("SIGTERM");
-      fs.rmSync(dir, { recursive: true, force: true });
+      if (child.exitCode === null) {
+        const exited = new Promise((resolve) => child.once("exit", resolve));
+        child.kill();
+        await exited;
+      }
+      fs.rmSync(dir, { recursive: true, force: true, maxRetries: 10, retryDelay: 200 });
     }
   },
 );
@@ -477,7 +481,7 @@ test("telegram bot sends live QR scan alert to archive group when enabled and ho
   assert.equal(calls.length, 1);
 
   db.close();
-  fs.rmSync(dir, { recursive: true, force: true });
+  fs.rmSync(dir, { recursive: true, force: true, maxRetries: 10, retryDelay: 200 });
 });
 
 test("telegram Teachers Group & Channel Hub supports /setgroup, /setchannel, channel_post, /pending, /today, /logs, /scans, and per-teacher group attribution", async () => {
@@ -653,5 +657,5 @@ test("telegram Teachers Group & Channel Hub supports /setgroup, /setchannel, cha
   assert.equal(settings().telegram_storage_chat_id, "-100555444");
 
   db.close();
-  fs.rmSync(dir, { recursive: true, force: true });
+  fs.rmSync(dir, { recursive: true, force: true, maxRetries: 10, retryDelay: 200 });
 });

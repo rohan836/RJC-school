@@ -21,6 +21,7 @@ function createApprovalService({
   esc,
   safeSettings,
   portalUrl,
+  verifyUrl,
   verificationSecret,
   now = () => new Date(),
 }) {
@@ -197,9 +198,14 @@ function createApprovalService({
             bodyHtml: renderedBodyHtml,
           })
         : { sig: "", securityCode: "", contentHash: "" };
-      const verificationUrl = seal.sig
-        ? `${portalUrl()}/verify/${serialNo}?v=${encodeURIComponent(seal.sig)}`
-        : `${portalUrl()}/verify/${serialNo}`;
+      const defaultVerifyUrl = (sNo, sig) =>
+        sig
+          ? `${portalUrl()}/verify/${sNo}?v=${encodeURIComponent(sig)}`
+          : `${portalUrl()}/verify/${sNo}`;
+      const verificationUrl =
+        typeof verifyUrl === "function"
+          ? verifyUrl(serialNo, seal.sig)
+          : defaultVerifyUrl(serialNo, seal.sig);
       const collectorLabel = reqRow.is_guardian
         ? "Authorized Guardian"
         : "Parent / Family Collector";

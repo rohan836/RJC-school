@@ -176,6 +176,7 @@ test(
       },
     );
 
+    let token = "";
     try {
       for (let i = 0; i < 80; i++) {
         try {
@@ -194,7 +195,8 @@ test(
         body: JSON.stringify({ username: "admin", password: "school1234" }),
       });
       assert.equal(login.status, 200);
-      const { token } = await login.json();
+      const loginData = await login.json();
+      token = loginData.token;
 
       // Check health endpoint
       const hRes = await fetch(`${base}/api/admin/backup/health`, {
@@ -257,17 +259,29 @@ test(
       const verified = verifySqliteSnapshot(Database, verifyFile);
       assert.equal(verified.ok, true);
     } finally {
-      child.kill("SIGTERM");
+      if (token) {
+        try {
+          await fetch(`${base}/api/admin/system/shutdown`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "x-admin-token": token,
+            },
+            body: JSON.stringify({}),
+          });
+        } catch {}
+      }
+      child.kill(process.platform === "win32" ? "SIGINT" : "SIGTERM");
       await new Promise((r) =>
         child.exitCode !== null ? r() : child.once("exit", r),
       );
-      // Clean WAL size check after SIGTERM checkpoint
+      // Clean WAL size check after signal checkpoint
       const walPath = path.join(dataDir, "school.db-wal");
       if (fs.existsSync(walPath)) {
         assert.equal(fs.statSync(walPath).size, 0, "WAL truncated cleanly on exit");
       }
-      fs.rmSync(dataDir, { recursive: true, force: true });
-      fs.rmSync(extDir, { recursive: true, force: true });
+      fs.rmSync(dataDir, { recursive: true, force: true, maxRetries: 10, retryDelay: 200 });
+      fs.rmSync(extDir, { recursive: true, force: true, maxRetries: 10, retryDelay: 200 });
     }
   },
 );
