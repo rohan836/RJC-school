@@ -3876,10 +3876,20 @@ app.get("/", (req, res) => {
   if (vHost && req.hostname.toLowerCase() === vHost && vHost !== pHost) {
     return renderVerificationLookupPage(req, res);
   }
+  const h = String(req.hostname || "").toLowerCase();
+  if (h.startsWith("staff.") || h === "staff") {
+    return res.redirect("/staff");
+  }
+  if (h.startsWith("parent.") || h === "parent") {
+    return res.redirect("/parent");
+  }
+  if (h.startsWith("admin.") || h === "admin") {
+    return res.redirect("/admin");
+  }
   return res.sendFile(path.join(__dirname, "public", "index.html"));
 });
 app.get(
-  ["/admin", "/kiosk", "/parent-screen", "/staff-host"],
+  ["/admin", "/kiosk", "/parent-screen", "/staff-host", "/parent", "/staff"],
   (req, res) => res.sendFile(path.join(__dirname, "public", "index.html")),
 );
 app.use(express.static(path.join(__dirname, "public")));

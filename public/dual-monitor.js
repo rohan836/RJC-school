@@ -9,6 +9,7 @@
 
   function resolveScreenMode(loc = {}) {
     const pathname = String(loc.pathname || "/").toLowerCase();
+    const hostname = String(loc.hostname || "").toLowerCase();
     const rawSearch = String(loc.search || "");
     const params = new URLSearchParams(rawSearch.startsWith("?") ? rawSearch : `?${rawSearch}`);
     const screenParam = (params.get("screen") || "").toLowerCase();
@@ -17,6 +18,9 @@
     if (
       pathname === "/kiosk" ||
       pathname === "/parent-screen" ||
+      pathname === "/parent" ||
+      hostname.startsWith("parent.") ||
+      hostname === "parent" ||
       screenParam === "parent" ||
       screenParam === "kiosk" ||
       kioskParam === "1"
@@ -26,6 +30,9 @@
 
     if (
       pathname === "/staff-host" ||
+      pathname === "/staff" ||
+      hostname.startsWith("staff.") ||
+      hostname === "staff" ||
       screenParam === "admin" ||
       screenParam === "staff" ||
       screenParam === "host"

@@ -95,7 +95,7 @@ tools\cloudflared.exe tunnel create rjc-school
 ```
 This output displays your unique Tunnel UUID:
 ```
-Tunnel credentials written to C:\Users\LaNcer\.cloudflared\<TUNNEL-UUID>.json.
+Tunnel credentials written to `%USERPROFILE%\.cloudflared\<TUNNEL-UUID>.json`.
 Created tunnel rjc-school with id <TUNNEL-UUID>
 ```
 
@@ -106,7 +106,7 @@ Create or edit `%USERPROFILE%\.cloudflared\config.yml` (replace `<TUNNEL-UUID>` 
 
 ```yaml
 tunnel: <TUNNEL-UUID>
-credentials-file: C:\Users\LaNcer\.cloudflared\<TUNNEL-UUID>.json
+credentials-file: C:\Users\<USERNAME>\.cloudflared\<TUNNEL-UUID>.json
 
 ingress:
   # Primary Parent / Student Document Portal

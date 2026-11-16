@@ -7224,7 +7224,11 @@
       loadConfig()
         .then(async () => {
           history.replaceState(null, "", location.pathname);
-          if (location.pathname === "/admin" || state.screenCaps?.isDedicatedStaffHost) {
+          if (
+            location.pathname === "/admin" ||
+            location.hostname.startsWith("admin.") ||
+            state.screenCaps?.isDedicatedStaffHost
+          ) {
             switchView("admin");
           } else {
             refreshFrontQr();
