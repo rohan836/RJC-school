@@ -194,6 +194,8 @@ function isLocalLanRequest(req) {
     host === "127.0.0.1" ||
     host === "[::1]" ||
     host === lanIp.toLowerCase() ||
+    host === "rjcschool" ||
+    host.endsWith(".local") ||
     interfaces.some((i) => i.address.toLowerCase() === host);
 
   if (!isLocalHostName) {
@@ -211,12 +213,18 @@ function isLocalLanRequest(req) {
 
 const local = (req) =>
   ["127.0.0.1", "::1", "::ffff:127.0.0.1"].includes(req.socket.remoteAddress);
-const canAccessLocalCounter = (req) =>
-  (local(req) &&
-    ["localhost", "127.0.0.1", "[::1]"].includes(
-      String(req.hostname || "").toLowerCase(),
-    )) ||
-  isHostedPreviewHost(req.hostname);
+const canAccessLocalCounter = (req) => {
+  const h = String(req.hostname || "").toLowerCase();
+  return (
+    (local(req) &&
+      (h === "localhost" ||
+        h === "127.0.0.1" ||
+        h === "[::1]" ||
+        h === "rjcschool" ||
+        h.endsWith(".local"))) ||
+    isHostedPreviewHost(req.hostname)
+  );
+};
 const tokens = new Map();
 const studentRefs = new Map();
 const STUDENT_REF_TTL = 15 * 60 * 1000;
@@ -292,6 +300,8 @@ function isKnownHost(host) {
     }
   } catch {}
   if (
+    h.endsWith(".local") ||
+    h === "rjcschool" ||
     /\.trycloudflare\.com$/i.test(h) ||
     /\.loca\.lt$/i.test(h) ||
     /\.run\.app$/i.test(h)
