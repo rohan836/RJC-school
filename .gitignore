@@ -12,6 +12,7 @@ backups/
 *.rjcbackup
 *.log
 admin-credentials.txt
+CREDENTIALS_AND_LINKS.html
 public-url
 cloudflared-tunnel.log
 tools/cloudflared.exe
